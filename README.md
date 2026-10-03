@@ -1,157 +1,144 @@
-# BoardGameBench · V1
+# BoardGameBench · V1.1
 
-可游玩、可训练、可复查的单人棋盘游戏实验平台。三个游戏共用 Python 规则引擎、
-Runner、源码绑定 checkpoint 和本地网页；每个游戏提供随机、启发式、有限搜索和
-真实训练的 masked PPO。包版本 **0.2.0**，保留 V0 风险采集及全部兼容测试。
+可游玩、可训练、可复查的单人棋盘游戏平台。三个游戏共用 Python 规则引擎、Runner、
+源码绑定 checkpoint 和本地网页。V1.1 对应包版本 **0.3.0**；不增加新游戏或自主 agent 框架。
 
-| 游戏 | 固定规则 | 规则版本 |
-| --- | --- | --- |
-| Micro Tiles | 3×3 三色、双候选、邻接与整行奖励 | micro_tiles_v1 |
-| Take It Easy! | 19 格、27 种牌、三个方向成线 | take_it_easy_standard_v1 |
-| Harmonies | 单人 A 面 23 格、基础 32 动物、120 枚有限资源 | harmonies_solo_a_v1 |
+| 游戏 | 固定规则 |
+| --- | --- |
+| Micro Tiles | 3×3 三色、双候选、邻接与整行奖励 |
+| Take It Easy! | 19 格、27 种牌、三个方向成线 |
+| Harmonies | 单人 A 面 23 格、基础 32 动物、120 枚有限资源 |
 
-V1 是预设方法与可信环境，不是自主开发算法的 agent；后者留到 V2。不需要 LLM、
-API key、账号系统或云部署。规则依据 [V1 交接规范](docs/v1_handoff/BoardBench_V1_Agent_Handoff/README.md)。
-实际结果、测试与限制见 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)。
-旧版用法保留在 [V0_README.md](docs/V0_README.md)。
+[实现、结果与验收报告](IMPLEMENTATION_STATUS.md) ·
+[V1 review](docs/BoardBench_V1_Review.md) ·
+[原始规则规范](docs/v1_handoff/BoardBench_V1_Agent_Handoff/README.md)
 
-## 安装
+## 安装与直接游玩
 
-Python 3.10+、Linux。引擎、启发式、搜索、Runner 和基础网页只用标准库：
+Python 3.10+、Linux。引擎、随机、启发式、搜索及基础网页只用标准库：
 
     python3 -m venv .venv
     .venv/bin/python -m pip install -e '.[dev]'
-    .venv/bin/python -m pytest -q
 
-RL 训练和已训练策略推理需要 PyTorch/NumPy。可创建独立环境：
+PPO、模仿学习及其推理需要 PyTorch/NumPy：
 
     python3 -m venv .venv-train
     .venv-train/bin/python -m pip install -r configs/requirements-train-tested.txt
     .venv-train/bin/python -m pip install -e '.[dev]'
 
-本次实测 Python 3.10.4、PyTorch 2.4.1+cu121、NumPy 1.26.4；训练用 RTX 4090，
-网页和统一评测用 CPU。工作区现有 .venv-train 通过 --system-site-packages
-只读复用既有 Torch/NumPy，项目与 pytest 装在独立 venv，未修改基础环境。
-运行时使用显式环境路径，避免悄悄切换 Python 或 CPU。
+本工作区已有 .venv-train，通过 --system-site-packages 只读复用已安装的
+PyTorch 2.4.1+cu121 / NumPy 1.26.4，没有修改基础环境。使用显式 Python 路径。
 
-## 直接玩已有策略
+在项目根目录运行：
 
-在项目根目录任选一条，不需要重新训练：
-
-    .venv-train/bin/python -m boardbench serve --config configs/micro_tiles_play.json
-    .venv-train/bin/python -m boardbench serve --config configs/take_it_easy_play.json
     .venv-train/bin/python -m boardbench serve --config configs/harmonies_play.json
 
-打开终端打印的 http://127.0.0.1:8765。serve 是 play 的别名。
-远程使用 SSH 端口转发；默认只监听 loopback。页面可以切换三个游戏。
+浏览器访问 http://127.0.0.1:8765；页面内切换三个游戏。
+服务只监听启动主机的 loopback。远程使用 VS Code Ports 或 SSH 将**这台主机**
+的 127.0.0.1:8765 转发到本地；转发端口被占用时可换本地端口，不能转发另一台训练节点。
 
-界面支持手动整局、策略单步/自动播放/暂停、提示采用或拒绝、中途接管并交还、
-精确存档恢复，以及同初始随机条件的挑战和双方回放。Harmonies 的拿牌/放动物
-可与资源放置交错；图案和分数来自引擎，不在前端重写规则。
+页面支持手动游玩、提示/拒绝、策略单步与自动接管、暂停、精确存档恢复、
+同初始随机条件挑战和双方回放。Harmonies 可在资源放置之间拿牌、放动物，
+完成卡释放槽位；存档保留卡片进度、棋盘动物和待放资源。
 
-- 策略目录是 outputs/v1/<game>/policies/。本地交付和 V1 审阅包内含实际权重、
-  配置、源码 checkpoint 和验证摘要。Git 源码仓库不默认提交实验产物；
-  单独克隆源码时，需要放入交付包的 outputs/v1/ 或按后述命令重新生成。
-- 缺少策略目录时，只显示“内置配置，未评测”的随机/启发式/搜索，不冒充 RL。
-- UI 按方法名和验证均分显示，不强行分成 easy/medium/hard。
-- 存档在 runs/ui_saves/；保存按钮返回 ID，重启后仍可恢复。
-  存档含精确隐藏供给，仅用于服务恢复，不进入策略观测。导出按钮保存带任务元数据的 JSONL。
-- 同种子不代表 Harmonies 每回合市场相同；取牌/弃牌选择影响揭示时机。
-  人类结束前，服务不返回 bot 终局或未来回放。
+默认读取 outputs/v11/<game>/policies/。完整交付包包含真实权重；Git 只发布源码，
+单独克隆后需放入交付包的 outputs/v11/ 或重新训练/导出。
+没有策略目录时显示“内置配置，未评测”的方法，不伪装成已训练模型。
+存档在 runs/ui_saves/；服务端私有供给不会进入策略观测。
 
-网页是无外部依赖的静态 HTML/CSS/JS，安装包直接包含同一份资源。构建副本：
+## V1.1 的方法与实验边界
 
-    .venv/bin/python scripts/build_frontend.py --out build/ui
+保留五类以内的方法：随机、启发式、预算搜索、PPO，以及 Micro/TIE 的**启发式模仿学习**。
 
-## 四类方法与数据边界
+- PPO 不使用教师动作。Micro/TIE 的共享动作评分网络使用公开的相同/冲突/空位计数、
+  线长度与当前牌数值；局部输入宽度 12/16，隐藏层 64。价值网络读取全局特征。
+  这些是人工设计的表示，因此必须与同表示的未训练网络比较。
+- Harmonies PPO 保留两层 128 的平坦 MLP。环境本身仍使用原来的有限数值接口和合法 mask；
+  神经策略另有严格版本化的 flat_mlp/action_mlp 元数据，验证/导出不猜测网络宽度。
+- 模仿学习用启发式生成软动作目标，训练状态由 80% 启发式/20% 随机动作采集。
+  推理仅调用真实网络权重，不调用教师。它是监督学习对照，不记为纯 RL 收益。
+- PPO 用完整局 Monte Carlo 优势，gamma=lambda=1；训练的 score-delta 奖励总和等于
+  缩放后的终局分。评测只用真实终局分。训练采样，评测/UI masked argmax。
+- 搜索每步重新规划，不会跨局自动学习。预算记录候选数、采样数、模拟步上限、
+  深度单位 atomic_action/turn 和叶估值。turn 是目标完整回合数，不保证预算足够；
+  验证日志记录实际达到目标的 rollout 数。
+- 搜索从公开剩余资源独立采样未来；观测不含真实 seed/RNG/供给顺序。接口面向可信代码，
+  不承诺对恶意 Python 策略隔离。
 
-随机方法在 Harmonies 中先均匀选合法动作类型，再均匀选该类型参数，没有暗藏策略偏好。
-启发式在 solvers/board.py：Micro 偏好邻接与成线潜力，Take It Easy! 偏好未破坏的
-高价值线，Harmonies 使用地形分、叠放潜力、动物分与栖地匹配。
-搜索在 Solver 内截取启发式排名候选，以独立未来采样和有限深度 rollout 比较；
-不裁剪引擎合法动作。最终搜索预算由验证集选择。
+实验计划在 configs/v11_plan.json：训练种子 811/812/813；
+验证 5000000..5000063，最终测试 6000000..6000127。
+每次训练至多 900 秒（在 batch 边界检查），Micro/TIE PPO 16384 局、
+Harmonies PPO 8192 局，模仿学习 1024 局。旧 V1 测试集只保留为历史参考。
+不得把多个测试局当作独立训练重复，也不得将不同测试集的均分直接当配对提升。
 
-PPO 使用两个 128 单元 tanh 层、策略头和价值头；三款游戏的动作空间为 18/19/4564。
-Harmonies 编码动作类型、资源、格子、动物实例和方向；动态 mask 保留所有合法后继，
-每个动物/锚点只去除等价方向。board_features_v1 向量长度依次为 46/109/626，可转 float32、
-无 NaN/None 输入，终局 mask 全零且不再采样。
+验证保留所有来源 run 和 checkpoint，逐 run 选择最佳进度；不只报告最好的训练种子。
+每个来源在评测前检查任务、规则、架构及 train 与主 validation/test 是否有交集。
+ID 由 run 内容摘要和 checkpoint 阶段组成，移动目录不改变身份，同名阶段不会静默丢失。
+选中的模型和对应未训练对照一起冻结，最后才在新测试集运行。
 
-引擎只在自然终局发完整真实分数。实测训练显式使用
-reward=(next_score_preview-current_score_preview)/reward_scale，gamma=lambda=1，
-按原子动作计算；总回报望远镜相消到缩放后的终局分。验证/测试只统计真实终局分。
-训练使用 PPO 随机采样，评测和网页使用同一网络的 masked argmax，不混入手写动作。
+## 复现实验
 
-真实环境、训练和搜索随机流分开。普通观测和 Solver Context 不包含环境 seed、
-RNG 或未揭示顺序；Runner 日志保留复现种子。fork(sim_seed) 从公开剩余资源重采未来，
-不是精确存档的复制。这是可信代码的接口契约，不是恶意代码安全沙箱。
+以下输出路径必须不存在。已有交付包时无需重复生成；重跑要使用新目录或干净源码副本，
+不要覆盖旧实验。训练前确认 GPU 无其他进程；启动器不会停止或驱逐既有任务。
 
-## 训练 → 验证选择 → 冻结测试
+    .venv/bin/python scripts/prepare_v11.py
+    bash scripts/launch_v11_job.sh 1 micro-ppo-811 .venv-train/bin/python -u -m boardbench.training --config outputs/v11/experiment_plan/micro_tiles_ppo_811.json --out outputs/v11/micro_tiles/ppo_811
 
-每游戏一个训练种子 739；训练环境种子从 100000 起，验证 200000..200031，
-测试 300000..300127，严格不重叠。Pilot A 后仅做一次 4×预算扩大，保留旧结果。
-仍是单训练种子实验，不能用多个测试局代替训练稳定性测量。
+配置矩阵包含全部三个种子的任务。模仿学习使用 -m boardbench.imitation。
+scripts/run_v11_queue.py 可在一张已检查空闲的卡上依次执行矩阵中的独立任务。
+命名 tmux 和 tee 日志保存在 logs/v11/；多卡用于独立任务，不是分布式训练。
 
-以下以 Micro 为例，其余任务替换名称。输出目录必须不存在，重跑请换后缀。
-训练前检查所选卡无人占用；明确要求 CUDA，不会自动降级 CPU。
+通用验证/测试入口（将路径替换为实际新 run）：
 
-    CUDA_VISIBLE_DEVICES=1 .venv-train/bin/python -m boardbench.training --config configs/micro_tiles_ppo_train_extended.json --out outputs/v1/micro_tiles/train_new
-    .venv-train/bin/python -m boardbench.benchmark validate --task micro_tiles --training outputs/v1/micro_tiles/train_new --out outputs/v1/micro_tiles/validation_new
-    .venv-train/bin/python -m boardbench.benchmark test --selection outputs/v1/micro_tiles/validation_new/selection.json --policies outputs/v1/micro_tiles/policies_new --out outputs/v1/micro_tiles/test_new
+    .venv-train/bin/python -m boardbench.benchmark validate --task micro_tiles --training TRAIN_RUN --extra-training EXTRA_RUN --search-config configs/v11_plan.json --retain-runs --workers 4 --out VALIDATION_OUT
+    .venv-train/bin/python -m boardbench.benchmark test --selection VALIDATION_OUT/selection.json --policies POLICIES_OUT --workers 4 --shard-size 32 --out TEST_OUT
 
-验证保留未训练和两个训练进度，选择一个真实训练 checkpoint 和一个搜索预算；
---extra-training <old_run> 可把更早候选纳入验证选择。测试比较四类方法与同网络
-未训练对照；选择文件提前冻结，不依据测试结果回头挑选。
-导出的策略通过已有 boardbench evaluate，每局重新加载同一冻结 checkpoint。
+--extra-training 可重复。并行验证有源码一致性检查；最终评测要求运行源码与冻结验证一致。
+分片测试仍调用同一个 Runner，每局独立恢复策略；保留各 shard 的原始 episodes/events，
+不把改写拼接的日志冒充原始日志。aggregation.json 明确列出分片和种子覆盖。
+本轮导出后运行 scripts/label_v11_policies.py，将页面标签缩短为方法与种子，避免手机
+下拉框被长标签撑宽；只改显示 label，完整局数、来源和权重摘要保留在 manifest 中。
 
-本次产物按游戏保存在 outputs/v1/<game>/：
+产物布局：
 
-| 子目录 | 内容 |
+| 路径 | 内容 |
 | --- | --- |
-| train_pilot_a / train_pilot_b | 权重、配置、划分、训练曲线、训练时源码 |
-| validation_pilot_b | 验证候选与冻结 selection.json |
-| policies/<policy_id> | manifest/config/validation 和完整可迁移 checkpoint |
-| test_pilot_b | 128 局/方法的 Runner 日志、结果与成本 |
+| outputs/v11/experiment_plan/ | 实验计划、摘要及每个 run 的配置 |
+| outputs/v11/micro_diagnostic_a/ | 固定 8 局诊断、失败/改善曲线及采样/argmax 对比 |
+| outputs/v11/<game>/ppo_* / imitation_* | 配置、数据划分、全部权重与训练时源码 |
+| outputs/v11/<game>/validation/ | 每个候选逐局结果与冻结选择 |
+| outputs/v11/<game>/policies/ | 来源记录、配置、模型、源码绑定 checkpoint |
+| outputs/v11/<game>/test/ | 新测试集的原始 Runner 分片与统计 |
+| outputs/v11/report.json | 三训练种子汇总、配对差、分项得分与全部训练成本 |
 
-命名 tmux 作业输出在 logs/v1/。scripts/launch_v1_pilot.sh、
-launch_v1_validation.sh、launch_v1_test.sh 在已选主机上运行，使用 Bash + tee，
-不覆盖输出或停止既有任务。训练启动器逐卡检查进程/显存并执行 CUDA 小测试。
-多个任务使用多张单卡并行，不是分布式训练。
+scripts/report_v11.py 从原始日志重算报告。训练种子间标准差和固定模型的环境种子配对区间
+分开报告；配对区间采用均值 ± 1.96 × 样本标准差 / sqrt(n)。
+Harmonies 额外报告地形、动物分、动物放置和完成卡数。纯 solver 时间、Runner 单局
+wall time、模型加载及前期训练成本不混为一项；并行度明确记录，不宣称整体加速。
 
-## Runner、存档和复现
-
-    .venv/bin/python -m boardbench run --config configs/harmonies_search.json --out runs/harmonies_new
-    .venv-train/bin/python -m boardbench evaluate --checkpoint outputs/v1/harmonies/policies/rl_trained_002048/export/checkpoints/ep_000000 --config configs/harmonies_eval.json --out runs/harmonies_eval_new
-    .venv/bin/python -m boardbench replay --trajectory /path/to/events.jsonl
-
-新任务显式采用 256 原子动作上限，避免沿用 V0 的 16 步而错误截断。
-非法动作不改局面或 RNG；未完成局保留 null 分数，单列失败/截断/完成率。
-
-Solver checkpoint 跨新局恢复策略，游戏存档精确恢复半局，两者不同。
-系统 checkpoint 严格绑定源码；代码改变后，复制 checkpoint 的 source/ 到独立位置，
-再 pip install -e COPY。不要直接可编辑安装原 checkpoint，也不绕过哈希校验。
-加载时 solver 文件和 workspace 均进入私有副本，父产物不被缓存污染。
-PPO 产物支持推理恢复；当前训练入口是新训练，不提供优化器级断点续训命令。
-
-## 验收与边界
+## 验收、恢复与历史版本
 
     .venv-train/bin/python -m pytest -q
-    .venv/bin/python -m pip install -e '.[browser]'
-    PLAYWRIGHT_BROWSERS_PATH=.browser-cache .venv/bin/python -m playwright install chromium
-    PLAYWRIGHT_BROWSERS_PATH=.browser-cache .venv/bin/python scripts/browser_v1_check.py --server-python .venv-train/bin/python --out runs/v1_browser_new
+    PLAYWRIGHT_BROWSERS_PATH=.browser-cache .venv/bin/python scripts/browser_v11_animals.py --out runs/animal_browser_new
+    PLAYWRIGHT_BROWSERS_PATH=.browser-cache .venv/bin/python scripts/browser_v1_check.py --server-python .venv-train/bin/python --out runs/browser_new
+    .venv-train/bin/python scripts/verify_v11_portable.py --artifacts outputs/v11 --out runs/portable_new
 
-测试覆盖独立计分样例、供给守恒、全部叠放、32 动物 × 6 方向、末袋见证、
-中途恢复、不可见未来、RL 数值/mask、一致转移、真实更新、新进程加载、迁移导出与网页。
-Harmonies 的“不足九枚不建立部分市场”是交接包项目裁定，不宣称官方 FAQ。
-动物数据的第三方来源与核查范围保留在 JSON/handoff；网页使用程序化卡面，没有复制外部美术。
+浏览器工具需可选 browser 依赖和 Chromium。动物定向测试用库存守恒的受控初始供给，
+所有后续动作都经过真实引擎合法检查；通过实际按钮操作验证，不新增后门 API。
+迁移检查复制源码和 checkpoint，在新 venv、新目录、隔离 Python 中重放全部训练策略，
+比较动作和完整观测，核对父产物与副本未变。复用已安装数值依赖，不声称空系统复现。
 
-工程完成不等于 RL 胜过启发式，不宣称 SOTA 或普遍难度分层。
-决策延迟只计 Solver 调用，加载、浏览器网络和绘制另列。
-单机 pilot 不能证明跨硬件稳定延迟或多个训练种子的统计结论。
+标准 wheel 构建需要 pyproject 声明的 setuptools，使用隔离构建；
+无需 Torch 即可运行引擎和非神经策略。完整源码绑定 checkpoint 创建/恢复使用 editable 安装。
 
-本地完整交付包可用以下命令重新打包（不覆盖已存在的文件）：
+游戏存档与 Solver checkpoint 不同。当前训练入口仍是新训练，不提供优化器级续训；
+已有 checkpoint 支持推理恢复。不要绕过源码或内容哈希检查。
+V1 老策略须用各自的源码副本或旧交付包运行，不能直接塞入新版策略目录。
 
-    .venv/bin/python scripts/package_v1.py --out deliverables/boardbench-v1-review-new.zip
+V1 已冻结的源码、权重、原始记录和 ZIP 保持不变：
+[V1 用法](docs/V1_README.md)、[V0 用法](docs/V0_README.md)。
+动物牌数据和末袋裁定沿用交接包，没有改写规则来提高成绩。无 SOTA 或普遍难度分级声明。
 
-包内包括源码、实际权重、训练/验证/测试原始记录、浏览器截图和逐文件 SHA-256 清单。
-迁移恢复可运行 scripts/verify_v1_portable.py；该验证复用已安装数值依赖，但在临时 venv
-使用复制的 checkpoint 源码、新工作目录和隔离 Python，不依赖原工作区的代码或权重路径。
+完整 V1.1 包包含真实权重、原始实验记录、浏览器截图和逐文件 SHA-256 清单：
+
+    .venv/bin/python scripts/package_v11.py --out deliverables/boardbench-v1.1-review-new.zip

@@ -4,5 +4,6 @@
     "version": "harmonies_solo_a_v1"
   },
   "seed": 20261003,
-  "policy_directory": "outputs/v1/harmonies/policies"
+  "policy_directory": "outputs/v11/harmonies/policies",
+  "policy_root": "outputs/v11"
 }

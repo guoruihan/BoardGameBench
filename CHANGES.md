@@ -1,5 +1,22 @@
 # Engineering changes
 
+## 2026-10-03 — V1.1 review fixes and stronger baselines
+
+- Reject cross-run train/holdout contamination before candidate evaluation; retain
+  run-qualified identities and full provenance. Load each candidate's actual
+  hidden width, network and encoding metadata rather than assuming 128.
+- Add action-feature PPO and explicitly supervised heuristic imitation for Micro
+  and TIE; retain Harmonies flat PPO. Add fixed-set diagnostic and three-seed plans.
+- Add turn-aware, hard-budget search and animal-potential leaf evaluation, public
+  information safeguards, component metrics and deterministic Runner seed shards.
+- Verify 132 tests, 4992 completed frozen test games, 39 policy hashes and 15
+  trained-policy isolated restores. Preserve V1 source-bound models and archive.
+- Add real animal placement/completion/save browser scenario. Full three-game
+  browser regression passed after compacting display-only policy labels; preserve
+  the initial overflow screenshots and all substantive model metadata.
+- Publish package 0.3.0 source and reproducible launch/report/audit/package scripts;
+  generated training models, raw logs and screenshots remain in the local bundle.
+
 ## 2026-10-03 — ZIP restore regression
 
 - Independent restoration from the first V1 ZIP exposed missing empty workspace

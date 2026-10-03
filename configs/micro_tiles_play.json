@@ -4,5 +4,6 @@
     "version": "micro_tiles_v1"
   },
   "seed": 20261003,
-  "policy_directory": "outputs/v1/micro_tiles/policies"
+  "policy_directory": "outputs/v11/micro_tiles/policies",
+  "policy_root": "outputs/v11"
 }

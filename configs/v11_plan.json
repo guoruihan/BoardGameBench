@@ -1,0 +1,26 @@
+{
+  "version": "v1.1",
+  "training_seeds": [811, 812, 813],
+  "validation_start": 5000000,
+  "validation_count": 64,
+  "test_start": 6000000,
+  "test_count": 128,
+  "per_training_run_wall_seconds": 900,
+  "selection": "validation only; each trained seed evaluated, not only the best seed",
+  "games": {
+    "micro_tiles": {"train_start": 4200000, "ppo_episodes": 16384, "ppo_network": "action_mlp", "hidden": 64, "imitation_episodes": 1024},
+    "take_it_easy": {"train_start": 4300000, "ppo_episodes": 16384, "ppo_network": "action_mlp", "hidden": 64, "imitation_episodes": 1024},
+    "harmonies": {"train_start": 4400000, "ppo_episodes": 8192, "ppo_network": "flat_mlp", "hidden": 128, "imitation_episodes": 0}
+  },
+  "search_candidates": [
+    {"id": "search_v1_24", "method": "search", "params": {"method": "search", "width": 4, "rollouts": 2, "depth": 3, "depth_unit": "atomic_action", "max_simulation_steps": 24, "leaf": "score"}},
+    {"id": "search_atomic_128", "method": "search", "params": {"method": "search", "width": 4, "rollouts": 4, "depth": 8, "depth_unit": "atomic_action", "max_simulation_steps": 128, "leaf": "score"}},
+    {"id": "search_turn_384", "method": "search", "params": {"method": "search", "width": 6, "rollouts": 4, "depth": 2, "depth_unit": "turn", "max_simulation_steps": 384, "leaf": "potential"}}
+  ],
+  "boundaries": [
+    "No V1 test seed used for V1.1 tuning",
+    "PPO is pure on-policy learning, imitation is an explicitly supervised separate control",
+    "No new game/rules/agent framework",
+    "Budgets are upper limits; report wall-budget stops and negative results"
+  ]
+}

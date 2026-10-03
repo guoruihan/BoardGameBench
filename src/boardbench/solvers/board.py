@@ -97,13 +97,17 @@ def ranked_actions(obs):
 
 
 class BoardSolver(Solver):
-    def __init__(self, seed, method="random", width=4, rollouts=2, depth=4, max_simulation_steps=128):
+    def __init__(self, seed, method="random", width=4, rollouts=2, depth=4, max_simulation_steps=128,
+                 depth_unit='atomic_action', leaf='score'):
         self.rng = random.Random(seed)
         if method not in ("random", "heuristic", "search"):
             raise ValueError("unknown board method")
         self.method = method
         self.width, self.rollouts, self.depth = int(width), int(rollouts), int(depth)
         self.max_simulation_steps = int(max_simulation_steps)
+        if depth_unit not in ('atomic_action','turn') or leaf not in ('score','potential'):
+            raise ValueError('invalid search depth unit or leaf evaluator')
+        self.depth_unit, self.leaf = depth_unit, leaf
         if min(self.width, self.rollouts, self.depth, self.max_simulation_steps) < 1:
             raise ValueError("search budgets must be positive")
         self.last_search = {"simulation_steps": 0, "rollouts": 0}
@@ -122,27 +126,31 @@ class BoardSolver(Solver):
             return ranked[0][1]
         if context.reference_simulator is None:
             raise ValueError("search requires reference_simulator capability")
-        used = completed = 0
+        used = completed = horizon_completed = 0
         choices = []
         # Common random numbers per candidate; budget fixed independently of score.
         seeds = [self.rng.getrandbits(63) for _ in range(self.rollouts)]
         candidate_count = min(self.width, len(ranked), self.max_simulation_steps // self.rollouts)
         if not candidate_count:
             raise ValueError("search budget smaller than rollout count")
-        horizon = min(self.depth, self.max_simulation_steps // (candidate_count*self.rollouts))
+        branch_cap = self.max_simulation_steps // (candidate_count*self.rollouts)
+        horizon = min(self.depth, branch_cap) if self.depth_unit=='atomic_action' else branch_cap
         for _, action in ranked[:candidate_count]:
             returns = []
             for seed in seeds:
                 branch = context.reference_simulator.fork(seed)
                 current_action = action
+                target_turn = observation['turn_index']+self.depth
                 for index in range(horizon):
                     result = branch.step(current_action)
                     used += 1
-                    if result.terminated:
+                    if result.terminated or (self.depth_unit=='turn' and result.observation['turn_index']>=target_turn):
                         break
                     if index+1 < horizon:
                         current_action = ranked_actions(result.observation)[0][1]
                 obs = result.observation
+                horizon_completed += (obs['terminated'] or (index+1>=self.depth if self.depth_unit=='atomic_action'
+                                                            else obs['turn_index']>=target_turn))
                 if obs["terminated"]:
                     value = obs["score"]
                 elif obs["task_id"] == "micro_tiles":
@@ -151,16 +159,23 @@ class BoardSolver(Solver):
                     value = tie_value(obs["board"])
                 else:
                     value = obs["score_breakdown"]["total"]
+                    if self.leaf=='potential':
+                        for card in obs['active_cards']:
+                            track=CARDS[card['card_id']]['score_by_placed_count']
+                            marginal=track[card['placed_count']+1]-track[card['placed_count']]
+                            value += .5*marginal*habitat_potential(obs['board'],card['card_id'])
                 returns.append(value)
                 completed += 1
             choices.append((sum(returns)/len(returns), action))
-        self.last_search = {"simulation_steps": used, "rollouts": completed}
+        self.last_search = {"simulation_steps": used, "rollouts": completed,
+                            'horizon_completed_rollouts':horizon_completed,'depth_unit':self.depth_unit}
         return max(choices, key=lambda x: x[0])[1]
 
     def save(self, directory):
         Path(directory, "board_solver.json").write_text(json.dumps({"method": self.method,
             "rng": self.rng.getstate(), "width": self.width, "rollouts": self.rollouts,
-            "depth": self.depth, "max_simulation_steps": self.max_simulation_steps}))
+            "depth": self.depth, "max_simulation_steps": self.max_simulation_steps,
+            'depth_unit':self.depth_unit,'leaf':self.leaf}))
 
     def load(self, directory):
         state = json.loads(Path(directory, "board_solver.json").read_text())

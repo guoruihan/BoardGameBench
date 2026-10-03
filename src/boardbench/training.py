@@ -13,6 +13,7 @@ from boardbench.artifacts.store import digest, read_json, source_files, source_i
 from boardbench.environments import TASKS
 from boardbench.environments.numerical import encode, decode
 from boardbench.solvers.neural import NeuralSolver
+from boardbench.solvers.action_features import policy_features
 
 
 def parameter_hash(model):
@@ -39,7 +40,8 @@ def train(config, output):
     torch.set_num_threads(threads)
     torch.manual_seed(seed)
     np_rng = np.random.default_rng(seed)
-    solver = NeuralSolver(seed, task, hidden=config.get("hidden", 128), device=device)
+    solver = NeuralSolver(seed, task, hidden=config.get("hidden", 128), device=device,
+                          network=config.get('network', 'flat_mlp'))
     optimizer = torch.optim.Adam(solver.model.parameters(), lr=config.get("learning_rate", .0003))
     episodes, batch_episodes = config["episodes"], config.get("batch_episodes", 32)
     if episodes < 2*batch_episodes or episodes % batch_episodes:
@@ -47,7 +49,10 @@ def train(config, output):
     env_seed_start = config.get("train_env_seed_start", 100000)
     validation = config.get("validation_seeds", list(range(200000, 200032)))
     test = config.get("test_seeds", list(range(300000, 300128)))
-    training_seeds = list(range(env_seed_start, env_seed_start+episodes))
+    seed_count = config.get('train_seed_count', episodes)
+    if type(seed_count) is not int or not 1 <= seed_count <= episodes:
+        raise ValueError('train_seed_count must be between one and episodes')
+    training_seeds = list(range(env_seed_start, env_seed_start+seed_count))
     if set(training_seeds) & set(validation) or set(training_seeds) & set(test) or set(validation) & set(test):
         raise ValueError("train/validation/test environment seed overlap")
     write_json(out / "splits.json", {"train": training_seeds, "validation": validation, "test": test})
@@ -74,17 +79,20 @@ def train(config, output):
         write_json(out / "checkpoints.json", saved)
     save("untrained")
     midpoint = max(batch_episodes, (episodes//2//batch_episodes)*batch_episodes)
+    interval = config.get('checkpoint_every', midpoint)
+    if type(interval) is not int or interval < batch_episodes or interval % batch_episodes:
+        raise ValueError('checkpoint_every must be a positive batch multiple')
     with (out / "training.jsonl").open("x") as log:
         while completed < episodes and time.monotonic()-start < config.get("max_wall_seconds", 1800):
             rows, scores = [], []
             solver.model.eval()
             for _ in range(batch_episodes):
                 env = TASKS[task].factory()
-                obs, _ = env.reset(env_seed_start+completed)
+                obs, _ = env.reset(training_seeds[completed % len(training_seeds)])
                 trajectory = []
                 while not obs["terminated"]:
                     data = encode(obs)
-                    x = np.asarray(data["features"], dtype=np.float32)
+                    x = np.asarray(policy_features(obs, solver.network), dtype=np.float32)
                     mask = np.asarray(data["action_mask"], dtype=bool)
                     with torch.no_grad():
                         logits, value = solver.model(torch.as_tensor(x, device=device)[None],
@@ -140,7 +148,7 @@ def train(config, output):
             log.write(json.dumps(record)+"\n")
             log.flush()
             print(json.dumps(record), flush=True)
-            if completed == midpoint or completed == episodes:
+            if completed % interval == 0 or completed == episodes:
                 save(f"trained_{completed:06d}")
         if saved[-1]["episodes"] != completed:
             save(f"trained_{completed:06d}")

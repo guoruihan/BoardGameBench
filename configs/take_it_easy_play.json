@@ -4,5 +4,6 @@
     "version": "take_it_easy_standard_v1"
   },
   "seed": 20261003,
-  "policy_directory": "outputs/v1/take_it_easy/policies"
+  "policy_directory": "outputs/v11/take_it_easy/policies",
+  "policy_root": "outputs/v11"
 }
