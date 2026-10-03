@@ -1,0 +1,535 @@
+{
+  "purpose": "Reachability witness only, not a claim about frequency or the official partial-refill ruling.",
+  "initial_bag": {
+    "gray": 23,
+    "blue": 23,
+    "brown": 21,
+    "green": 19,
+    "yellow": 19,
+    "red": 15
+  },
+  "draw_order": [
+    "gray",
+    "gray",
+    "gray",
+    "gray",
+    "gray",
+    "gray",
+    "gray",
+    "gray",
+    "blue",
+    "gray",
+    "gray",
+    "gray",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "gray",
+    "gray",
+    "gray",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "gray",
+    "gray",
+    "gray",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "gray",
+    "gray",
+    "gray",
+    "blue",
+    "brown",
+    "brown",
+    "brown",
+    "brown",
+    "brown",
+    "gray",
+    "gray",
+    "gray",
+    "brown",
+    "brown",
+    "green",
+    "green",
+    "green",
+    "green",
+    "brown",
+    "brown",
+    "green",
+    "green",
+    "green",
+    "green",
+    "green",
+    "green",
+    "green",
+    "brown",
+    "brown",
+    "green",
+    "green",
+    "green",
+    "yellow",
+    "yellow",
+    "yellow",
+    "yellow",
+    "brown",
+    "brown",
+    "green",
+    "yellow",
+    "yellow",
+    "yellow",
+    "yellow",
+    "yellow",
+    "yellow",
+    "brown",
+    "brown",
+    "green",
+    "yellow",
+    "yellow",
+    "yellow",
+    "yellow",
+    "yellow",
+    "yellow",
+    "brown",
+    "brown",
+    "green",
+    "yellow",
+    "yellow",
+    "yellow",
+    "red",
+    "red",
+    "red",
+    "brown",
+    "brown",
+    "green",
+    "red",
+    "red",
+    "red",
+    "red",
+    "red",
+    "red",
+    "brown",
+    "brown",
+    "green",
+    "red",
+    "red",
+    "red",
+    "red",
+    "red",
+    "red",
+    "blue",
+    "blue",
+    "blue"
+  ],
+  "turns": [
+    {
+      "turn": 1,
+      "supply_bundles": [
+        [
+          "gray",
+          "gray",
+          "gray"
+        ],
+        [
+          "gray",
+          "gray",
+          "gray"
+        ],
+        [
+          "gray",
+          "gray",
+          "blue"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 0,
+      "stack_bottom_to_top": [
+        "gray",
+        "gray",
+        "gray"
+      ],
+      "occupied_cells": 1,
+      "empty_cells": 22,
+      "tokens_in_bag_after_round_supply": 111
+    },
+    {
+      "turn": 2,
+      "supply_bundles": [
+        [
+          "gray",
+          "gray",
+          "gray"
+        ],
+        [
+          "blue",
+          "blue",
+          "blue"
+        ],
+        [
+          "blue",
+          "blue",
+          "blue"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 1,
+      "stack_bottom_to_top": [
+        "gray",
+        "gray",
+        "gray"
+      ],
+      "occupied_cells": 2,
+      "empty_cells": 21,
+      "tokens_in_bag_after_round_supply": 102
+    },
+    {
+      "turn": 3,
+      "supply_bundles": [
+        [
+          "gray",
+          "gray",
+          "gray"
+        ],
+        [
+          "blue",
+          "blue",
+          "blue"
+        ],
+        [
+          "blue",
+          "blue",
+          "blue"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 2,
+      "stack_bottom_to_top": [
+        "gray",
+        "gray",
+        "gray"
+      ],
+      "occupied_cells": 3,
+      "empty_cells": 20,
+      "tokens_in_bag_after_round_supply": 93
+    },
+    {
+      "turn": 4,
+      "supply_bundles": [
+        [
+          "gray",
+          "gray",
+          "gray"
+        ],
+        [
+          "blue",
+          "blue",
+          "blue"
+        ],
+        [
+          "blue",
+          "blue",
+          "blue"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 3,
+      "stack_bottom_to_top": [
+        "gray",
+        "gray",
+        "gray"
+      ],
+      "occupied_cells": 4,
+      "empty_cells": 19,
+      "tokens_in_bag_after_round_supply": 84
+    },
+    {
+      "turn": 5,
+      "supply_bundles": [
+        [
+          "gray",
+          "gray",
+          "gray"
+        ],
+        [
+          "blue",
+          "brown",
+          "brown"
+        ],
+        [
+          "brown",
+          "brown",
+          "brown"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 4,
+      "stack_bottom_to_top": [
+        "gray",
+        "gray",
+        "gray"
+      ],
+      "occupied_cells": 5,
+      "empty_cells": 18,
+      "tokens_in_bag_after_round_supply": 75
+    },
+    {
+      "turn": 6,
+      "supply_bundles": [
+        [
+          "gray",
+          "gray",
+          "gray"
+        ],
+        [
+          "brown",
+          "brown",
+          "green"
+        ],
+        [
+          "green",
+          "green",
+          "green"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 5,
+      "stack_bottom_to_top": [
+        "gray",
+        "gray",
+        "gray"
+      ],
+      "occupied_cells": 6,
+      "empty_cells": 17,
+      "tokens_in_bag_after_round_supply": 66
+    },
+    {
+      "turn": 7,
+      "supply_bundles": [
+        [
+          "brown",
+          "brown",
+          "green"
+        ],
+        [
+          "green",
+          "green",
+          "green"
+        ],
+        [
+          "green",
+          "green",
+          "green"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 6,
+      "stack_bottom_to_top": [
+        "brown",
+        "brown",
+        "green"
+      ],
+      "occupied_cells": 7,
+      "empty_cells": 16,
+      "tokens_in_bag_after_round_supply": 57
+    },
+    {
+      "turn": 8,
+      "supply_bundles": [
+        [
+          "brown",
+          "brown",
+          "green"
+        ],
+        [
+          "green",
+          "green",
+          "yellow"
+        ],
+        [
+          "yellow",
+          "yellow",
+          "yellow"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 7,
+      "stack_bottom_to_top": [
+        "brown",
+        "brown",
+        "green"
+      ],
+      "occupied_cells": 8,
+      "empty_cells": 15,
+      "tokens_in_bag_after_round_supply": 48
+    },
+    {
+      "turn": 9,
+      "supply_bundles": [
+        [
+          "brown",
+          "brown",
+          "green"
+        ],
+        [
+          "yellow",
+          "yellow",
+          "yellow"
+        ],
+        [
+          "yellow",
+          "yellow",
+          "yellow"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 8,
+      "stack_bottom_to_top": [
+        "brown",
+        "brown",
+        "green"
+      ],
+      "occupied_cells": 9,
+      "empty_cells": 14,
+      "tokens_in_bag_after_round_supply": 39
+    },
+    {
+      "turn": 10,
+      "supply_bundles": [
+        [
+          "brown",
+          "brown",
+          "green"
+        ],
+        [
+          "yellow",
+          "yellow",
+          "yellow"
+        ],
+        [
+          "yellow",
+          "yellow",
+          "yellow"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 9,
+      "stack_bottom_to_top": [
+        "brown",
+        "brown",
+        "green"
+      ],
+      "occupied_cells": 10,
+      "empty_cells": 13,
+      "tokens_in_bag_after_round_supply": 30
+    },
+    {
+      "turn": 11,
+      "supply_bundles": [
+        [
+          "brown",
+          "brown",
+          "green"
+        ],
+        [
+          "yellow",
+          "yellow",
+          "yellow"
+        ],
+        [
+          "red",
+          "red",
+          "red"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 10,
+      "stack_bottom_to_top": [
+        "brown",
+        "brown",
+        "green"
+      ],
+      "occupied_cells": 11,
+      "empty_cells": 12,
+      "tokens_in_bag_after_round_supply": 21
+    },
+    {
+      "turn": 12,
+      "supply_bundles": [
+        [
+          "brown",
+          "brown",
+          "green"
+        ],
+        [
+          "red",
+          "red",
+          "red"
+        ],
+        [
+          "red",
+          "red",
+          "red"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 11,
+      "stack_bottom_to_top": [
+        "brown",
+        "brown",
+        "green"
+      ],
+      "occupied_cells": 12,
+      "empty_cells": 11,
+      "tokens_in_bag_after_round_supply": 12
+    },
+    {
+      "turn": 13,
+      "supply_bundles": [
+        [
+          "brown",
+          "brown",
+          "green"
+        ],
+        [
+          "red",
+          "red",
+          "red"
+        ],
+        [
+          "red",
+          "red",
+          "red"
+        ]
+      ],
+      "chosen_bundle": 0,
+      "place_in_new_cell": 12,
+      "stack_bottom_to_top": [
+        "brown",
+        "brown",
+        "green"
+      ],
+      "occupied_cells": 13,
+      "empty_cells": 10,
+      "tokens_in_bag_after_round_supply": 3
+    }
+  ],
+  "final": {
+    "board_tokens": 39,
+    "occupied_cells": 13,
+    "empty_cells": 10,
+    "discarded_tokens": 78,
+    "bag_tokens": 3,
+    "bag_composition": {
+      "blue": 3
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "task": {
+    "id": "harmonies",
+    "version": "harmonies_solo_a_v1"
+  },
+  "seed": 20261003,
+  "policy_directory": "outputs/v1/harmonies/policies"
+}

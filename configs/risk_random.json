@@ -1,0 +1,6 @@
+{
+  "solver": {"id": "random"},
+  "episodes": 6,
+  "seed": 123,
+  "model": {"provider": "mock", "max_calls": 0}
+}

@@ -1,0 +1,12 @@
+{
+  "task": {"id": "risk_collect", "version": "1"},
+  "solver": {"id": "collaboration_demo", "params": {"update_every": 2}},
+  "mode": "adaptation",
+  "allow_learning": true,
+  "episodes": 6,
+  "seed": 123,
+  "capabilities": {"reference_simulator": false},
+  "limits": {"max_action_requests": 100, "max_actions_per_episode": 16, "max_wall_seconds": 60},
+  "model": {"provider": "mock", "max_calls": 1},
+  "checkpoint": {"every_episodes": 2}
+}

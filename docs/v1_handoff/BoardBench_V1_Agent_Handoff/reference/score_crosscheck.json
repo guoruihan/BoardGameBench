@@ -1,0 +1,490 @@
+{
+  "checks": {
+    "animal_count": 32,
+    "all_scores_match_independent_catalog": true,
+    "total_cube_slots": 96
+  },
+  "second_source_commit": "47c5b7032e5b6404d6d7a2ed9c5c45a76ba5f076",
+  "cards": [
+    {
+      "source_id": 1,
+      "name": "Alligator",
+      "points": [
+        4,
+        9,
+        15
+      ],
+      "second_source_points": [
+        4,
+        9,
+        15
+      ],
+      "match": true
+    },
+    {
+      "source_id": 2,
+      "name": "Stingray",
+      "points": [
+        4,
+        10,
+        16
+      ],
+      "second_source_points": [
+        4,
+        10,
+        16
+      ],
+      "match": true
+    },
+    {
+      "source_id": 3,
+      "name": "Fish",
+      "points": [
+        3,
+        6,
+        10,
+        16
+      ],
+      "second_source_points": [
+        3,
+        6,
+        10,
+        16
+      ],
+      "match": true
+    },
+    {
+      "source_id": 4,
+      "name": "Otter",
+      "points": [
+        5,
+        10,
+        16
+      ],
+      "second_source_points": [
+        5,
+        10,
+        16
+      ],
+      "match": true
+    },
+    {
+      "source_id": 5,
+      "name": "Frog",
+      "points": [
+        2,
+        4,
+        6,
+        10,
+        15
+      ],
+      "second_source_points": [
+        2,
+        4,
+        6,
+        10,
+        15
+      ],
+      "match": true
+    },
+    {
+      "source_id": 6,
+      "name": "Duck",
+      "points": [
+        2,
+        4,
+        8,
+        13
+      ],
+      "second_source_points": [
+        2,
+        4,
+        8,
+        13
+      ],
+      "match": true
+    },
+    {
+      "source_id": 7,
+      "name": "Flamingo",
+      "points": [
+        4,
+        10,
+        16
+      ],
+      "second_source_points": [
+        4,
+        10,
+        16
+      ],
+      "match": true
+    },
+    {
+      "source_id": 8,
+      "name": "Gecko",
+      "points": [
+        5,
+        10,
+        16
+      ],
+      "second_source_points": [
+        5,
+        10,
+        16
+      ],
+      "match": true
+    },
+    {
+      "source_id": 9,
+      "name": "Mouse",
+      "points": [
+        5,
+        10,
+        17
+      ],
+      "second_source_points": [
+        5,
+        10,
+        17
+      ],
+      "match": true
+    },
+    {
+      "source_id": 10,
+      "name": "Peacock",
+      "points": [
+        5,
+        10,
+        17
+      ],
+      "second_source_points": [
+        5,
+        10,
+        17
+      ],
+      "match": true
+    },
+    {
+      "source_id": 11,
+      "name": "Squirrel",
+      "points": [
+        4,
+        9,
+        15
+      ],
+      "second_source_points": [
+        4,
+        9,
+        15
+      ],
+      "match": true
+    },
+    {
+      "source_id": 12,
+      "name": "Hedgehog",
+      "points": [
+        5,
+        12
+      ],
+      "second_source_points": [
+        5,
+        12
+      ],
+      "match": true
+    },
+    {
+      "source_id": 13,
+      "name": "Bee",
+      "points": [
+        8,
+        18
+      ],
+      "second_source_points": [
+        8,
+        18
+      ],
+      "match": true
+    },
+    {
+      "source_id": 14,
+      "name": "Bear",
+      "points": [
+        5,
+        11
+      ],
+      "second_source_points": [
+        5,
+        11
+      ],
+      "match": true
+    },
+    {
+      "source_id": 15,
+      "name": "Rabbit",
+      "points": [
+        5,
+        10,
+        17
+      ],
+      "second_source_points": [
+        5,
+        10,
+        17
+      ],
+      "match": true
+    },
+    {
+      "source_id": 16,
+      "name": "Macaw",
+      "points": [
+        4,
+        9,
+        14
+      ],
+      "second_source_points": [
+        4,
+        9,
+        14
+      ],
+      "match": true
+    },
+    {
+      "source_id": 17,
+      "name": "Warthog",
+      "points": [
+        4,
+        8,
+        13
+      ],
+      "second_source_points": [
+        4,
+        8,
+        13
+      ],
+      "match": true
+    },
+    {
+      "source_id": 18,
+      "name": "Koala",
+      "points": [
+        3,
+        6,
+        10,
+        15
+      ],
+      "second_source_points": [
+        3,
+        6,
+        10,
+        15
+      ],
+      "match": true
+    },
+    {
+      "source_id": 19,
+      "name": "Wolf",
+      "points": [
+        4,
+        10,
+        16
+      ],
+      "second_source_points": [
+        4,
+        10,
+        16
+      ],
+      "match": true
+    },
+    {
+      "source_id": 20,
+      "name": "Kookaburra",
+      "points": [
+        5,
+        11,
+        18
+      ],
+      "second_source_points": [
+        5,
+        11,
+        18
+      ],
+      "match": true
+    },
+    {
+      "source_id": 21,
+      "name": "Penguin",
+      "points": [
+        4,
+        10,
+        16
+      ],
+      "second_source_points": [
+        4,
+        10,
+        16
+      ],
+      "match": true
+    },
+    {
+      "source_id": 22,
+      "name": "Bat",
+      "points": [
+        3,
+        6,
+        10,
+        15
+      ],
+      "second_source_points": [
+        3,
+        6,
+        10,
+        15
+      ],
+      "match": true
+    },
+    {
+      "source_id": 23,
+      "name": "Fennec Fox",
+      "points": [
+        4,
+        9,
+        16
+      ],
+      "second_source_points": [
+        4,
+        9,
+        16
+      ],
+      "match": true
+    },
+    {
+      "source_id": 24,
+      "name": "Macaque",
+      "points": [
+        5,
+        11
+      ],
+      "second_source_points": [
+        5,
+        11
+      ],
+      "match": true
+    },
+    {
+      "source_id": 25,
+      "name": "Vulture",
+      "points": [
+        5,
+        11
+      ],
+      "second_source_points": [
+        5,
+        11
+      ],
+      "match": true
+    },
+    {
+      "source_id": 26,
+      "name": "Meerkat",
+      "points": [
+        2,
+        5,
+        9,
+        14
+      ],
+      "second_source_points": [
+        2,
+        5,
+        9,
+        14
+      ],
+      "match": true
+    },
+    {
+      "source_id": 27,
+      "name": "Crow",
+      "points": [
+        4,
+        9
+      ],
+      "second_source_points": [
+        4,
+        9
+      ],
+      "match": true
+    },
+    {
+      "source_id": 28,
+      "name": "Llama",
+      "points": [
+        5,
+        12
+      ],
+      "second_source_points": [
+        5,
+        12
+      ],
+      "match": true
+    },
+    {
+      "source_id": 29,
+      "name": "Arctic Fox",
+      "points": [
+        5,
+        10,
+        17
+      ],
+      "second_source_points": [
+        5,
+        10,
+        17
+      ],
+      "match": true
+    },
+    {
+      "source_id": 30,
+      "name": "Raccoon",
+      "points": [
+        6,
+        12
+      ],
+      "second_source_points": [
+        6,
+        12
+      ],
+      "match": true
+    },
+    {
+      "source_id": 31,
+      "name": "Ladybug",
+      "points": [
+        2,
+        5,
+        8,
+        12,
+        17
+      ],
+      "second_source_points": [
+        2,
+        5,
+        8,
+        12,
+        17
+      ],
+      "match": true
+    },
+    {
+      "source_id": 32,
+      "name": "Panther",
+      "points": [
+        5,
+        11
+      ],
+      "second_source_points": [
+        5,
+        11
+      ],
+      "match": true
+    }
+  ]
+}

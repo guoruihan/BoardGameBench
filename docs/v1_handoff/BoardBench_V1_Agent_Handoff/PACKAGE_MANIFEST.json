@@ -1,0 +1,84 @@
+{
+  "package": "BoardBench V1 Agent Handoff",
+  "version": "1.0",
+  "date": "2026-10-03",
+  "entrypoint": "IMPLEMENT_PROMPT.md",
+  "scope": "Implementation instructions and data; no new game engine or trained baseline is included.",
+  "files": [
+    {
+      "path": "IMPLEMENT_PROMPT.md",
+      "bytes": 4882,
+      "sha256": "846911b209d55976c3247ccde50c9a318148582d4fd4df7fa6bf0aca7b8e2da7"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3079,
+      "sha256": "1f3d77b99d1280dc7214ce75f1a84a91aaf7ab77a66fb6f341b4a2e6564bedb5"
+    },
+    {
+      "path": "data/harmonies/animal_cards.base32.v1.json",
+      "bytes": 37893,
+      "sha256": "b5e4b5922a1e312e7f533d85a6ea7ec36bb9cacd593338ac38fbb5a8f03837a0"
+    },
+    {
+      "path": "data/scoring_examples.json",
+      "bytes": 4953,
+      "sha256": "83727bd26dd51def3ab278410219f9c3d1bee9d603f85640e1eee951cae5a92c"
+    },
+    {
+      "path": "docs/01_V1_SCOPE_AND_ARCHITECTURE.md",
+      "bytes": 6239,
+      "sha256": "b82e80ec944270e03825016c34b1936f6fe1a756c921e92adc66835471308222"
+    },
+    {
+      "path": "docs/02_V0_INTEGRATION.md",
+      "bytes": 16186,
+      "sha256": "99e0e006180093acf1af098c91f8f650dcfc258ca46ab91bc8b77eb186e8ed0d"
+    },
+    {
+      "path": "docs/03_MICRO_AND_TAKE_IT_EASY.md",
+      "bytes": 6101,
+      "sha256": "74b984512df409425c7427051eff892aafafe74f3da0e5f0bd2df5d49a76d7c2"
+    },
+    {
+      "path": "docs/04_HARMONIES_SOLO.md",
+      "bytes": 18495,
+      "sha256": "21d287e8114f99ce0046f7a2376e0adb54c1a711bde80d78684baf67a54919bb"
+    },
+    {
+      "path": "docs/05_BASELINES_UI_ACCEPTANCE.md",
+      "bytes": 15434,
+      "sha256": "63156dd0b7d20528b6c2cf3fb37cb79ffbe0f56765bd1911ffc74abe9b79ff16"
+    },
+    {
+      "path": "reference/INDEPENDENT_AUDIT.md",
+      "bytes": 3469,
+      "sha256": "d2a60031eceaf2a9825d5ffac470610ab32420ebf66c5cfa8c3cfd240316592b"
+    },
+    {
+      "path": "reference/INPUT_PROVENANCE.json",
+      "bytes": 950,
+      "sha256": "000638917899d767728ca9b06b27728a1f7937a47e265ba8b48b6f0f3a404cce"
+    },
+    {
+      "path": "reference/SOURCE_MANIFEST.json",
+      "bytes": 1368,
+      "sha256": "a22574020cfcdf8644a2c7abaa0f9b5454a56a3fbf3641457810da09fd3dc81b"
+    },
+    {
+      "path": "reference/bag_exhaustion_witness.json",
+      "bytes": 8898,
+      "sha256": "60681de1a97de66337e70c2b0962677c5829e264be8c2129a79fb4d5658ecec3"
+    },
+    {
+      "path": "reference/score_crosscheck.json",
+      "bytes": 7087,
+      "sha256": "507d58e6bd222c4ffb3fe62f3af02d4f29eae6257d2f6f614436078685bdca08"
+    },
+    {
+      "path": "scripts/validate_handoff.py",
+      "bytes": 6511,
+      "sha256": "cc84dfbbd181c63b090bb4f989e68fd07aa228ede9c268853340a4c96d7ca17a"
+    }
+  ]
+}

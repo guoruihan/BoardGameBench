@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68,<83"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boardbench"
+version = "0.2.0"
+description = "Local benchmark infrastructure for persistent adaptive solvers"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+browser = ["playwright==1.51.0"]
+train = ["numpy>=1.26,<3", "torch>=2.4,<3"]
+
+[project.scripts]
+boardbench = "boardbench.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"boardbench.ui" = ["*.html"]
+"boardbench.environments" = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

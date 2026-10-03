@@ -1,0 +1,32 @@
+{
+  "task": {
+    "id": "take_it_easy",
+    "version": "take_it_easy_standard_v1"
+  },
+  "episodes": 4,
+  "seed": 2468,
+  "model": {
+    "max_calls": 0
+  },
+  "limits": {
+    "max_action_requests": 1024,
+    "max_actions_per_episode": 256,
+    "max_wall_seconds": 600
+  },
+  "checkpoint": {
+    "every_episodes": 2
+  },
+  "solver": {
+    "id": "board",
+    "params": {
+      "method": "search",
+      "width": 3,
+      "rollouts": 2,
+      "depth": 3,
+      "max_simulation_steps": 18
+    }
+  },
+  "capabilities": {
+    "reference_simulator": true
+  }
+}

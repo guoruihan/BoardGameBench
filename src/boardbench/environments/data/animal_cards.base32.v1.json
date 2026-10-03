@@ -1,0 +1,1867 @@
+{
+  "schema_version": "harmonies.base_animal_cards.v1",
+  "status": "32 base animal definitions normalized and visually checked against same-repository card sprite; all score tracks also match a second public repository",
+  "sources": [
+    {
+      "id": "upstream_cards_json",
+      "url": "https://github.com/miles2542/harmonies-bot/blob/a5ffa20f4d6206632eec2c83e93c39cff79283c8/docs/cards_database.json",
+      "sha256": "123159c29ba1c86080c1b659dfa016eb94a9572fe0fcc2883e75a544e915f711",
+      "role": "scores and chain patterns",
+      "commit": "a5ffa20f4d6206632eec2c83e93c39cff79283c8"
+    },
+    {
+      "id": "upstream_cards_image",
+      "url": "https://github.com/miles2542/harmonies-bot/blob/a5ffa20f4d6206632eec2c83e93c39cff79283c8/docs/animalCards.webp",
+      "sha256": "b534b2b1c87e7a916239bd4ec4f6b023faf6717042e379197951a3323e15806f",
+      "role": "visual verification of 32 animal card patterns, anchors and score tracks",
+      "commit": "a5ffa20f4d6206632eec2c83e93c39cff79283c8"
+    },
+    {
+      "id": "independent_score_catalog",
+      "url": "https://github.com/ducktapegirl/game-scorer/tree/47c5b7032e5b6404d6d7a2ed9c5c45a76ba5f076",
+      "commit": "47c5b7032e5b6404d6d7a2ed9c5c45a76ba5f076",
+      "role": "second-repository English labels and cumulative score cross-check for all 32 animals; this does not independently verify spatial patterns"
+    }
+  ],
+  "coordinate_convention": {
+    "type": "axial",
+    "distance": "max(abs(dq),abs(dr),abs(dq+dr))",
+    "anchor": [
+      0,
+      0
+    ],
+    "source_direction_deltas": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        -1
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "source_pattern_semantics": "The first source position is ignored. Each later position is a direction from the previous pattern cell. colors are top-to-bottom. After chain expansion, subtract the unique allowCube position from every cell.",
+    "rotations": "Six rotations. One valid 60-degree transform is (q,r) -> (-r,q+r). Deduplicate geometrically identical placements."
+  },
+  "matching_rules": {
+    "anchor_must_have_no_cube": true,
+    "non_anchor_cells_may_have_cubes": true,
+    "exact_heights_required": true,
+    "building_pattern_requires_height": 2,
+    "building_pattern_requires_landscape_score_eligibility": false,
+    "animal_cube_placement_is_persistent": true,
+    "score_rule": "score_by_placed_count[k] is cumulative score after k cubes placed, not a sum of revealed values."
+  },
+  "cards": [
+    {
+      "card_id": 1,
+      "source_card_id": 1,
+      "pattern_cells": [
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "terrain": "tree",
+          "height": 3,
+          "stack_bottom_to_top": [
+            "brown",
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        9,
+        15
+      ],
+      "source_sprite_index": 0,
+      "name_en": "Alligator",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 2,
+      "source_card_id": 2,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "mountain",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        10,
+        16
+      ],
+      "source_sprite_index": 1,
+      "name_en": "Stingray",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 3,
+      "source_card_id": 3,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 3,
+          "stack_bottom_to_top": [
+            "gray",
+            "gray",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 4,
+      "score_by_placed_count": [
+        0,
+        3,
+        6,
+        10,
+        16
+      ],
+      "source_sprite_index": 2,
+      "name_en": "Fish",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 4,
+      "source_card_id": 4,
+      "pattern_cells": [
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "terrain": "tree",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        5,
+        10,
+        16
+      ],
+      "source_sprite_index": 3,
+      "name_en": "Otter",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 5,
+      "source_card_id": 5,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 5,
+      "score_by_placed_count": [
+        0,
+        2,
+        4,
+        6,
+        10,
+        15
+      ],
+      "source_sprite_index": 4,
+      "name_en": "Frog",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 6,
+      "source_card_id": 6,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 4,
+      "score_by_placed_count": [
+        0,
+        2,
+        4,
+        8,
+        13
+      ],
+      "source_sprite_index": 5,
+      "name_en": "Duck",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 7,
+      "source_card_id": 7,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        10,
+        16
+      ],
+      "source_sprite_index": 6,
+      "name_en": "Flamingo",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 8,
+      "source_card_id": 8,
+      "pattern_cells": [
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        5,
+        10,
+        16
+      ],
+      "source_sprite_index": 7,
+      "name_en": "Gecko",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 9,
+      "source_card_id": 9,
+      "pattern_cells": [
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        5,
+        10,
+        17
+      ],
+      "source_sprite_index": 8,
+      "name_en": "Mouse",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 10,
+      "source_card_id": 10,
+      "pattern_cells": [
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        5,
+        10,
+        17
+      ],
+      "source_sprite_index": 9,
+      "name_en": "Peacock",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 11,
+      "source_card_id": 11,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 3,
+          "stack_bottom_to_top": [
+            "brown",
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        9,
+        15
+      ],
+      "source_sprite_index": 10,
+      "name_en": "Squirrel",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 12,
+      "source_card_id": 12,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        5,
+        12
+      ],
+      "source_sprite_index": 11,
+      "name_en": "Hedgehog",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 13,
+      "source_card_id": 13,
+      "pattern_cells": [
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            1
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        8,
+        18
+      ],
+      "source_sprite_index": 12,
+      "name_en": "Bee",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 14,
+      "source_card_id": 14,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "gray",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "tree",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "mountain",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "gray",
+            "gray"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        5,
+        11
+      ],
+      "source_sprite_index": 13,
+      "name_en": "Bear",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 15,
+      "source_card_id": 15,
+      "pattern_cells": [
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "tree",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "green"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        5,
+        10,
+        17
+      ],
+      "source_sprite_index": 14,
+      "name_en": "Rabbit",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 16,
+      "source_card_id": 16,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        9,
+        14
+      ],
+      "source_sprite_index": 15,
+      "name_en": "Macaw",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 17,
+      "source_card_id": 17,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        8,
+        13
+      ],
+      "source_sprite_index": 16,
+      "name_en": "Warthog",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 18,
+      "source_card_id": 18,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 4,
+      "score_by_placed_count": [
+        0,
+        3,
+        6,
+        10,
+        15
+      ],
+      "source_sprite_index": 17,
+      "name_en": "Koala",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 19,
+      "source_card_id": 19,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "tree",
+          "height": 3,
+          "stack_bottom_to_top": [
+            "brown",
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        10,
+        16
+      ],
+      "source_sprite_index": 18,
+      "name_en": "Wolf",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 20,
+      "source_card_id": 20,
+      "pattern_cells": [
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "tree",
+          "height": 3,
+          "stack_bottom_to_top": [
+            "brown",
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        5,
+        11,
+        18
+      ],
+      "source_sprite_index": 19,
+      "name_en": "Kookaburra",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 21,
+      "source_card_id": 21,
+      "pattern_cells": [
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        10,
+        16
+      ],
+      "source_sprite_index": 20,
+      "name_en": "Penguin",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 22,
+      "source_card_id": 22,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 3,
+          "stack_bottom_to_top": [
+            "brown",
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "gray"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 4,
+      "score_by_placed_count": [
+        0,
+        3,
+        6,
+        10,
+        15
+      ],
+      "source_sprite_index": 21,
+      "name_en": "Bat",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 23,
+      "source_card_id": 23,
+      "pattern_cells": [
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "gray"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        4,
+        9,
+        16
+      ],
+      "source_sprite_index": 22,
+      "name_en": "Fennec Fox",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 24,
+      "source_card_id": 24,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "gray",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        5,
+        11
+      ],
+      "source_sprite_index": 23,
+      "name_en": "Macaque",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 25,
+      "source_card_id": 25,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 3,
+          "stack_bottom_to_top": [
+            "gray",
+            "gray",
+            "gray"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        5,
+        11
+      ],
+      "source_sprite_index": 24,
+      "name_en": "Vulture",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 26,
+      "source_card_id": 26,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "gray"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 4,
+      "score_by_placed_count": [
+        0,
+        2,
+        5,
+        9,
+        14
+      ],
+      "source_sprite_index": 25,
+      "name_en": "Meerkat",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 27,
+      "source_card_id": 27,
+      "pattern_cells": [
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            0
+          ],
+          "terrain": "building",
+          "height": 2,
+          "top_color": "red",
+          "allowed_base_colors": [
+            "red",
+            "brown",
+            "gray"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        4,
+        9
+      ],
+      "source_sprite_index": 26,
+      "name_en": "Crow",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 28,
+      "source_card_id": 28,
+      "pattern_cells": [
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "terrain": "mountain",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "gray",
+            "gray"
+          ]
+        },
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        5,
+        12
+      ],
+      "source_sprite_index": 27,
+      "name_en": "Llama",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 29,
+      "source_card_id": 29,
+      "pattern_cells": [
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 3,
+      "score_by_placed_count": [
+        0,
+        5,
+        10,
+        17
+      ],
+      "source_sprite_index": 28,
+      "name_en": "Arctic Fox",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 30,
+      "source_card_id": 30,
+      "pattern_cells": [
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            1
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        },
+        {
+          "cell": [
+            -1,
+            0
+          ],
+          "terrain": "water",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "blue"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        6,
+        12
+      ],
+      "source_sprite_index": 29,
+      "name_en": "Raccoon",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 31,
+      "source_card_id": 31,
+      "pattern_cells": [
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 5,
+      "score_by_placed_count": [
+        0,
+        2,
+        5,
+        8,
+        12,
+        17
+      ],
+      "source_sprite_index": 30,
+      "name_en": "Ladybug",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    },
+    {
+      "card_id": 32,
+      "source_card_id": 32,
+      "pattern_cells": [
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            1,
+            0
+          ],
+          "terrain": "tree",
+          "height": 2,
+          "stack_bottom_to_top": [
+            "brown",
+            "green"
+          ]
+        },
+        {
+          "cell": [
+            0,
+            0
+          ],
+          "terrain": "field",
+          "height": 1,
+          "stack_bottom_to_top": [
+            "yellow"
+          ]
+        }
+      ],
+      "anchor_cell": [
+        0,
+        0
+      ],
+      "cube_count": 2,
+      "score_by_placed_count": [
+        0,
+        5,
+        11
+      ],
+      "source_sprite_index": 31,
+      "name_en": "Panther",
+      "name_source": "independent_score_catalog",
+      "verification": {
+        "sprite_terrain_height_shape_anchor_checked": true,
+        "scores_match_second_catalog": true
+      }
+    }
+  ]
+}

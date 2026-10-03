@@ -1,0 +1,6 @@
+{
+  "mode": "evaluation",
+  "allow_learning": false,
+  "episode_seeds": [1001, 1002, 1003, 1004],
+  "per_episode_limits": {"max_action_requests": 16, "max_wall_seconds": 30, "max_model_calls": 0}
+}

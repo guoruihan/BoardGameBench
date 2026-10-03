@@ -1,0 +1,17 @@
+.venv/
+.venv-train/
+outputs/
+checkpoints/
+logs/
+tmp/
+# Local task notes may contain machine-specific resource and access context.
+tasks/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+runs/
+deliverables/
+.browser-cache/

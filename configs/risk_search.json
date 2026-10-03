@@ -1,0 +1,7 @@
+{
+  "solver": {"id": "reference_search", "params": {"rollouts": 24, "depth": 2}},
+  "episodes": 6,
+  "seed": 123,
+  "capabilities": {"reference_simulator": true},
+  "model": {"provider": "mock", "max_calls": 0}
+}

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>风险采集 · BoardBench</title>
+<style>
+:root { color-scheme: light; --ink:#20382d; --muted:#65756b; --paper:#f6f4ed; --green:#286044; --line:#dce1d7 }
+* { box-sizing:border-box } body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif }
+main { max-width:920px; margin:60px auto; padding:0 24px } header { display:flex; justify-content:space-between; align-items:center }
+.eyebrow { font-size:12px; letter-spacing:.2em; color:var(--muted) } h1 { font-size:38px; letter-spacing:-.04em; margin:4px 0 12px }
+.pill { font-size:13px; background:#e3eadf; border-radius:30px; padding:7px 15px }.intro { color:var(--muted); max-width:640px; margin-bottom:30px }
+.board { background:#fffef9; border:1px solid var(--line); border-radius:20px; padding:32px; box-shadow:0 12px 40px #20382d08 }
+.metrics { display:grid; grid-template-columns:2fr 1fr 1fr; gap:16px; padding-bottom:28px; border-bottom:1px solid var(--line) }
+.label { display:block; font-size:13px; color:var(--muted) }.value { display:block; font-size:40px; font-weight:650; line-height:1.3; margin-top:5px }#pot { color:var(--green); font-size:64px }
+h2 { font-size:16px; font-weight:600; margin:28px 0 14px }.cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px }
+.card { border:1px solid var(--line); border-radius:12px; padding:16px; background:#f4f7ee; text-align:center }.card strong { display:block; font-size:26px }.card small { color:var(--muted) }.failure { background:#faeee8; color:#8a4e36 }
+.actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:30px }button,select { font:inherit; border-radius:9px; border:1px solid var(--line); background:#fff; padding:10px 20px; color:var(--ink); cursor:pointer }
+button:hover:not(:disabled) { border-color:var(--green) }button.primary { background:var(--green); color:#fff; border-color:var(--green) }button:disabled { opacity:.4; cursor:default }button:focus-visible,select:focus-visible { outline:3px solid #90b39b; outline-offset:3px }
+#notice { min-height:32px; margin-top:18px; color:var(--muted) }#error { color:#a13d2a }[hidden] { display:none!important }footer { margin-top:20px; color:var(--muted); font-size:13px }.replay-controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:22px }
+@media(max-width:600px) { main { margin:28px auto; padding:0 16px }.board { padding:22px }.cards { grid-template-columns:repeat(2,1fr) }.value { font-size:30px }#pot { font-size:48px }h1 { font-size:30px } }
+</style>
+</head>
+<body><main>
+<header><div><div class="eyebrow">BOARDBENCH / 01</div><h1>风险采集</h1></div><span id="mode" class="pill">本地游戏</span></header>
+<p class="intro">袋中有 6 张收益牌和 2 张失败牌。继续抽牌积累收益，或随时收下。抽到失败牌，本局得分归零。</p>
+<div id="replay-controls" class="replay-controls" hidden><label for="episode">选择局</label><select id="episode"></select><button id="prev">← 上一步</button><button id="next">下一步 →</button><span id="position"></span></div>
+<section class="board" aria-label="游戏局面">
+<div class="metrics"><div><span class="label">累计收益</span><span class="value" id="pot">0</span></div><div><span class="label">已走步数</span><span class="value" id="steps">0</span></div><div><span class="label">最终得分</span><span class="value" id="score">—</span></div></div>
+<h2>袋中剩余</h2><div class="cards">
+<div class="card"><strong>+1</strong><small>剩余 <span id="count-1">2</span> 张</small></div>
+<div class="card"><strong>+2</strong><small>剩余 <span id="count-2">2</span> 张</small></div>
+<div class="card"><strong>+3</strong><small>剩余 <span id="count-3">2</span> 张</small></div>
+<div class="card failure"><strong>失败</strong><small>剩余 <span id="count-fail">2</span> 张</small></div>
+</div>
+<div class="actions" id="play-controls"><button id="draw" class="primary">抽一张 DRAW</button><button id="bank">收下收益 BANK</button><button id="new">新局</button></div>
+<div id="notice" role="status" aria-live="polite"></div><div id="error" role="alert"></div>
+</section><footer id="footer">牌不放回。每一局重新装袋。</footer>
+</main><script>
+let state, busy = false;
+const el = id => document.getElementById(id);
+function render(s) {
+  state = s; const o = s.observation, replay = s.mode === 'replay';
+  el('pot').textContent = o.pot; el('steps').textContent = o.steps;
+  el('score').textContent = o.score === null ? '—' : o.score;
+  for (const [card, count] of Object.entries(o.remaining)) el('count-' + card).textContent = count;
+  el('mode').textContent = replay ? '轨迹回放' : '第 ' + s.episode + ' 局';
+  el('play-controls').hidden = replay; el('replay-controls').hidden = !replay;
+  el('draw').disabled = el('bank').disabled = o.terminated || busy;
+  el('new').disabled = busy;
+  let notice = '继续抽牌，还是收下当前收益？';
+  if (s.info.card && s.info.card !== 'fail') notice = '抽到 +' + s.info.card + '，收益已加入。';
+  if (o.terminated) notice = s.info.reason === 'bank' ? '已收下收益，本局得分 ' + o.score + '。' : '抽到失败牌，本局得分 0。';
+  if (s.episode_result && s.episode_result.status !== 'completed') notice = '本局未完成，没有最终得分。';
+  el('notice').textContent = notice;
+  if (replay) {
+    el('episode').replaceChildren(...s.episodes.map(n => { const option = document.createElement('option'); option.value = n; option.textContent = '第 ' + n + ' 局'; return option; }));
+    el('episode').value = s.episode; el('prev').disabled = s.step === 0 || busy;
+    el('next').disabled = s.step === s.max_step || busy; el('position').textContent = s.step + ' / ' + s.max_step;
+    el('footer').textContent = '按记录中的观测回放；每一步与原始轨迹一致。';
+  }
+}
+async function request(url, body) {
+  if (busy) return; busy = true; el('error').textContent = ''; if (state) render(state);
+  try {
+    const response = await fetch(url, body === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await response.json(); if (!response.ok) throw new Error(data.error || '请求失败');
+    state = data;
+  } catch (error) { el('error').textContent = error.message; }
+  finally { busy = false; if (state) render(state); }
+}
+el('draw').onclick = () => request('/api/action', {action:'DRAW'});
+el('bank').onclick = () => request('/api/action', {action:'BANK'});
+el('new').onclick = () => request('/api/new', {});
+el('prev').onclick = () => request('/api/state?episode=' + state.episode + '&step=' + (state.step - 1));
+el('next').onclick = () => request('/api/state?episode=' + state.episode + '&step=' + (state.step + 1));
+el('episode').onchange = event => request('/api/state?episode=' + event.target.value + '&step=0');
+request('/api/state');
+</script></body></html>

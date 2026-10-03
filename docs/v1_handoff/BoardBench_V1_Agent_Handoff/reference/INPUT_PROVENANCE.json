@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-03",
+  "reference_v0_archive": {
+    "name": "boardbench-v0-review.zip",
+    "sha256": "6f974bdaaa3eb9e01b1f99da5769cd7550839218a2a613b168915f41a707c697",
+    "scope": "Source inspected for integration. Not copied into this handoff; use the existing local project."
+  },
+  "rules_sources": [
+    {
+      "game": "take_it_easy",
+      "url": "https://cdn.1j1ju.com/medias/9c/43/a7-take-it-easy-rulebook.pdf"
+    },
+    {
+      "game": "harmonies",
+      "url": "https://cdn.svc.asmodee.net/production-libelludv2/uploads/2026/07/HARMONIES_Rules_EN_compressed-1.pdf"
+    }
+  ],
+  "notes": [
+    "Micro Tiles is an original project task.",
+    "Harmonies solo partial refill has an explicit project ruling.",
+    "SOURCE_MANIFEST.json describes the upstream card image and raw database; these upstream files are not package members.",
+    "32 animal cards normalized and checked; no Spirit scoring implementation is supplied."
+  ]
+}

@@ -1,0 +1,270 @@
+{
+  "schema_version": "boardbench.scoring_examples.v1",
+  "notice": "These independently specified examples are inputs with expected scores, not a tested game engine.",
+  "micro_tiles": [
+    {
+      "id": "uniform",
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected": {
+        "adjacency": 12,
+        "lines": 18,
+        "total": 30
+      }
+    },
+    {
+      "id": "row_stripes",
+      "board": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "expected": {
+        "adjacency": 6,
+        "lines": 9,
+        "total": 15
+      }
+    },
+    {
+      "id": "latin_cycle",
+      "board": [
+        0,
+        1,
+        2,
+        1,
+        2,
+        0,
+        2,
+        0,
+        1
+      ],
+      "expected": {
+        "adjacency": 0,
+        "lines": 0,
+        "total": 0
+      }
+    }
+  ],
+  "take_it_easy": [
+    {
+      "id": "unique_19_tiles_93",
+      "board": [
+        {
+          "cell_id": 0,
+          "q": -2,
+          "r": 0,
+          "tile_id": 0,
+          "vertical": 1,
+          "rising": 2,
+          "falling": 3
+        },
+        {
+          "cell_id": 1,
+          "q": -2,
+          "r": 1,
+          "tile_id": 3,
+          "vertical": 1,
+          "rising": 6,
+          "falling": 3
+        },
+        {
+          "cell_id": 2,
+          "q": -2,
+          "r": 2,
+          "tile_id": 6,
+          "vertical": 1,
+          "rising": 7,
+          "falling": 3
+        },
+        {
+          "cell_id": 3,
+          "q": -1,
+          "r": -1,
+          "tile_id": 9,
+          "vertical": 5,
+          "rising": 2,
+          "falling": 3
+        },
+        {
+          "cell_id": 4,
+          "q": -1,
+          "r": 0,
+          "tile_id": 12,
+          "vertical": 5,
+          "rising": 6,
+          "falling": 3
+        },
+        {
+          "cell_id": 5,
+          "q": -1,
+          "r": 1,
+          "tile_id": 15,
+          "vertical": 5,
+          "rising": 7,
+          "falling": 3
+        },
+        {
+          "cell_id": 6,
+          "q": -1,
+          "r": 2,
+          "tile_id": 10,
+          "vertical": 5,
+          "rising": 2,
+          "falling": 4
+        },
+        {
+          "cell_id": 7,
+          "q": 0,
+          "r": -2,
+          "tile_id": 18,
+          "vertical": 9,
+          "rising": 2,
+          "falling": 3
+        },
+        {
+          "cell_id": 8,
+          "q": 0,
+          "r": -1,
+          "tile_id": 21,
+          "vertical": 9,
+          "rising": 6,
+          "falling": 3
+        },
+        {
+          "cell_id": 9,
+          "q": 0,
+          "r": 0,
+          "tile_id": 24,
+          "vertical": 9,
+          "rising": 7,
+          "falling": 3
+        },
+        {
+          "cell_id": 10,
+          "q": 0,
+          "r": 1,
+          "tile_id": 19,
+          "vertical": 9,
+          "rising": 2,
+          "falling": 4
+        },
+        {
+          "cell_id": 11,
+          "q": 0,
+          "r": 2,
+          "tile_id": 22,
+          "vertical": 9,
+          "rising": 6,
+          "falling": 4
+        },
+        {
+          "cell_id": 12,
+          "q": 1,
+          "r": -2,
+          "tile_id": 1,
+          "vertical": 1,
+          "rising": 2,
+          "falling": 4
+        },
+        {
+          "cell_id": 13,
+          "q": 1,
+          "r": -1,
+          "tile_id": 4,
+          "vertical": 1,
+          "rising": 6,
+          "falling": 4
+        },
+        {
+          "cell_id": 14,
+          "q": 1,
+          "r": 0,
+          "tile_id": 7,
+          "vertical": 1,
+          "rising": 7,
+          "falling": 4
+        },
+        {
+          "cell_id": 15,
+          "q": 1,
+          "r": 1,
+          "tile_id": 2,
+          "vertical": 1,
+          "rising": 2,
+          "falling": 8
+        },
+        {
+          "cell_id": 16,
+          "q": 2,
+          "r": -2,
+          "tile_id": 13,
+          "vertical": 5,
+          "rising": 6,
+          "falling": 4
+        },
+        {
+          "cell_id": 17,
+          "q": 2,
+          "r": -1,
+          "tile_id": 16,
+          "vertical": 5,
+          "rising": 7,
+          "falling": 4
+        },
+        {
+          "cell_id": 18,
+          "q": 2,
+          "r": 0,
+          "tile_id": 11,
+          "vertical": 5,
+          "rising": 2,
+          "falling": 8
+        }
+      ],
+      "expected": {
+        "vertical": 87,
+        "rising": 6,
+        "falling": 0,
+        "total": 93
+      },
+      "expected_lines": {
+        "vertical": {
+          "-2": 3,
+          "-1": 20,
+          "0": 45,
+          "1": 4,
+          "2": 15
+        },
+        "rising": {
+          "-2": 6,
+          "-1": 0,
+          "0": 0,
+          "1": 0,
+          "2": 0
+        },
+        "falling": {
+          "-2": 0,
+          "-1": 0,
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      }
+    }
+  ]
+}

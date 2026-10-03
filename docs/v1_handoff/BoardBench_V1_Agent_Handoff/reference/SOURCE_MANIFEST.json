@@ -1,0 +1,35 @@
+{
+  "repository": "https://github.com/miles2542/harmonies-bot",
+  "commit": "a5ffa20f4d6206632eec2c83e93c39cff79283c8",
+  "source_type": "community repository; README and research notes attribute card catalog and sheet to BGA observation",
+  "original_BGA_asset_url": "not found",
+  "artwork_specific_license": "not found; repository contains Apache-2.0 license, which alone does not establish rights to third-party card art",
+  "complete_catalog_counts": {
+    "total": 42,
+    "animal": 32,
+    "spirit": 10
+  },
+  "image_sheet": {
+    "width": 3000,
+    "height": 2580,
+    "columns": 10,
+    "rows": 5,
+    "card_width": 300,
+    "card_height": 516,
+    "index_formula": "zero-based sprite index = type_arg - 1; row-major; last 8 cells blank"
+  },
+  "files": [
+    {
+      "local_file": "animalCards.webp",
+      "bytes": 1671144,
+      "sha256": "b534b2b1c87e7a916239bd4ec4f6b023faf6717042e379197951a3323e15806f",
+      "url": "https://raw.githubusercontent.com/miles2542/harmonies-bot/a5ffa20f4d6206632eec2c83e93c39cff79283c8/docs/animalCards.webp"
+    },
+    {
+      "local_file": "cards_database.json",
+      "bytes": 12519,
+      "sha256": "123159c29ba1c86080c1b659dfa016eb94a9572fe0fcc2883e75a544e915f711",
+      "url": "https://raw.githubusercontent.com/miles2542/harmonies-bot/a5ffa20f4d6206632eec2c83e93c39cff79283c8/docs/cards_database.json"
+    }
+  ]
+}
