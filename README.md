@@ -1,7 +1,12 @@
-# BoardGameBench · V1.1
+# BoardGameBench · V1.2
 
 可游玩、可训练、可复查的单人棋盘游戏平台。三个游戏共用 Python 规则引擎、Runner、
-源码绑定 checkpoint 和本地网页。V1.1 对应包版本 **0.3.0**；不增加新游戏或自主 agent 框架。
+源码绑定 checkpoint 和本地网页。V1.2 对应包版本 **0.4.0**；不增加新游戏或自主 agent 框架。
+
+V1.2 新增压缩动作编码、可恢复 PPO/搜索蒸馏、父进程限时计分，以及一张 GPU + 八核、
+总计四小时的后台试验和验证门控发布。实验结果以实际产物为准，不预设能力达标。
+[V1.2 运行手册](docs/V1_2_RUNBOOK.md) · [固定试验计划](configs/v12_plan.json)
+下文 V1.1 成绩属于历史完整终局协议，不能直接当成 V1.2 限时成绩。
 
 | 游戏 | 固定规则 |
 | --- | --- |
@@ -31,7 +36,7 @@ PyTorch 2.4.1+cu121 / NumPy 1.26.4，没有修改基础环境。使用显式 Pyt
 
 在项目根目录运行：
 
-    .venv-train/bin/python -m boardbench serve --config configs/harmonies_play.json
+    .venv-train/bin/python -m boardbench serve --config configs/harmonies_v12_play.json
 
 浏览器访问 http://127.0.0.1:8765；页面内切换三个游戏。
 服务只监听启动主机的 loopback。远程使用 VS Code Ports 或 SSH 将**这台主机**
@@ -41,8 +46,9 @@ PyTorch 2.4.1+cu121 / NumPy 1.26.4，没有修改基础环境。使用显式 Pyt
 同初始随机条件挑战和双方回放。Harmonies 可在资源放置之间拿牌、放动物，
 完成卡释放槽位；存档保留卡片进度、棋盘动物和待放资源。
 
-默认读取 outputs/v11/<game>/policies/。完整交付包包含真实权重；Git 只发布源码，
-单独克隆后需放入交付包的 outputs/v11/ 或重新训练/导出。
+V1.2 新配置读取 outputs/v12/current.json，后台验证通过后开新局即可使用新版本。
+完整交付包包含真实权重；Git 只发布源码。旧 outputs/v11 绑定 V1.1 源码，需使用旧
+源码副本，或按 V1.2 手册显式导入；不能直接绕过源码检查加载。
 没有策略目录时显示“内置配置，未评测”的方法，不伪装成已训练模型。
 存档在 runs/ui_saves/；服务端私有供给不会进入策略观测。
 

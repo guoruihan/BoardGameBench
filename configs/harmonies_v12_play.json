@@ -1,0 +1,7 @@
+{
+  "task": {"id": "harmonies", "version": "harmonies_solo_a_v1"},
+  "seed": 20261004,
+  "deployment_pointer": "outputs/v12/current.json",
+  "human_time_budget_seconds": 1200,
+  "save_directory": "runs/v12_ui_saves"
+}

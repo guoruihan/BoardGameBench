@@ -1,5 +1,15 @@
 # Research milestones
 
+## 0.4.0 — 2026-10-04
+
+- Introduce a separate timed-current-state score protocol; historical completed-game
+  means are not interchangeable with the new all-attempt deadline statistics.
+- Predeclare equal-input action compression and separate public card-feature checks;
+  fixed three-seed staged compact PPO/search distillation, initial controls, independent
+  development/validation/test seeds and a shared four-hour resource allocation.
+- Record conditional paired intervals as deployment gates, not a training-population
+  significance claim. No new human-parity or optimal-policy result is claimed.
+
 ## 0.3.0 — 2026-10-03
 
 - Freeze training seeds 811/812/813, 64 validation and 128 new test seeds per

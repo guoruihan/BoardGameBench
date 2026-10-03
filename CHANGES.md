@@ -1,5 +1,20 @@
 # Engineering changes
 
+## 2026-10-04 — V1.2 bounded learning pilot and timed deployment
+
+- Add versioned 4564/884/240 Harmonies heads with uniform STOP, slot/card public
+  observations, strict metadata and exact optimizer/RNG training continuation.
+- Add parent-owned timed_score_v1 settlement, killable policy lifecycle and framed
+  deadline-aware IPC. Aggregate every attempt, preserve partial scores and timing tails.
+- Add search demonstrations, no-chance endgame diagnostics, staged three-seed
+  PPO/BC and fixed holdouts; distinguish warm-start and actual-wall-time objectives.
+- Add source-frozen one-GPU/eight-core four-hour watchdog and full cost ledger;
+  validation-only automatic promotion, verified legacy imports and rollback pointers.
+- Add human UI countdown/STOP/expired-save handling and new-game policy refresh.
+  Preserve all V1.1 artifacts; human setting-matched target remains unavailable.
+- Publish code/plan/runbook, not an unmeasured performance improvement. Generated
+  run status, weights, logs and scores remain in versioned outputs/v12 directories.
+
 ## 2026-10-03 — V1.1 review fixes and stronger baselines
 
 - Reject cross-run train/holdout contamination before candidate evaluation; retain

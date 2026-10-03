@@ -55,7 +55,7 @@ class PolicyRegistry:
         else:
             checkpoint = self._relative(root, entry["checkpoint_path"])
             manifest = validate_checkpoint(checkpoint)
-            if manifest["config"]["solver"]["id"] == "ppo":
+            if manifest["config"]["solver"]["id"] in ("ppo", "compact"):
                 import torch
                 torch.set_num_threads(2)
             solver = make_solver(manifest["config"]["solver"], 90210)
