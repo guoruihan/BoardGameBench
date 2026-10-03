@@ -1,5 +1,22 @@
 # Engineering changes
 
+## 2026-10-04 — V1.2 animal RL reliability and continuation
+
+- Reproduce a real CUDA PPO log-prob failure; use float64 probability arithmetic
+  without changing float32 networks or relaxing the 1e-4 consistency gate. Capture
+  failing batches and keep a KL early-stop guard on optimizer updates.
+- Add real on-policy finite-horizon animal diagnostics, exact value gaps, legal
+  teacher-prefix replay, source-game/layout holdouts and explicit missing coverage.
+- Add hash/source/split/seed-checked BC-to-PPO weight initialization with fresh Adam
+  and rollouts; retain strict exact-resume behavior and inherited training lineage.
+- Wire shared-network pure PPO, frozen BC and BC-to-PPO comparisons with independent
+  controls, true-score/animal gates, explicit RL contribution and nominated-artifact checks.
+- Continue the original allocation with all prior charges and its original absolute
+  deadline. Preserve failed runs and deployed strategies until verified improvement.
+- Verify 171 regression tests, including real BC-to-PPO CLI initialization, fresh
+  rollouts, exact resume, held-out rejection and positive/negative promotion gates.
+- No trained-policy performance improvement is claimed by this code release.
+
 ## 2026-10-04 — V1.2 bounded learning pilot and timed deployment
 
 - Add versioned 4564/884/240 Harmonies heads with uniform STOP, slot/card public

@@ -3,6 +3,59 @@
 本轮规则不变，优先诊断 Harmonies；Micro/TIE 保留旧模型并做限时兼容检查。
 这是第一轮有界试验，不承诺训练收敛、超过搜索或达到高手人类。
 
+## 0.4.1 动物 RL 续轮（2026-10-04）
+
+原 `pilot_20261004_a` 在运行 582.800 秒后因 PPO 概率一致性检查失败而停止，
+并非仍在训练。旧权重、失败日志、原教师和 current 指针均保留。
+下面的原始路线只描述第一轮；本次批准的改进使用
+`configs/v12_animal_rl_plan.json` 和 `boardbench.v12.animal_experiment`。
+
+本机实测发现：CUDA 12.1 / Torch 2.4.1 / b35 4090 上，即便固定 logits，
+float32 概率归一化仍有超过 1e-4 的波动。不是通过放宽门槛解决，而是统一用
+float64 计算采样/更新概率和旧 log-prob；网络与梯度仍是 float32。
+固定批次对 CPU64 参考误差小于 1e-15，32 个真实 PPO 批次均通过原门槛。
+这是已观测到的运行栈行为，不泛化为所有 PyTorch/GPU 的问题。
+复现及修复证据在 `outputs/v12_checks/probability_*20261004_a/`。
+
+续轮固定相同的 `cards_v1` 输入和 `slots240_v1 + STOP`、两层 128 MLP：
+
+- 从 96 局旧教师的公开轨迹重新编码，不重新支付搜索成本、不读 benchmark holdout。
+- 动物残局从合法动作前缀重放得到；按来源整局和布局隔离训练/诊断留出集。
+  一步放置、2–3 步构造、拿牌后放动物分别记录覆盖数。只能使用不会抽牌/补资源的
+  最后回合；精确枚举所有合法动作及 STOP，超节点上限则弃用，不伪造精确标签。
+  BC 拟合第一动作最优值，真正 on-policy PPO 学习短轨迹总分；两者独立报告。
+  样本不足或未拟合成功都明确记载，短残局成功不等于整局能力。
+- 三个种子 911/912/913：冻结 BC 各 90 秒；纯 PPO 与 BC→PPO 各累积 180/600 秒。
+  原生 PPO 学习率 3e-4；BC→PPO 为保守微调 1e-4，均使用 KL 0.02 提前停止本批更新。
+  BC→PPO 显式校验父权重 hash/source/网络/划分/种子，只复制权重，重置 Adam 并采集
+  新 on-policy 数据；不能把它伪装成纯 PPO，也不能绕过 resume 的配置一致性。
+- 如果 BC 连一步放动物都拟合不了，停止放大训练，保留诊断报告。
+  如果只有 PPO 拟合失败，保留它的 180 秒对照，不延长纯 PPO；单独考察教师辅助路线。
+  不乘动物奖励系数，不强制放动物，不删除 STOP 或合法动作交错顺序。
+- 仍使用原先已选定的 3 秒在线时限和相同开发/验证/测试划分。旧基线验证复用原始记录，
+  不冒充新重复；训练阶段只由开发集选择，测试集在冻结后才运行。
+  晋级要求真实总分配对门槛通过，且动物分/放置/完成卡均超过旧 PPO。
+  BC→PPO 还必须在总分上优于冻结 BC，动物分不下降。整个家族与实际部署的单个候选
+  分别检查；无改进或执行/恢复失败则不换 current 指针。
+
+启动方式与原来一致，只替换 plan 和新的输出目录：
+
+```bash
+tmux new-session -d -s boardbench-v12-animal-rl 'bash -o pipefail -c "PYTHONNOUSERSITE=1 .venv-train/bin/python -u -m boardbench.v12.launch --repo /datapool/data3/storage/ruihan/code/boardgame --plan configs/v12_animal_rl_plan.json --root outputs/v12/animal_rl_UNIQUE 2>&1 | tee logs/v12/animal_rl_UNIQUE.log"'
+```
+
+这是原预算的继续，不是再加四小时。启动器读取原 allocation/result，扣掉旧失败轮
+582.800 秒，并保守计入复现/隔离/验证命令的完整 timeout 上限共 350 秒（含导入启动）；
+同时绝不越过原始 **2026-10-04 06:21:06 +08** 截止。过期后此配置拒绝启动，
+需要新的资源授权。工程 CPU 单元测试不记作策略学习实验；真实策略诊断全部入账。
+新结果在 `diagnosis/report.json`、`learning_curve.json`、`frozen_selection.json`、
+`test_results.json` 和最终 `report.json`；`allocation.json` 保留旧账本摘要。
+
+运行时代码改变后，仍须使用 current 发布对应的冻结源码启动网页。
+在尚未晋级时对应的是 `outputs/v12/pilot_20261004_a/source/src`；
+晋级后对应新续轮的 `source/src`。已有旧服务不会自动热加载新源码，不能跨源码关闭校验；
+策略文件的自动晋级与服务器进程重启是两回事，后台实验不会杀掉用户服务。
+
 ## 预算与启动
 
 `configs/v12_plan.json` 固定一张 GPU、八个不同物理 CPU 核、最多 14,400 秒。

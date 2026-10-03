@@ -1,5 +1,16 @@
 # Research milestones
 
+## 0.4.1 — 2026-10-04
+
+- Separate one-step oracle-label BC fitting from genuine on-policy short-horizon
+  PPO animal learning; group diagnostic holdouts by source game and board layout.
+- Predeclare same-network PPO / frozen BC / BC-to-PPO routes and a conservative
+  KL-limited fine-tuning regime. Count teacher assistance explicitly; require PPO
+  improvement beyond frozen BC before crediting the fine-tuning stage.
+- Keep true total score, original fixed online budget and original final-test seeds.
+  Animal scores are diagnosis/promotion requirements, not a modified reward target.
+  This is an implementation/experiment-design milestone, not a new capability result.
+
 ## 0.4.0 — 2026-10-04
 
 - Introduce a separate timed-current-state score protocol; historical completed-game

@@ -13,16 +13,27 @@ from .encoding import STOP, decode, index
 from .training import Trainer
 
 
-def exact_values(snapshot, depth=2):
+def exact_values(snapshot, depth=2, max_nodes=10000):
+    if not isinstance(depth, int) or not 1 <= depth <= 3:
+        raise ValueError('oracle depth must be 1..3')
     env = Harmonies(); obs = env.load_state(snapshot)
     if sum(c['stack_id'] == 0 for c in obs['board']) > 2 or obs['terminated']:
         raise ValueError('oracle only accepts live, no-refill final-turn states')
+    nodes = 0
+    cache = {}
     def value(state, remaining):
         current = state.score_breakdown()['total']
         if not remaining or state.s['terminated']:
             return current
-        return max([current] + [value(after(state, a), remaining - 1) for a in state.legal_actions()])
+        key = (repr(state.s), remaining)
+        if key not in cache:
+            cache[key] = max([current] + [value(after(state, a), remaining - 1) for a in state.legal_actions()])
+        return cache[key]
     def after(state, action):
+        nonlocal nodes
+        nodes += 1
+        if nodes > max_nodes:
+            raise ValueError('oracle node cap exceeded; no approximate labels emitted')
         other = deepcopy(state)
         private = other._private_state()
         other.step(action)

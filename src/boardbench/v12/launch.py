@@ -2,6 +2,7 @@
 import argparse
 from datetime import datetime, timezone
 import fcntl
+import math
 import os
 from pathlib import Path
 import shutil
@@ -12,6 +13,28 @@ import time
 
 from boardbench.artifacts.store import digest, read_json, source_files, source_id, write_json
 from .budget import kill_tree
+
+
+def continuation_budget(plan, repo, now):
+    """Never reset either the original wall deadline or resource-seconds cap."""
+    previous = (Path(repo) / plan['continuation_from']).resolve()
+    if not previous.is_relative_to(Path(repo).resolve() / 'outputs/v12'):
+        raise ValueError('continuation must reference a project V1.2 run')
+    allocation = read_json(previous / 'allocation.json')
+    completed = read_json(previous / 'watchdog_result.json')
+    extra = plan.get('prior_diagnostic_charge_seconds', 0.)
+    if not math.isfinite(extra) or extra < 0:
+        raise ValueError('invalid prior diagnostic charge')
+    spent = completed['elapsed_seconds'] + extra
+    remaining = min(plan['budget_seconds'], allocation['budget_seconds'] - spent,
+                    allocation['deadline_unix'] - now)
+    if remaining <= 0:
+        raise ValueError('original budget/deadline exhausted; new authorization required')
+    return remaining, {'previous_root': str(previous), 'previous_allocation_sha256': digest(previous / 'allocation.json'),
+                       'previous_result_sha256': digest(previous / 'watchdog_result.json'),
+                       'prior_charged_seconds': spent, 'original_deadline_unix': allocation['deadline_unix'],
+                       'original_budget_seconds': allocation['budget_seconds'],
+                       'diagnostic_charge_note': plan.get('prior_diagnostic_charge_note')}
 
 
 def physical_cores(count):
@@ -48,6 +71,14 @@ def main():
         raise ValueError('a new run directory under outputs/v12 is required')
     if plan['cpu_cores'] != 8 or not 0 < plan['budget_seconds'] <= 14400:
         raise ValueError('pilot allocation must be eight CPU cores and at most four hours')
+    continuation = None
+    if plan.get('continuation_from'):
+        # Debit startup already spent in this process as well as the prior run.
+        seconds, continuation = continuation_budget(plan, repo, time.time())
+        plan['budget_seconds'] = seconds
+    controller = plan.get('controller', 'experiment')
+    if controller not in ('experiment', 'animal_experiment'):
+        raise ValueError('unsupported experiment controller')
     root.parent.mkdir(parents=True, exist_ok=True)
     lock = (root.parent / 'experiment.lock').open('a')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -73,9 +104,10 @@ def main():
                'cpu_affinity': cores, 'gpu_uuid': gpu, 'gpu_index': plan['gpu_index'],
                'host': os.uname().nodename, 'source_id': source_id(root / 'source'),
                'plan_sha256': digest(root / 'plan.json'), 'watchdog_pid': os.getpid(),
+               'continuation': continuation,
                'accounting': 'entire reservation incl startup, failed attempts, diagnosis, teachers, evaluation and export',
                'original_git_head': subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip()})
-    command = [sys.executable, '-m', 'boardbench.v12.experiment', '--plan', str(root / 'plan.json'),
+    command = [sys.executable, '-m', 'boardbench.v12.' + controller, '--plan', str(root / 'plan.json'),
                '--root', str(root), '--repo', str(repo), '--device', 'cpu' if args.cpu_smoke else 'cuda']
     child = subprocess.Popen(command, start_new_session=True)
     interrupted = [False]
@@ -99,10 +131,12 @@ def main():
         elapsed = time.monotonic() - started
         value = {'returncode': child.poll(), 'timeout': timed_out, 'interrupted': interrupted[0],
                  'elapsed_seconds': elapsed, 'allocated_gpu_seconds': 0 if args.cpu_smoke else elapsed,
+                 'cumulative_charged_seconds': elapsed + (continuation['prior_charged_seconds'] if continuation else 0),
                  'allocated_cpu_core_seconds': 8 * elapsed, 'cleanup_tail_seconds': max(0., elapsed - plan['budget_seconds'])}
         write_json(root / 'watchdog_result.json', value)
         if timed_out or interrupted[0] or child.returncode:
-            status = {'phase': 'budget_exhausted' if timed_out else 'stopped', 'experiment_root': str(root),
+            prior_status = read_json(root / 'status.json') if (root / 'status.json').exists() else {}
+            status = {**prior_status, 'phase': 'budget_exhausted' if timed_out else 'stopped', 'experiment_root': str(root),
                       'partial_results_retained': True, **value}
             write_json(root / 'status.json', status)
             write_json(repo / 'outputs/v12/latest_status.json', status)

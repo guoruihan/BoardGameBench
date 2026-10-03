@@ -62,3 +62,62 @@ def test_warm_start_time_columns_stay_zero_and_timed_ppo_is_explicit():
     assert trainer.solver.encode(obs, remaining_seconds=.1, time_budget_seconds=.1)['features'][-1] == 1.
     metrics = trainer.ppo_batch()
     assert metrics['initial_ratio_max_error'] < 1e-4 and 'wall time' in metrics['objective']
+
+
+def test_probability_normalizer_is_double_and_masked_gradients_are_finite():
+    from boardbench.v12.training import policy_distribution
+    logits = torch.tensor([[.2, -.4, -1e9]], requires_grad=True)
+    dist = policy_distribution(logits)
+    assert dist.logits.dtype == torch.float64
+    assert dist.probs[0, 2] == 0
+    assert torch.allclose(dist.probs.sum(-1), torch.ones(1, dtype=torch.float64))
+    (-dist.log_prob(torch.tensor([0])).mean()).backward()
+    assert torch.isfinite(logits.grad).all() and logits.grad[0, 2] == 0
+
+
+def test_probability_gate_still_rejects_corrupted_behavior_before_update():
+    from boardbench.v12.training import policy_distribution
+    import numpy as np
+    trainer = Trainer(config())
+    obs, _ = Harmonies().reset(10)
+    data = trainer.solver.encode(obs)
+    x = np.asarray(data['features'], dtype=np.float32)
+    mask = np.asarray(data['action_mask'], dtype=bool)
+    action = int(np.flatnonzero(mask)[0])
+    with torch.no_grad():
+        logits, _ = trainer.solver.model(torch.tensor(x)[None], torch.tensor(mask)[None])
+        lp = policy_distribution(logits).log_prob(torch.tensor([action])).item()
+    before = parameter_hash(trainer.solver.model)
+    with pytest.raises(RuntimeError, match='log-prob mismatch'):
+        trainer._update([(x, mask, action, lp + .01, 0., 1.)])
+    assert trainer.updates == 0 and parameter_hash(trainer.solver.model) == before
+
+
+def test_bc_to_ppo_is_a_fresh_provenance_checked_phase(tmp_path):
+    from boardbench.artifacts.store import digest
+    cfg = config(); cfg['algorithm'] = 'bc'
+    bc = Trainer(cfg)
+    obs, _ = Harmonies().reset(10)
+    data = bc.solver.encode(obs)
+    example = {'features': data['features'], 'mask': data['action_mask'],
+               'action': data['action_mask'].index(True), 'seed': 10}
+    bc.bc_batch([example])
+    saved = tmp_path / 'bc.pt'; bc.save(saved)
+    weights = saved.with_suffix('.weights.pt')
+    ppo = Trainer(config())
+    ppo.initialize_from_bc(weights, expected_sha256=digest(weights))
+    assert parameter_hash(ppo.solver.model) == parameter_hash(bc.solver.model)
+    assert not ppo.optimizer.state and ppo.episodes == ppo.updates == ppo.batches == 0
+    assert ppo.lineage['kind'] == 'bc_to_ppo' and ppo.lineage['weights_sha256'] == digest(weights)
+    ppo.ppo_batch()
+    after = tmp_path / 'ppo.pt'; ppo.save(after)
+    resumed = Trainer(config()); resumed.load(after)
+    assert resumed.lineage == ppo.lineage
+    with pytest.raises(ValueError, match='fresh'):
+        ppo.initialize_from_bc(weights, expected_sha256=digest(weights))
+    with pytest.raises(ValueError, match='hash'):
+        Trainer(config()).initialize_from_bc(weights, expected_sha256='bad')
+    bad = config(); bad['splits']['test'] = [10]
+    bad['splits']['train'] = [40]
+    with pytest.raises(ValueError, match='splits'):
+        Trainer(bad).initialize_from_bc(weights, expected_sha256=digest(weights))
