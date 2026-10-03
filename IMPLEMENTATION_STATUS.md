@@ -11,7 +11,7 @@ V0.1 的历史记录保留在本文后半部分；其 ZIP 未被覆盖，摘要�
 
 ## V1 实际验证
 
-- **105 项测试通过**，包含原 V0 的 40 项。记录：
+- **107 项测试通过**，包含原 V0 的 40 项。记录：
   [最终 JUnit](runs/v1_acceptance_tests_final.xml)。
 - 规则测试覆盖独立 Micro 30/15/0、Take It Easy! 93 分样例，Harmonies 全部叠放、
   32 动物 × 6 方向、库存守恒、河流直径/环/分叉、取牌交错/延迟揭示、末袋见证和半局恢复。
@@ -88,6 +88,8 @@ Take It Easy! A 42.46s + B 167.93s；Harmonies A 40.48s + B 179.52s。
   [产物审计](runs/v1_artifact_audit.json) 校验全部 15 个 checkpoint，确认 A/B 同初始权重及同训练代码。
 - 已构建 boardbench-0.2.0 wheel，并在无第三方运行依赖的新 venv 完成三款游戏，
   检查卡牌 JSON 和网页资源可读取。见 [wheel 验证](runs/v1_wheel_validation.json)。
+- 首个 V1 ZIP 在独立解压恢复中发现空 workspace 目录遗漏；已补显式空目录条目及
+  真实 ZIP 解压恢复回归测试。失败候选保留在 deliverables/rejected/，不作为交付包。
 - 游戏存档与系统 checkpoint 分开。PPO 支持推理恢复，当前训练 CLI 不提供优化器级断点续训。
 - 标准库基础环境可以跑引擎/随机/启发式/搜索；训练与 RL 推理需要可选数值依赖。
 - 因本机旧 setuptools 不满足 pyproject 构建约束，wheel 必须使用标准隔离构建；
