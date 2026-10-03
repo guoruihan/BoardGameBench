@@ -58,6 +58,43 @@ tmux new-session -d -s boardbench-v12-animal-rl 'bash -o pipefail -c "PYTHONNOUS
 
 ## 预算与启动
 
+### 已运行续轮的多 GPU 接管
+
+用户后续授权 b35 全部可用卡并行。`scripts/parallel_v12.py` 是单独记录 hash 的
+调度器，训练/推理仍导入原 run 的冻结源码，不改变模型版本或放宽续训校验。
+GPU 0 有既有任务时不使用；每张健康空闲卡最多一个独立训练任务。
+它会暂停原控制器继续派发，等待当前子训练/评测完整写出结果，再由原 watchdog
+正常结账退出。若检查失败且尚未切换，则恢复原控制器。旧文件不改写、已完成阶段
+按配置/source/权重摘要复用，未完成队列才交给新调度器。
+
+在 b35 启动命名会话，所有路径需对应实际旧 run，输出目录必须是新的：
+
+```bash
+tmux new-session -d -s boardbench-v12-parallel 'bash -o pipefail -c "PYTHONNOUSERSITE=1 PYTHONPATH=outputs/v12/animal_rl_20261004_a/source/src .venv-train/bin/python -u scripts/parallel_v12.py launch --repo /datapool/data3/storage/ruihan/code/boardgame --prior outputs/v12/animal_rl_20261004_a --root outputs/v12/animal_rl_parallel_UNIQUE --gpus 2 3 4 5 --extra-gpu-charge 450 2>&1 | tee logs/v12/animal_rl_parallel_UNIQUE.log"'
+```
+
+每个训练阶段按“方法 × 种子”并行，依赖 BC 的 PPO 在对应 BC 完成后才启动。
+同一阶段全部训练结束后再进行 CPU 限时评测，避免训练争用 CPU 改变在线分数。
+仍共享原来的八个物理 CPU 核；保持相同超参数、训练秒数、三组种子、3 秒在线时限，
+以及原有验证/冻结测试/自动晋级门槛，不把本次调度变更当成新的性能结果。
+
+GPU 秒改为各卡实际分配给训练任务的时间之和（包含该子进程导入和 CUDA 初始化），
+CPU-only 评测期间释放 GPU。新 `gpu_intervals.json` 记录每个任务的起止和设备，
+旧轮费用累加到 `cumulative_charged_gpu_seconds`。本次仍同时保留 14,400 GPU 秒上限
+和原 06:21:06 截止；不能把五卡一小时报成一 GPU 小时。外层 watchdog 独立检查
+累计 GPU 时间与墙钟，异常时清理本实验的后代并保留日志。此脚本不停止任何无关任务。
+
+本次实际设备复核发现 GPU 1 特有的数值不稳定：相同输入反复计算的 float32
+前向/归一化误差波动到约 1e-3；GPU 2–5 的 100 次重复完全稳定，最大误差约 1.9e-6。
+GPU 4/5 上用原 BC 权重各做三批 PPO，均通过原阈值，并得到相同更新统计与分数。
+因此排除 GPU 1，不通过继续放宽阈值掩盖异常；这还不是硬件故障的确诊。
+证据为 `outputs/v12_checks/device_replay_20261004_a/gpu*.json`。
+五个独立设备检查按每条 90 秒 timeout 上限保守入账共 450 GPU 秒，含导入初始化；
+上面命令的 `--extra-gpu-charge` 是这次已有检查的费用，不应脱离具体账本机械复用。
+串行续轮在 BC→PPO 首批检查处自行失败，故本次不发送接管信号，直接复用已完成的
+三个 BC、三个纯 PPO 第一阶段及其开发评测；失败批次没有 optimizer update，不作为
+可续训阶段。全局历史费用为 2187.976 秒，加上述 450 秒后再累计新并行任务。
+
 `configs/v12_plan.json` 固定一张 GPU、八个不同物理 CPU 核、最多 14,400 秒。
 启动器在资源检查前开始单调时钟；源码复制、GPU 初始化、小批诊断、失败尝试、
 教师数据、训练、验证、测试、导出和清理都计入。同一时间至多一个训练进程；

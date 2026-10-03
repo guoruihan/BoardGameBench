@@ -1,5 +1,21 @@
 # Engineering changes
 
+## 2026-10-04 — Source-preserving parallel V1.2 scheduling
+
+- Add an independently hashed orchestration driver for concurrent method/seed jobs
+  on idle b35 GPUs, with one job per card and the original shared eight-core affinity.
+- Hand off only after the active child writes complete output; verify process identity,
+  restore old scheduling on failed pre-handoff checks, and preserve/reuse completed work.
+- Keep training source/checkpoints/hyperparameters intact. Serialize timed evaluation
+  outside GPU training stages; retain original selection and publication gates.
+- Sum per-device job reservations, include prior costs, and enforce both original
+  14,400 GPU-second ceiling and original absolute deadline with an independent watchdog.
+- Test actual concurrent CPU training subprocesses, checksum/config-checked reuse,
+  evaluation exclusion, graceful handoff/fallback, PID reuse and overlapping GPU accounting.
+- Isolate device-specific instability via identical captured inputs on five GPUs;
+  exclude GPU1, retain strict probability checks, and verify real BC-to-PPO updates
+  on GPUs4/5. Automatically reuse a stopped prior run without signaling unrelated PIDs.
+
 ## 2026-10-04 — V1.2 animal RL reliability and continuation
 
 - Reproduce a real CUDA PPO log-prob failure; use float64 probability arithmetic
