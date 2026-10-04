@@ -12,7 +12,7 @@ from boardbench.environments.harmonies import Harmonies, CELLS, CELL_INDEX, DELT
 from boardbench.solvers.neural import PolicyNetwork
 from boardbench.v12.neural import CompactSolver
 from boardbench.v12.encoding import encode, CARD_VECTORS
-from .registry import FIRST_ROUND, AVAILABLE, THROUGHPUT
+from .registry import FIRST_ROUND, AVAILABLE, THROUGHPUT, NUMERIC
 
 INPUT_SIZE = 1346
 CARD_WIDTH = len(CARD_VECTORS[1])
@@ -105,16 +105,25 @@ class ResearchNetwork(nn.Module):
     def forward(self, x, mask):
         if x.shape[-1] != INPUT_SIZE or mask.shape[-1] != 241 or not mask.any(-1).all():
             raise ValueError('research network shape or empty legal mask')
-        state = self.body(x)
+        state = self.body(x.to(dtype=next(self.parameters()).dtype))
         return self.actor(state).masked_fill(~mask, -1e9), self.critic(state).squeeze(-1)
+
+
+class NumericPolicyNetwork(PolicyNetwork):
+    """Same parameter names and initialization; cast public FP32 input at entry."""
+    def forward(self, x, mask):
+        return super().forward(x.to(dtype=next(self.parameters()).dtype), mask)
 
 
 class ResearchSolver(CompactSolver):
     def __init__(self, seed, experiment_id='E00', state='flat', head='fixed', hidden=128,
-                 graph_width=32, graph_layers=2, action_width=64, device='cpu'):
-        base_id = THROUGHPUT.get(experiment_id, experiment_id)
+                 graph_width=32, graph_layers=2, action_width=64, device='cpu', numeric_dtype='float32'):
+        parent = NUMERIC.get(experiment_id, experiment_id)
+        base_id = THROUGHPUT.get(parent, parent)
         if experiment_id not in AVAILABLE or (state, head) != FIRST_ROUND[base_id][1:3]:
             raise ValueError('experiment and architecture mismatch or planned-only method')
+        if numeric_dtype != ('float64' if experiment_id in NUMERIC else 'float32'):
+            raise ValueError('numeric dtype differs from registered experiment')
         self.device = str(device)
         self.params = dict(action_encoding='slots240_v1', observation_encoding='cards_v1',
                            allow_stop=True, time_conditioning=False)
@@ -123,11 +132,14 @@ class ResearchSolver(CompactSolver):
                              experiment_id=experiment_id, state=state, head=head, hidden=hidden,
                              graph_width=graph_width, graph_layers=graph_layers, action_width=action_width,
                              **self.params)
+        if experiment_id in NUMERIC:
+            self.metadata['numeric_dtype'] = numeric_dtype
         with torch.random.fork_rng(devices=[]):
             torch.random.default_generator.manual_seed(seed % (2**63))
-            self.model = (PolicyNetwork(INPUT_SIZE, 241, hidden) if base_id == 'E00' else
+            policy_class = NumericPolicyNetwork if experiment_id in NUMERIC else PolicyNetwork
+            self.model = (policy_class(INPUT_SIZE, 241, hidden) if base_id == 'E00' else
                           ResearchNetwork(state, head, hidden, graph_width, graph_layers, action_width))
-        self.model.to(device).eval()
+        self.model.to(device=device, dtype=torch.float64 if experiment_id in NUMERIC else torch.float32).eval()
         self.training = {}
         if len(encode(Harmonies().observe())['features']) != INPUT_SIZE:
             raise ValueError('public observation feature layout changed')

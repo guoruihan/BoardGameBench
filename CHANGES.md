@@ -1,5 +1,23 @@
 # Engineering changes
 
+## 2026-10-04 — 0.4.3 mature-policy numerical repair and audited recovery
+
+- First publish the pre-fix snapshot32d0c66, then reproduce the saved E11_T16_913
+  failure on its original b35GPU5: deterministic FP32 batch-shape forward drift,
+  1.763686e-4 at the unchanged1e-4 pre-update gate; identical-shape repeats agree.
+- Add explicit *_T16_F64 variants for all four matched models. Keep old variants,
+  initialization values, public inputs, full-game collector, objective and PPO
+  hyperparameters intact; use FP64 forward/gradients/Adam, not a relaxed check.
+- Add new-root numeric continuation with exact parent source/config/hash checks,
+  preserved parameters/Adam/RNG/counters, complete-boundary progress-only recovery
+  selection, inherited costs and explicit lineage. Ordinary resume remains strict.
+- Verify226 CPU regression tests, plus9 actual CUDA tests including the retained
+  failing-before/passing-after witness. All12 mature checkpoints pass76 rollout
+  batches/777 optimizer updates with maximum probability ratio error4.09e-14.
+- Preserve old sources/results/failure witnesses and deployment; resume four-card
+  research independently after gates. Diagnostics are not formal curve points;
+  no confirmation/final-test selection or policy-quality improvement claim.
+
 ## 2026-10-04 — V1.2.1 / 0.4.2 research snapshot before numerical repair
 
 - Publish isolated E00/E01/E10/E11 factorial implementations, fresh disjoint splits,

@@ -1,5 +1,17 @@
 # Research milestones
 
+## 0.4.3 / research V1.2.1 — 2026-10-04
+
+- Register explicitly identified FP64 arithmetic continuations of all four T16
+  models after a mature FP32 network exposed batch-size-dependent probability
+  drift. Architecture, objective, rollout cohort and PPO hyperparameters stay fixed.
+- Preserve the FP32 source/results; new curves inherit parent training progress
+  and costs with auditable numeric-conversion lineage, not from-scratch FP64 labels
+  or a claim of bitwise cross-source reproduction. Keep the original1e-4 gate.
+- Demonstrate saved-witness repair, finite updates and12 mature-policy imports.
+  This milestone concerns numerical reliability/recoverability, not stronger scores.
+  Development/confirmation/final-test boundaries and production pointers remain unchanged.
+
 ## 0.4.2 / research V1.2.1 — 2026-10-04
 
 - Completed10M-action development128 evaluation for all four T16 models x three

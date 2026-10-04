@@ -19,7 +19,7 @@ import time
 from boardbench.artifacts.store import digest, read_json, source_files, source_id, write_json
 from boardbench.v12.budget import kill_tree
 from boardbench.v12.launch import idle_gpu, physical_cores
-from .registry import IMPLEMENTED, THROUGHPUT, prepare
+from .registry import IMPLEMENTED, THROUGHPUT, NUMERIC, prepare
 
 MILESTONES = (4096, 400000, 1000000, 2000000, 5000000, 10000000, 20000000, 50000000)
 
@@ -71,6 +71,15 @@ def controller(root):
         raise ValueError('controller state exists; automatic failure retry is disabled')
     target, chunk = MILESTONES[0], 0
     latest, curve, records, eval_records = {}, [], [], []
+    recovery = None
+    if allocation.get('recovery_sha256'):
+        if digest(root / 'recovery.json') != allocation['recovery_sha256']:
+            raise ValueError('numeric recovery manifest hash mismatch')
+        recovery = read_json(root / 'recovery.json')
+        latest = deepcopy(recovery['entries'])
+        target = recovery['parent_target_actions']
+        if min(x['actions'] for x in latest.values()) >= target:
+            target = next_milestone(max(x['actions'] for x in latest.values()))
     active, eval_active = {}, None
     pending = deque()
     eval_pending = deque()
@@ -100,6 +109,11 @@ def controller(root):
                   'gpu_hours_cap': None, 'gpu_seconds': reservation_seconds(records),
                   'cpu_core_seconds': 8 * (reservation_seconds(records) + reservation_seconds(eval_records)),
                   'elapsed_seconds': time.monotonic()-started,
+                  'recovery': str(root / 'recovery.json') if recovery else None,
+                  'prior_gpu_seconds': recovery['prior_gpu_seconds'] if recovery else 0.,
+                  'cumulative_gpu_seconds': reservation_seconds(records) + (recovery['prior_gpu_seconds'] if recovery else 0.),
+                  'cumulative_cpu_core_seconds': 8 * (reservation_seconds(records) + reservation_seconds(eval_records)) +
+                    (recovery['prior_cpu_core_seconds'] if recovery else 0.),
                   'active': [{k:v for k,v in job.items() if k not in ('process','log')} for job in active.values()],
                   'pending_jobs': list(pending), 'evaluation_pending': len(eval_pending),
                   'evaluation_active': eval_active['name'] if eval_active else None,
@@ -209,7 +223,11 @@ def controller(root):
                                '--target-actions',job['target'],'--seconds',phase_seconds,'--device','cuda']
                     previous = latest.get(f'{job["experiment"]}_{job["seed"]}')
                     if previous:
-                        command += ['--resume',previous['resume']]
+                        if previous.get('numeric_import'):
+                            command += ['--import-numeric',previous['resume'], '--parent-source',previous['parent_source'],
+                                        '--parent-sha256',previous['parent_sha256']]
+                        else:
+                            command += ['--resume',previous['resume']]
                     record = {'name':name,'gpu':gpu['uuid'],'cpu_cores':cpu_groups[slot],
                               'started':time.monotonic(),'started_unix':time.time()}
                     records.append(record)
@@ -264,7 +282,7 @@ def controller(root):
             signal.signal(sig, handler)
 
 
-def launch(repo, root, indices, phase_seconds=900., batched=False, collector_workers=0):
+def launch(repo, root, indices, phase_seconds=900., batched=False, collector_workers=0, numeric_recovery=None):
     preparation_started=time.monotonic()
     repo,root=Path(repo).resolve(),Path(root).resolve()
     if root.exists() or not root.is_relative_to(repo/'outputs/v121'):
@@ -273,6 +291,8 @@ def launch(repo, root, indices, phase_seconds=900., batched=False, collector_wor
         raise ValueError('distinct devices and positive phase watchdog required')
     if type(collector_workers) is not int or not 0 <= collector_workers <= 7 or (collector_workers and not batched):
         raise ValueError('worker count requires batched mode and at most seven workers')
+    if numeric_recovery and not batched:
+        raise ValueError('numeric recovery requires matched batched experiments')
     if 1 in indices:
         raise ValueError('GPU1 remains quarantined pending explicit device diagnosis')
     if os.getloadavg()[0]>len(os.sched_getaffinity(0))*.5:
@@ -286,8 +306,12 @@ def launch(repo, root, indices, phase_seconds=900., batched=False, collector_wor
     for relative in source_files(repo):
         dest=root/'source'/relative;dest.parent.mkdir(parents=True,exist_ok=True)
         shutil.copy2(repo/relative,dest)
-    experiments = tuple(THROUGHPUT) if batched else IMPLEMENTED
+    experiments = tuple(NUMERIC) if numeric_recovery else tuple(THROUGHPUT) if batched else IMPLEMENTED
     prepare(root/'plan', experiments, collector_workers)
+    recovery = None
+    if numeric_recovery:
+        from .recovery import prepare_recovery
+        recovery = prepare_recovery(numeric_recovery, root, experiments, (911,912,913))
     manifest=read_json(root/'plan/splits.json')
     # Explicit inference-only legacy import; old training artifacts remain untouched.
     legacy=repo/'outputs/v11/harmonies/policies/rl_trained_008192__ffd5e452377e19f0'
@@ -312,6 +336,7 @@ def launch(repo, root, indices, phase_seconds=900., batched=False, collector_wor
                 'training_seeds':[911,912,913],'experiments':list(experiments),
                 'collector_mode':'batched_complete_games_v1' if batched else 'serial',
                 'collector_workers':collector_workers,
+                'recovery_sha256':digest(root/'recovery.json') if recovery else None,
                 'pipeline_evaluations':bool(batched), 'evaluation_high_watermark':48,
                 'watchdog_pid':os.getpid(),'accounting':'sum each GPU child reservation incl startup; CPU evaluation separately charged'}
     allocation['launcher_preparation_seconds']=time.monotonic()-preparation_started
@@ -349,9 +374,10 @@ if __name__=='__main__':
     parser.add_argument('--phase-seconds',type=float,default=900.)
     parser.add_argument('--batched',action='store_true',help='fresh matched E00_T16/E01_T16/E10_T16/E11_T16 reruns')
     parser.add_argument('--collector-workers',type=int,default=0)
+    parser.add_argument('--numeric-recovery',help='explicit new-root FP64 import of a stopped T16 campaign')
     args=parser.parse_args()
     if args.mode=='controller':controller(args.root)
     elif args.mode=='stop':
         root=Path(args.root);read_json(root/'allocation.json')
         write_json(root/'STOP_REQUESTED.json',{'requested_unix':time.time(),'reason':'explicit CLI stop'})
-    else:launch(args.repo,args.root,args.gpus,args.phase_seconds,args.batched,args.collector_workers)
+    else:launch(args.repo,args.root,args.gpus,args.phase_seconds,args.batched,args.collector_workers,args.numeric_recovery)

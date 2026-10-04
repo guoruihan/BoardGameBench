@@ -10,7 +10,9 @@ from boardbench.artifacts.store import write_json
 
 IMPLEMENTED = ('E00', 'E01', 'E10', 'E11')
 THROUGHPUT = {name + '_T16': name for name in IMPLEMENTED}
-AVAILABLE = IMPLEMENTED + tuple(THROUGHPUT)
+NUMERIC = {name + '_F64': name for name in THROUGHPUT}
+BATCHED = tuple(THROUGHPUT) + tuple(NUMERIC)
+AVAILABLE = IMPLEMENTED + BATCHED
 FIRST_ROUND = {
     'E00': (None, 'flat', 'fixed', 'V1.2 same-network re-run control'),
     'E01': ('E00', 'flat', 'shared', 'Shared raw-action scorer improves reuse'),
@@ -89,6 +91,14 @@ def definitions():
                        'row_order': 'episode_major', 'policy_updates_during_collection': False},
             implementation_available=True)
         result[name] = spec
+    for name, parent in NUMERIC.items():
+        spec = deepcopy(result[parent])
+        spec.update(experiment_id=name, parent_id=parent,
+            hypothesis='FP64 forward removes mature-policy batch-shape probability drift',
+            changed_factors=['network/gradient/Adam arithmetic float64; probability gate unchanged'],
+            unchanged_factors=spec['unchanged_factors'] + ['collector', 'parameter_values_at_import'])
+        spec['architecture']['numeric_dtype'] = 'float64'
+        result[name] = spec
     return result
 
 
@@ -139,7 +149,7 @@ def training_config(experiment_id, seed, manifest, collector_workers=0):
             'threads': 1, 'batch_episodes': 16, 'epochs': 4, 'minibatch_size': 256,
             'checkpoint_batches': 16, 'learning_rate': .0003, 'reward_scale': 150.,
             'entropy_coef': .01, 'target_kl': .02, 'clip_ratio': .2}
-    if experiment_id in THROUGHPUT:
+    if experiment_id in BATCHED:
         if type(collector_workers) is not int or not 0 <= collector_workers <= 7:
             raise ValueError('collector workers must fit the eight-core allocation')
         config['collector'] = {**spec['collector'], 'workers': collector_workers}
@@ -154,7 +164,7 @@ def prepare(out, experiments=IMPLEMENTED, collector_workers=0):
     manifest = make_splits()
     write_json(out / 'splits.json', manifest)
     families = deepcopy(FAMILIES)
-    families['V08'] += list(THROUGHPUT)
+    families['V08'] += list(BATCHED)
     write_json(out / 'registry.json', {'version': '1.2.1', 'families': families, 'experiments': definitions()})
     for experiment in experiments:
         for seed in (911, 912, 913):

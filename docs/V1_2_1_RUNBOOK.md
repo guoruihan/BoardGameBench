@@ -1,9 +1,10 @@
 # V1.2.1 · Harmonies 强 RL 研究分支
 
 本研究线依据 [实验探索方案](Harmonies_RL_Experiment_Plan_zh.md)，产品版本 V1.2.1，
-运行时包版本 0.4.2。只探索 Harmonies，不改变游戏规则、旧权重或 V1.2 发布指针。
+运行时包版本 0.4.3。只探索 Harmonies，不改变游戏规则、旧权重或 V1.2 发布指针。
 实现与独立开发集探索结果见[研究快照](V1_2_1_RESULTS_20261004.md)；
-当前存在已捕获的长期训练数值一致性故障，确认/最终测试未运行，不是生产晋级结论。
+0.4.2 捕获的长期训练数值一致性故障及 0.4.3 修复见[数值报告](V1_2_1_NUMERICS.md)。
+确认/最终测试未运行，不是生产晋级结论。
 
 ## 首批范围与不可变对照
 
@@ -23,7 +24,8 @@ E00 与 V1.2 同种子的初始化参数、编码和输出逐项一致；这是�
 
 PPO 沿用完整局MC、gamma1、真实总分差/150、batch16局、4epochs、minibatch256、
 lr3e-4、clip0.2、entropy0.01、value0.5、targetKL0.02、梯度裁剪0.5。
-网络float32，概率float64，更新前比率误差阈值1e-4。推理为合法mask下greedy。
+原始/T16网络float32，概率float64；新`*_T16_F64`变种网络/梯度/Adam也为float64。
+全部保留更新前比率误差阈值1e-4。推理为合法mask下greedy。
 各配置初始三训练种子911/912/913，不用最终测试挑最佳训练种子。
 
 其余第一轮 Cwide/Cpos/Lgae0/Afactor0 以及 V01–V14 下的课程、回放、教师纠错、
@@ -114,7 +116,13 @@ K0低分不淘汰正常路线；预算扩展不改变该编号算法。当前实
 
 ## 启动、观察与停止
 
-当前批量重跑：`outputs/v121/factorial_batched_20261004_b`，2026-10-04 14:43:49（UTC+8）启动，
+FP64恢复批次：`outputs/v121/factorial_f64_20261004_c`，2026-10-04 23:43:38（UTC+8）启动，
+tmux为 `boardbench-v121-rl-f64`，日志 `logs/v121/factorial_f64_20261004_c.log`。
+GPU2–5、每任务8核/7环境worker，从全部12个旧完整检查点审计迁移到`*_T16_F64`，
+已核验四个首发任务多批更新及rolling保存，当前累计目标2000万，无总GPU小时限制。
+这是数值续训，不是从零重跑；首次健康交接和复现详情见[数值报告](V1_2_1_NUMERICS.md)。
+
+上一批量重跑：`outputs/v121/factorial_batched_20261004_b`，2026-10-04 14:43:49（UTC+8）启动，
 tmux为 `boardbench-v121-rl-batched`，日志 `logs/v121/factorial_batched_20261004_b.log`。
 四种 `*_T16` 配置各三个种子，GPU2–5，每任务7个环境worker、8核；无总GPU小时上限。
 该批次已于当日21:31因E11_T16_913概率一致性门槛触发而停止，全部12组已完成1000万动作评测。
@@ -157,8 +165,24 @@ tmux new-session -d -s boardbench-v121-rl 'bash -o pipefail -c "PYTHONNOUSERSITE
 ```
 
 控制器停止派发，要求活跃训练在完整批次边界保存，等待正在进行的评测结束。
-已保存checkpoint可用低层训练入口续训；整条控制器的崩溃自动重启/旧根目录自动恢复**尚未实现**，
-不能直接对旧根目录重复launch。异常后先检查日志，再以新目录显式恢复受影响任务。
+已保存checkpoint可用低层训练入口续训；控制器仍不会自动重试故障或覆盖旧根目录。
+0.4.3 新增特定的 FP32 T16 → FP64 数值续训：必须停止的父批次、所有四格/种子一起迁移、
+相同划分/超参数、旧源码及检查点哈希匹配，按完整训练进度选择（不按分数）。
+
+```bash
+.venv-train/bin/python -m boardbench.v121.launch launch \
+  --repo /datapool/data3/storage/ruihan/code/boardgame \
+  --root outputs/v121/factorial_f64_UNIQUE --gpus 2 3 4 5 \
+  --batched --collector-workers 7 \
+  --numeric-recovery outputs/v121/factorial_batched_20261004_b
+```
+
+同样放在具名 tmux 中，用 `bash -o pipefail` 和 `tee` 捕获日志。
+`recovery.json` 保存每个父检查点路径/哈希/动作数、旧学习曲线指针和旧成本；
+新的曲线不拼接冒充从零开始的FP64结果。导入参数、Adam状态、所有RNG和计数器，
+更新前重新采集完整局；源/配置改变被明确记入 `lineage`，普通 `--resume` 仍拒绝跨源码。
+`gpu_seconds` 为新批次占用，`cumulative_gpu_seconds` 为这个父批次+新批次的小计；
+更早串行试验、吞吐测试和本次诊断记录另存，不能把此小计当项目全部成本。
 
 低层续训示例（需要该run的冻结源码、相同配置和device字符串）：
 

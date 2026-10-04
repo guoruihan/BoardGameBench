@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from boardbench.artifacts.store import read_json, write_json, source_files, source_id, source_root
+from boardbench.artifacts.store import digest, read_json, write_json, source_files, source_id, source_root
 from boardbench.v121 import launch
 from boardbench.v121.registry import make_splits, training_config
 
@@ -79,7 +79,7 @@ def test_accelerated_controller_trains_next_target_while_old_checkpoint_is_evalu
     assert len(read_json(root/'gpu_intervals.json'))==2
 
 
-@pytest.mark.parametrize('experiment',['E00','E00_T16'])
+@pytest.mark.parametrize('experiment',['E00','E00_T16','E00_T16_F64'])
 def test_real_cpu_child_checkpoint_and_graceful_controller_stop(tmp_path,monkeypatch,experiment):
     root=tmp_path/'campaign';root.mkdir();(root/'logs').mkdir()
     for relative in source_files():
@@ -94,6 +94,17 @@ def test_real_cpu_child_checkpoint_and_graceful_controller_stop(tmp_path,monkeyp
     config.update(batch_episodes=2,epochs=1,minibatch_size=64,purpose='interface_check')
     write_json(root/'plan/configs'/f'{experiment}_911.json',config)
     write_json(root/'plan/splits.json',manifest)
+    if experiment.endswith('_F64'):
+        from boardbench.v121.training import Trainer
+        from boardbench.v121.recovery import numeric_parent_config
+        old = Trainer(numeric_parent_config(config)); old.ppo_batch()
+        saved = tmp_path/'parent/old.pt'; old.save(saved); old.close()
+        write_json(root/'recovery.json', {'entries':{experiment+'_911':{
+            'resume':str(saved), 'actions':old.steps, 'numeric_import':True,
+            'parent_source':source_id(), 'parent_sha256':digest(saved)}},
+            'parent_target_actions':old.steps+1, 'prior_gpu_seconds':123., 'prior_cpu_core_seconds':984.})
+        alloc=read_json(root/'allocation.json');alloc['recovery_sha256']=digest(root/'recovery.json')
+        write_json(root/'allocation.json',alloc)
     monkeypatch.setattr(launch,'MILESTONES',(1,))
     monkeypatch.setattr(launch,'idle_gpu',lambda _: 'cpu-test')
     original=subprocess.Popen
@@ -114,6 +125,10 @@ def test_real_cpu_child_checkpoint_and_graceful_controller_stop(tmp_path,monkeyp
     assert status['phase']=='stopped_by_request' and status['error'] is None
     assert status['gpu_hours_cap'] is None and status['gpu_seconds']>0
     assert not status['final_test_executed'] and not status['deployment_changed']
+    if experiment.endswith('_F64'):
+        assert status['cumulative_gpu_seconds'] == status['gpu_seconds'] + 123.
+        meta = read_json(Path(status['latest_checkpoints'][experiment+'_911']['resume']).with_suffix('.json'))
+        assert meta['lineage']['parent_actions'] == old.steps
     assert status['experiment_status'][experiment]=='running'
     saved=Path(status['latest_checkpoints'][experiment+'_911']['resume'])
     assert saved.exists()

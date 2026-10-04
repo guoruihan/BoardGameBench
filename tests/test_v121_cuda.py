@@ -4,14 +4,14 @@ import os
 import pytest
 import torch
 
-from boardbench.v121.registry import THROUGHPUT, make_splits, training_config
+from boardbench.v121.registry import THROUGHPUT, NUMERIC, definitions, identity, make_splits, training_config
 from boardbench.v121.training import Trainer
 
 pytestmark = pytest.mark.skipif(os.environ.get('BOARDBENCH_CUDA_CHECK') != '1',
                                 reason='requires explicitly reserved CUDA resource')
 
 
-@pytest.mark.parametrize('name', list(THROUGHPUT))
+@pytest.mark.parametrize('name', list(THROUGHPUT) + list(NUMERIC))
 def test_cuda_update_checkpoint_rng_and_optimizer_continuation(name, tmp_path):
     assert torch.cuda.is_available()
     cfg = training_config(name, 911, make_splits(train_count=32), collector_workers=2)
@@ -41,3 +41,30 @@ def test_cuda_update_checkpoint_rng_and_optimizer_continuation(name, tmp_path):
                 torch.testing.assert_close(value.cpu(), expected_optimizer[key][field], atol=1e-6, rtol=1e-5)
     finally:
         b.close()
+
+
+def test_actual_mature_failure_before_and_after_at_original_gate():
+    path = os.environ.get('BOARDBENCH_PROBABILITY_WITNESS')
+    if not path:
+        pytest.skip('requires retained trusted local failure witness')
+    state = torch.load(path, map_location='cpu', weights_only=False)
+    assert state['diagnostic_only'] and state['info']['ratio_max_error'] > 1e-4
+    original = Trainer(state['config'], 'cuda')
+    original.solver.model.load_state_dict(state['model'], strict=True)
+    with pytest.raises(RuntimeError, match='log-prob mismatch'):
+        original._update(state['rows'])
+    assert original.updates == 0
+    from copy import deepcopy
+    config = deepcopy(state['config'])
+    experiment = config['experiment_id'] + '_F64'
+    config['experiment_id'] = experiment
+    config['experiment_sha256'] = identity(definitions()[experiment])
+    config['network'] = {'experiment_id': experiment, **definitions()[experiment]['architecture']}
+    repaired = Trainer(config, 'cuda')
+    repaired.solver.model.load_state_dict(state['model'], strict=True)
+    # Exactly the same saved rows, old behavior logps and starting parameter values.
+    row = repaired._update(state['rows'])
+    assert row['initial_ratio_max_error'] <= 1e-4 and repaired.updates > 0
+    assert all(torch.isfinite(p).all() for p in repaired.solver.model.parameters())
+    print({'captured_failure_repaired': row}, flush=True)
+    original.close(); repaired.close()
