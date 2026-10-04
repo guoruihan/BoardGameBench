@@ -1,3 +1,3 @@
 """BoardBench: inspectable board-game engines, policies and local experiments."""
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"

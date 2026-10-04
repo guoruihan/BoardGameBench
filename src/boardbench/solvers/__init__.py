@@ -7,6 +7,9 @@ SOLVERS = {"random": RandomSolver, "reference_search": ReferenceSearch,
 
 
 def make_solver(config, seed):
+    if config['id'] == 'harmonies_research':
+        from boardbench.v121.neural import ResearchSolver
+        return ResearchSolver(seed=seed, **config.get('params', {}))
     if config['id'] == 'timed_search':
         from boardbench.v12.search import TimedSearch
         return TimedSearch(seed=seed, **config.get('params', {}))

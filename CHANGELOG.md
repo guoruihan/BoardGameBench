@@ -1,5 +1,30 @@
 # Research milestones
 
+## 0.4.2 / research V1.2.1 — 2026-10-04
+
+- Completed10M-action development128 evaluation for all four T16 models x three
+  seeds. E00_T16 mean81.3281 vs historicalINC72.8672; confirmation and final test
+  remain unexecuted. Capture a later E11_T16 probability mismatch and stop safely;
+  this pre-fix research snapshot does not claim uninterrupted long-run reliability.
+- Register fourteen research families with planned status; implement only the
+  first E00/E01/E10/E11 state-encoder x action-sharing factorial. Keep the same
+  raw public inputs, true-score MC PPO and STOP semantics; report parameter counts.
+- Generate fresh disjoint train/dev128/confirmation256/test512 splits; old test
+  is historical audit only. Gate final test behind frozen source/split/policy selection.
+- Track real actions separately from STOP/decisions, full-batch target overshoot,
+  exact optimizer/RNG continuation and isolated train/evaluation resource intervals.
+- Add continuous user-authorized background scheduling without a total GPU-hour
+  cap, but finite phase watchdogs and no automatic production promotion.
+- Reproduce historical12/144terminalanimalmisses (0.381944mean immediate loss).
+  This is an implementation/design milestone, not evidence of stronger policies.
+- Add separately identified E00_T16/E01_T16/E10_T16/E11_T16 matched reruns with
+  synchronous sixteen-game batched sampling and shared-memory CPU workers. Preserve
+  full-game returns, on-policy boundaries, STOP and PPO hyperparameters. Pipeline
+  immutable-checkpoint development evaluations with backlog backpressure.
+- Same-b35 4090 end-to-end checks (two repetitions, seven workers/eight CPU cores)
+  measured 3.42x/3.46x/3.65x/3.72x throughput respectively. Warmup and total GPU
+  reservations separately recorded; this is engineering throughput, not policy quality.
+
 ## 0.4.1 — 2026-10-04
 
 - Separate one-step oracle-label BC fitting from genuine on-policy short-horizon

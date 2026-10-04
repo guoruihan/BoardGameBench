@@ -1,5 +1,23 @@
 # Engineering changes
 
+## 2026-10-04 — V1.2.1 / 0.4.2 research snapshot before numerical repair
+
+- Publish isolated E00/E01/E10/E11 factorial implementations, fresh disjoint splits,
+  immutable research registry, source-bound checkpoints and guarded final-test entry.
+- Add separately identified T16 batched collectors, shared-memory CPU environments,
+  unchanged full-game PPO/STOP semantics, continuous GPU scheduling and pipelined
+  immutable-checkpoint development evaluation with backlog backpressure.
+- Include semantic, update, resume, subprocess and CUDA opt-in tests; measured b35
+  end-to-end speedup3.42–3.72x with seven workers under eight-core allocations.
+- Record all12runs reaching10M actions; E00_T16 development128 three-seed mean81.33
+  versus frozenINC72.87. No confirmation/final-test or production promotion claim.
+- Explicitly retain known late-training probability-consistency failure at batch12409,
+  stopped-state provenance and the original1e-4 gate. Repair is not part of this snapshot.
+- Pre-publication full regression:215passed,4opt-inCUDA checks skipped in the ordinary
+  CPU suite; the separately reserved CUDA continuation checks passed in prior verification.
+- Publish source/tests/research docs only; preserve generated weights, logs, failed
+  witnesses and archived source locally, outside Git.
+
 ## 2026-10-04 — Source-preserving parallel V1.2 scheduling
 
 - Add an independently hashed orchestration driver for concurrent method/seed jobs
