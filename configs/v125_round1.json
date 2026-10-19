@@ -1,0 +1,19 @@
+{
+  "research_round": 1,
+  "hypothesis": "Compare exact goal memoization, mixed roots, and resource/terrain-aware habitat at 900 seconds per game.",
+  "split": "development",
+  "environment_indices": [96, 97, 98, 99],
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "panels": [4],
+  "search_seeds": [12520261020],
+  "references": ["original", "habitat"],
+  "cpu_cores": 21,
+  "task_seconds": 1500,
+  "arms": [
+    {"id":"original","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"original","seconds":900}},
+    {"id":"habitat","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"habitat","seconds":900}},
+    {"id":"habitat_fast","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"habitat_fast","seconds":900}},
+    {"id":"mixed_roots","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_roots","seconds":900}},
+    {"id":"resource_habitat","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"resource_habitat","seconds":900}}
+  ]
+}

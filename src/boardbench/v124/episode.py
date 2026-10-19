@@ -25,9 +25,9 @@ def make_policy(method, multiplier, search_seed, **params):
     raise ValueError('unregistered method / continuation')
 
 
-def run_episode(job, directory, **kwargs):
+def run_episode(job, directory, *, policy_factory=make_policy, **kwargs):
     started, cpu_started = time.monotonic(), time.process_time()
-    result = base_episode(job, directory, policy_factory=make_policy, **kwargs)
+    result = base_episode(job, directory, policy_factory=policy_factory, **kwargs)
     result.update(fallback_decisions=0, completed_rounds=0, accepted_terminal_rollouts=0,
                   discarded_terminal_rollouts=0, interrupted_rounds=0)
     final = None

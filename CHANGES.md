@@ -1,5 +1,19 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.7 / V1.2.5 small-cohort autonomous iteration
+
+- Add isolated 900-second cumulative-game search variants, exact goal-cache
+  continuation, interleaved terrain/habitat roots, and resource/terrain-aware goals.
+- Retain original/habitat controls and public-only terminal simulation; preserve
+  balanced completed rounds, candidate means/variance and per-decision random streams.
+- Reuse frozen-source campaign/watchdog and matched reports; each small task gets
+  its own deadline, no inherited08:00 or stage-wide compute cap. First screen is
+  four environments times one shared search seed, not a large evaluation matrix.
+- Add opt-in before/action/after/raw-score-delta traces without changing existing
+  episode defaults. Existing policy/episode hooks preserve old callers.
+- Research selection and follow-up variants are decided from completed experiments;
+  no production promotion, rule change, confirmation/test tuning, or GPU allocation.
+
 ## 2026-10-20 — V1.2.4 execution batch b, leave16physicalcores
 
 - Honor the user's expanded CPU allowance:112of128physicalcores including

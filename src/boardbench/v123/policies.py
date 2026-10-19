@@ -105,7 +105,7 @@ def extension_count(cell):
     return sum(current + (color,) in STACK_INDEX for color in COLORS)
 
 
-def rank_actions(obs, policy):
+def rank_actions(obs, policy, *, goal_function=card_goals):
     if policy not in POLICIES:
         raise ValueError('unknown diagnostic continuation')
     ranked = ranked_actions(obs)
@@ -118,7 +118,7 @@ def rank_actions(obs, policy):
     by_card, goals = {}, []
     if policy == 'habitat':
         for card in obs['active_cards']:
-            by_card[card['card_id']] = card_goals(obs, card['card_id'], card['placed_count'])
+            by_card[card['card_id']] = goal_function(obs, card['card_id'], card['placed_count'])
         goals = compatible_goals(obs, by_card)
     market_goals, scored = {}, []
     for base, action in ranked:
@@ -147,7 +147,7 @@ def rank_actions(obs, policy):
         elif kind == 'take_card' and policy == 'habitat':
             card_id = obs['animal_market'][action['market_slot']]
             if card_id not in market_goals:
-                market_goals[card_id] = card_goals(obs, card_id)
+                market_goals[card_id] = goal_function(obs, card_id)
             candidates = market_goals[card_id]
             # A genuinely unreachable card must lose to end_turn (-1), otherwise
             # the limited active slots fill with permanently unusable cards.

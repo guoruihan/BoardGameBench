@@ -1,0 +1,18 @@
+{
+  "research_round": "train_preflight",
+  "split": "train_calibration",
+  "environment_indices": [0],
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "panels": [1],
+  "search_seeds": [12520261020],
+  "references": ["original", "habitat"],
+  "cpu_cores": 6,
+  "task_seconds": 90,
+  "arms": [
+    {"id":"original","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"original","seconds":10}},
+    {"id":"habitat","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"habitat","seconds":10}},
+    {"id":"habitat_fast","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"habitat_fast","seconds":10}},
+    {"id":"mixed_roots","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"mixed_roots","seconds":10}},
+    {"id":"resource_habitat","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"resource_habitat","seconds":10}}
+  ]
+}

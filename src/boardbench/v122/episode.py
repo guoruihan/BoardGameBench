@@ -23,7 +23,8 @@ def make_policy(method, multiplier, search_seed, **params):
     raise ValueError(f'unknown method {method}')
 
 
-def run_episode(job, directory, *, max_decisions=256, policy_factory=make_policy):
+def run_episode(job, directory, *, max_decisions=256, policy_factory=make_policy,
+                log_pre_observation=False):
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=False)
     write_json(directory / 'job.json', job)
@@ -96,9 +97,12 @@ def run_episode(job, directory, *, max_decisions=256, policy_factory=make_policy
                 cache_calls += stats.get('cache_calls', 0)
                 obs = engine.step(action).observation
                 steps += 1
+                extra = ({'observation_before': public,
+                          'raw_score_delta': obs['score_breakdown']['total'] - public['score_breakdown']['total']}
+                         if log_pre_observation else {})
                 log.write(json.dumps({'decision': steps, 'action': action, 'observation': obs,
                                       'seconds': elapsed, 'simulation_steps': count - before_count,
-                                      'search': stats}, allow_nan=False) + '\n')
+                                      'search': stats, **extra}, allow_nan=False) + '\n')
                 # Shared cluster storage can make per-action atomic replacement
                 # slower than the heuristic itself. Bound lost crash telemetry
                 # to about one second without putting I/O inside solver timing.
