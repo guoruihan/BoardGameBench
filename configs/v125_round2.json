@@ -1,0 +1,20 @@
+{
+  "research_round": 2,
+  "hypothesis": "Round1 mixed roots gained animals but lost terrain; simple memoization barely increased throughput. Test exact geometric compilation, common-round original/habitat portfolio, and terrain-focused late play.",
+  "split": "development",
+  "environment_indices": [100, 101, 102, 103],
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "panels": [4],
+  "search_seeds": [12520261020],
+  "references": ["original", "habitat", "mixed_roots"],
+  "cpu_cores": 25,
+  "task_seconds": 1500,
+  "arms": [
+    {"id":"original","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"original","seconds":900}},
+    {"id":"habitat","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"habitat","seconds":900}},
+    {"id":"mixed_roots","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_roots","seconds":900}},
+    {"id":"mixed_compiled","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_compiled","seconds":900}},
+    {"id":"mixed_portfolio","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_portfolio","seconds":900}},
+    {"id":"mixed_finish_terrain","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_finish_terrain","seconds":900}}
+  ]
+}

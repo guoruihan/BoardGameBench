@@ -22,6 +22,18 @@
 
 三个变种是不同机制，不是同一权重网格。后续两轮必须读取这一轮及后续轮结果再决定方向，不能把预先写死的扫描称为自主决策。
 
+## 第2轮：根据第一轮的实际结果选择
+
+首轮20/20完整终局：original113.00、habitat103.25、habitat_fast104.25、mixed_roots114.00、resource_habitat104.75。mixed相对habitat+10.75，但相对original仅+1.00，区间很宽。动物分48.5 vs original35.5，同时地形65.5 vs77.5。缓存版模拟步数仅比habitat约+0.8%；资源版明显更慢。不能因为历史habitat平均更强，就忽略这批original更强的证据。
+
+据此保留original、habitat、mixed_roots，新增：
+
+- `mixed_compiled`：预编译合法静态堆叠扩展，减少每图案的Counter/product工作；与原card_goals及rank_actions逐项等价，仍是同一后续策略。
+- `mixed_portfolio`：每一完整公共采样轮固定使用original或编译habitat，交替进行，各候选同一轮使用同一个玩家；估计的是该玩家混合分布的平均终局分，不是对不同玩家的噪声估计取最大。
+- `mixed_finish_terrain`：公开剩余资源推算最多3回合或空格至多4格时切回original，其余采用编译habitat；检验动物布局后以地形收尾是否减少损失。
+
+配置`configs/v125_round2.json`，development100–103，24局、25核。训练预检使用train索引1，不按其10秒分数筛掉任何正式候选。
+
 ## 比较与保留
 
 默认4环境×1搜索seed，方法间严格配对。4局用于筛选，不宣称统计可靠或游戏已解；有潜力/互补/不确定的候选才补2–4环境或1搜索重复。每轮加入/轮换部分开发环境，最后用未参与本阶段选型的小开发子集检查；不同环境原始均分不能直接排序。

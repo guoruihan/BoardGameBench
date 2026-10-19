@@ -98,7 +98,7 @@ def raw_plan():
     return {'split': 'development', 'environment_indices': [96,97,98,99], 'panels':[4],
             'search_seeds':[12520261020], 'references':['original','habitat'],
             'arms':[{'id':v,'method':'terminal','multiplier':1,'timeout_seconds':1020,
-                     'params':{'mode':'timed','continuation':v,'seconds':900}} for v in VARIANTS]}
+                     'params':{'mode':'timed','continuation':v,'seconds':900}} for v in VARIANTS[:5]]}
 
 
 def test_plan_seed_pairing_and_caps():
@@ -191,3 +191,26 @@ def test_demonstration_export_alignment_and_no_overwrite(tmp_path):
     assert rows[0]['score_delta_return_to_go']==result['score']
     with pytest.raises(ValueError,match='overwrite'):
         export(run,out)
+
+
+def test_compiled_goals_and_policy_exact(states):
+    from boardbench.v125.compiled import card_goals_compiled
+    compiled=GoalContinuation(compiled=True)
+    for obs in states:
+        for c in obs['active_cards']:
+            assert card_goals_compiled(obs,c['card_id'],c['placed_count'])==card_goals(obs,c['card_id'],c['placed_count'])
+        for card in obs['animal_market']:
+            if card is not None:
+                assert card_goals_compiled(obs,card)==card_goals(obs,card)
+        assert compiled.rank(obs)==rank_actions(obs,'habitat')
+
+
+def test_portfolio_round_shared_and_finish_switch(states):
+    from boardbench.v125.policies import ComplementaryContinuation
+    from boardbench.solvers.board import ranked_actions
+    p=ComplementaryContinuation('portfolio')
+    for obs in states[::7]:
+        p.select_round(0);assert p.decide(obs)==ranked_actions(obs)[0][1]
+        p.select_round(1);assert p.decide(obs)==rank_actions(obs,'habitat')[0][1]
+    p=ComplementaryContinuation('finish_terrain')
+    assert p.decide(states[-1])==ranked_actions(states[-1])[0][1]

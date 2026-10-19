@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-20 — V1.2.5 round2, driven by round1 results
+
+- Round1 completes20/20 games: mixed roots114.00 vs original113.00 and habitat
+  103.25 on four paired environments. Animal gains largely trade off terrain;
+  simple goal caching adds only0.8% simulated steps. Retain all controls and do
+  not claim a reliable advantage from this small selected cohort.
+- Add exactly equivalent stack-extension goal compilation, a common-round
+  original/habitat continuation portfolio, and a public late-game terrain switch.
+- Freeze four fresh development environments100–103, one shared search seed,
+  six900-second methods;24workers plus control, no large fixed expansion.
+- Verify compiled goals and action rankings against original implementation,
+  common-policy-per-round sampling and legal/budgeted play;40 scoped tests pass.
+
 ## 2026-10-20 — 0.4.8 / V1.2.5 recovery and aligned demonstrations
 
 - Fix late binding of the optional goal function so existing diagnostic

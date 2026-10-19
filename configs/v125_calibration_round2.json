@@ -1,0 +1,17 @@
+{
+  "research_round": "round2_preflight",
+  "split": "train_calibration",
+  "environment_indices": [1],
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "panels": [1],
+  "search_seeds": [12520261020],
+  "references": ["original"],
+  "cpu_cores": 5,
+  "task_seconds": 90,
+  "arms": [
+    {"id":"original","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"original","seconds":10}},
+    {"id":"mixed_compiled","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"mixed_compiled","seconds":10}},
+    {"id":"mixed_portfolio","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"mixed_portfolio","seconds":10}},
+    {"id":"mixed_finish_terrain","method":"terminal","multiplier":1,"timeout_seconds":45,"params":{"mode":"timed","continuation":"mixed_finish_terrain","seconds":10}}
+  ]
+}

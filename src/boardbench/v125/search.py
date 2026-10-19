@@ -5,9 +5,11 @@ Only complete balanced candidate rounds contribute to Q estimates.
 """
 from boardbench.solvers.board import ranked_actions
 from boardbench.v124.search import TimedRollout
-from .policies import GoalContinuation, mixed_candidates
+from .policies import ComplementaryContinuation, GoalContinuation, mixed_candidates
 
-VARIANTS = ('original', 'habitat', 'habitat_fast', 'mixed_roots', 'resource_habitat')
+VARIANTS = ('original', 'habitat', 'habitat_fast', 'mixed_roots', 'resource_habitat',
+            'mixed_compiled', 'mixed_portfolio', 'mixed_finish_terrain')
+MIXED_ROOTS = ('mixed_roots','mixed_compiled','mixed_portfolio','mixed_finish_terrain')
 
 
 class Search(TimedRollout):
@@ -18,11 +20,15 @@ class Search(TimedRollout):
         self.variant = variant
         if variant in ('habitat_fast', 'mixed_roots', 'resource_habitat'):
             self.policy = GoalContinuation(resource_aware=variant == 'resource_habitat')
+        elif variant=='mixed_compiled':
+            self.policy=GoalContinuation(compiled=True)
+        elif variant in ('mixed_portfolio','mixed_finish_terrain'):
+            self.policy=ComplementaryContinuation(variant.removeprefix('mixed_'))
 
     def _decide(self, observation, context, begin):
         if observation['task_id'] != 'harmonies' or context.reference_simulator is None:
             raise ValueError('public Harmonies simulator required')
-        ranked = (mixed_candidates(observation, self.width) if self.variant == 'mixed_roots'
+        ranked = (mixed_candidates(observation, self.width) if self.variant in MIXED_ROOTS
                   else ranked_actions(observation))
         if not ranked:
             raise ValueError('terminal state has no action')
@@ -35,6 +41,8 @@ class Search(TimedRollout):
         interrupted = False
         before_calls, before_hits = self.policy.calls, self.policy.hits
         while len(actions) > 1 and self.clock() < deadline:
+            if isinstance(self.policy,ComplementaryContinuation):
+                self.policy.select_round(rounds)
             seed, returns = self.rng.getrandbits(63), {}
             offset = rounds % len(actions)
             for k in range(len(actions)):

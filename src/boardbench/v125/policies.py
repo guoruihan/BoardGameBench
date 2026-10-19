@@ -5,7 +5,8 @@ import json
 
 from boardbench.environments.harmonies import COLORS
 from boardbench.solvers.board import ranked_actions
-from boardbench.v123.policies import available_tokens, card_goals, rank_actions
+from boardbench.v123.policies import Continuation, available_tokens, card_goals, rank_actions
+from .compiled import card_goals_compiled
 
 
 class GoalContinuation:
@@ -14,12 +15,13 @@ class GoalContinuation:
     Goal objects are read-only in the original ranker. Resource-aware adjustments
     use copies and explicitly change the heuristic, not game legality.
     """
-    def __init__(self, resource_aware=False, capacity=512):
+    def __init__(self, resource_aware=False, capacity=512, compiled=False):
         self.resource_aware = resource_aware
         self.capacity = capacity
         self.cache = OrderedDict()
         self.actions = OrderedDict()
         self.calls = self.hits = self.goal_hits = 0
+        self.goal_function = card_goals_compiled if compiled else card_goals
 
     def goals(self, obs, card_id, placed_count=0):
         supply = available_tokens(obs)
@@ -30,7 +32,7 @@ class GoalContinuation:
             self.cache.move_to_end(key)
             goals = self.cache[key]
         else:
-            goals = card_goals(obs, card_id, placed_count)
+            goals = self.goal_function(obs, card_id, placed_count)
             self.cache[key] = goals
             if len(self.cache) > self.capacity:
                 self.cache.popitem(last=False)
@@ -96,3 +98,30 @@ def mixed_candidates(obs, width=6):
             if len(merged) >= width:
                 return merged
     return merged
+
+
+class ComplementaryContinuation:
+    """Combine existing players, either per rollout round or by public game phase."""
+    def __init__(self, mode):
+        if mode not in ('portfolio','finish_terrain'):
+            raise ValueError('unknown complementary mode')
+        self.mode=mode
+        self.original=Continuation('original',capacity=32768)
+        self.habitat=GoalContinuation(compiled=True)
+        self.round=0
+        self.calls=self.hits=0
+
+    def select_round(self, number):
+        self.round=number
+
+    def decide(self, obs):
+        if self.mode=='portfolio':
+            use_original=self.round%2==0
+        else:
+            use_original=(sum(obs['remaining_tokens'].values())//9<=3 or
+                          sum(c['stack_id']==0 for c in obs['board'])<=4)
+        policy=self.original if use_original else self.habitat
+        hits=policy.hits
+        action=policy.decide(obs)
+        self.calls+=1;self.hits+=policy.hits-hits
+        return action
