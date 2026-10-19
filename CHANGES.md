@@ -1,5 +1,15 @@
 # Engineering changes
 
+## 2026-10-20 — V1.2.6 immutable child-source inheritance
+
+- Force every later CPU stage to inherit the executing outer pipeline snapshot,
+  never a changed worktree; retries still use the validated parent snapshot.
+- Add direct regression coverage. Freeze-only full suite321passed/9 CUDA skips;
+  final scoped55checks pass. Verify actual calibration child source equals outer.
+- Stop only the first waiting V126 orchestrator before any stage began, preserve
+  its record, and carry its98.086core-second wait into replacement preflight once.
+  V125 experiments remain untouched; replacement run identity ends in `_b`.
+
 ## 2026-10-20 — 0.4.9 / V1.2.6 search-guided learning
 
 - Add a frozen, independently bounded teacher -> BC/Q-soft-target students ->

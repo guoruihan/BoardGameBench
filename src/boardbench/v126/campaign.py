@@ -5,15 +5,21 @@ from pathlib import Path
 import sys
 import time
 
-from boardbench.artifacts.store import read_json, write_json, digest
+from boardbench.artifacts.store import read_json, write_json, digest, source_root
 from boardbench.v122 import campaign as base
-from boardbench.v125.campaign import cpu_core_limit, initial_results, snapshot_repository
+from boardbench.v125.campaign import cpu_core_limit, initial_results, resume_parent
 from boardbench.v125.report import publish as prior_publish
 
 output_version='v126'
 episode_module='boardbench.v126.episode'
 controller_module='boardbench.v126.campaign'
 make_jobs=base.make_jobs
+
+
+def snapshot_repository(repo, plan):
+    # The outer pipeline may wait/run for hours while the worktree changes.
+    # Always inherit the executing frozen package, not the mutable repo argument.
+    return resume_parent(plan)/'source' if plan.get('resume_from') else source_root()
 
 
 def prepare_plan(raw, manifest):

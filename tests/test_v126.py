@@ -185,3 +185,13 @@ def test_gpu_probe_timeout_is_unavailable_not_pipeline_failure(tmp_path,monkeypa
     report=read_json(tmp_path/'gpu_probe.json')
     assert not report['devices'][0]['cuda_execution_ok']
     assert 'unavailable' in report['devices'][0]['reason']
+
+
+def test_child_campaign_copies_frozen_pipeline_not_mutable_repo(tmp_path,monkeypatch):
+    from boardbench.v126 import campaign
+    frozen=tmp_path/'outer/source';live=tmp_path/'mutable_worktree'
+    monkeypatch.setattr(campaign,'source_root',lambda:frozen)
+    assert campaign.snapshot_repository(live,{})==frozen
+    parent=tmp_path/'previous_attempt'
+    monkeypatch.setattr(campaign,'resume_parent',lambda plan:parent)
+    assert campaign.snapshot_repository(live,{'resume_from':str(parent)})==parent/'source'

@@ -44,17 +44,17 @@ b35（192.168.2.58）的GPU0/1/2/4/5能被nvidia-smi列出、空闲，GPU3报设
 cd /datapool/data3/storage/ruihan/code/boardgame
 mkdir -p logs/v126
 tmux new-session -d -s boardbench-v126-learning \
- 'bash -o pipefail -c "PYTHONNOUSERSITE=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=src .venv-train/bin/python -u -m boardbench.v126.pipeline launch --repo /datapool/data3/storage/ruihan/code/boardgame --root outputs/v126/learning_20261020_a --config configs/v126_search_learning.json 2>&1 | tee logs/v126/learning_20261020_a.log"'
+ 'bash -o pipefail -c "PYTHONNOUSERSITE=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=src .venv-train/bin/python -u -m boardbench.v126.pipeline launch --repo /datapool/data3/storage/ruihan/code/boardgame --root outputs/v126/learning_20261020_b --config configs/v126_search_learning.json 2>&1 | tee logs/v126/learning_20261020_b.log"'
 ```
 
-外层启动后冻结源码；子任务各有独立源码、计划、种子、计时、逐动作轨迹、最终结果、状态及watchdog。源码/配置变化不热更运行中的策略。主报告 `outputs/v126/learning_20261020_a/REPORT.md` 自动更新；各子任务还包含 `summary.json`、`curve.csv`、`REPORT.md`。
+外层启动后冻结源码；后续每个子任务都从外层冻结快照复制，不读取变化后的工作区。子任务各有独立源码、计划、种子、计时、逐动作轨迹、最终结果、状态及watchdog。源码/配置变化不热更运行中的策略。主报告 `outputs/v126/learning_20261020_b/REPORT.md` 自动更新；各子任务还包含 `summary.json`、`curve.csv`、`REPORT.md`。
 
 确认旧进程已退出后，从同一冻结源码恢复：
 
 ```bash
-PYTHONPATH=outputs/v126/learning_20261020_a/source/src \
+PYTHONPATH=outputs/v126/learning_20261020_b/source/src \
  .venv-train/bin/python -u -m boardbench.v126.pipeline run \
- --root outputs/v126/learning_20261020_a \
+ --root outputs/v126/learning_20261020_b \
  --repo /datapool/data3/storage/ruihan/code/boardgame
 ```
 
@@ -64,6 +64,9 @@ PYTHONPATH=outputs/v126/learning_20261020_a/source/src \
 
 ## 已完成的启动前验证
 
-- `outputs/v126/calibration_20261020_{a,b,c}` 各29/29局自然终局、0失败，且各完成3个小模型训练。c为正式冻结源码834e263ace72ec033bc6c1850f5397f72d25ef2403a5874af44a4ccd3da69be3，记账0.0891 CPU核时、GPU0；已完成任务恢复未创建新局。
+- `outputs/v126/calibration_20261020_{a,b,c}` 各29/29局自然终局、0失败，且各完成3个小模型训练。c为前一冻结源码834e263ace72ec033bc6c1850f5397f72d25ef2403a5874af44a4ccd3da69be3，记账0.0891 CPU核时、GPU0；已完成任务恢复未创建新局。
 - 初次全量318通过、9项显式CUDA资源跳过。最终变更相关47项通过；最新10项V126加1项旧源码一致性检查共11项通过。第二次全量测试与源码编辑重叠曾触发`child source mismatch`，保留该负记录，冻结后对应检查通过，没有关闭源版本验证。
 - 新增检查包括候选mask/空Q、合法动作、真实终局rollout、Torch/NumPy推理一致、按环境隔离、数据全量重放、完整epoch恢复及GPU探测超时回退。
+- 冻结后完整回归321通过/9 CUDA跳过。最终快照继承修复相关55项通过；`calibration_20261020_d` 使用最终源码5ce3ca2a16ab22eb2c851c19d6890c49a6dce11d259e372eefbd715743967df3，实际子任务继承外层源码哈希已核对。
+
+首个待机尝试 `learning_20261020_a` 在任何子任务启动前停止：审查发现后续子任务快照需要强制继承外层冻结源码，而不是复制届时的工作区。该尝试没有训练局或模型，旧V125没有中断；保留其记录，5.027246 CPU核时（含5核时统一预检额度）计入替换尝试b的预检成本一次，不重复相加。
