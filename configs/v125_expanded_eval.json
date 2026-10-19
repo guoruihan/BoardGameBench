@@ -1,0 +1,21 @@
+{
+  "research_round": "expanded_frozen_evaluation",
+  "hypothesis": "Check the five retained policies on the exact historical32-development-environment,3-search-seed matrix without changing algorithms during evaluation.",
+  "split": "development",
+  "environment_indices": [64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95],
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "historical_reference_file": "outputs/v125/references/v124_900s_20261020.json",
+  "panels": [8,16,32],
+  "search_seeds": [12420261020,12420261021,12420261022],
+  "references": ["original","habitat","mixed_roots","mixed_compiled"],
+  "resource_profile": "b35_reserve16_v1",
+  "cpu_cores": 101,
+  "task_seconds": 7200,
+  "arms": [
+    {"id":"original","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"original","seconds":900}},
+    {"id":"habitat","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"habitat","seconds":900}},
+    {"id":"mixed_roots","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_roots","seconds":900}},
+    {"id":"mixed_compiled","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_compiled","seconds":900}},
+    {"id":"mixed_confident","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_confident","seconds":900}}
+  ]
+}

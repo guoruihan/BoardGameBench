@@ -1,5 +1,19 @@
 # Engineering changes
 
+## 2026-10-20 — V1.2.5 retained-policy expanded evaluation
+
+- Freeze five retained policies on the exact historical32-environment/3-search-
+  seed development matrix:480900-second games, including rerun original/habitat
+  controls. No strategy, game-rule, deployment or formal-test changes.
+- Add an explicit b35-only reserve16-physical-cores profile, capped112 and
+  requested101cores; preserve the default half-machine guard for every old run.
+- Freeze288 historical900-second records from finalized parent/expanded runs,
+  verifying ownership, source, rules, job identity and all seed repetitions.
+  Embed the snapshot in the new plan; report historical and same-batch contrasts
+  separately without treating search repetitions as independent environments.
+- Retain bounded task/worker watchdogs, frozen-source recovery and resource
+  accounting; validate100-worker concurrency on train, never prune by2s scores.
+
 ## 2026-10-20 — V1.2.5 stage1 completed
 
 - Complete three genuinely adaptive rounds:64/64 natural-terminal games on12

@@ -203,8 +203,11 @@ def launch(plan_path, root, repo, *, backend=None):
         raise ValueError('future absolute deadline within eight hours required')
     cpus = physical_cpus()
     count = raw['cpu_cores']
-    if type(count) is not int or not 2 <= count <= len(cpus) // 2:
-        raise ValueError('controller plus workers may use at most half the available physical CPU cores')
+    limit = getattr(backend, 'cpu_core_limit', lambda cpus, plan: len(cpus) // 2)(cpus, raw)
+    if type(limit) is not int or not 0 <= limit <= len(cpus):
+        raise ValueError('invalid physical CPU resource limit')
+    if type(count) is not int or not 2 <= count <= limit:
+        raise ValueError(f'controller plus workers exceed physical CPU limit {limit}; default is half-machine')
     if os.getloadavg()[0] > len(cpus) * .5:
         raise RuntimeError('host CPU load too high; no other workload was stopped')
     manifest_path = (repo / raw['split_manifest']).resolve()
@@ -244,6 +247,7 @@ def launch(plan_path, root, repo, *, backend=None):
     allocation = {'started_unix': started_unix, 'deadline_unix': plan['deadline_unix'],
                   'cpu_affinity': cores, 'worker_cpus': cores[1:], 'controller_cpu': cores[0],
                   'host_physical_core_count': len(cpus), 'host': os.uname().nodename,
+                  'cpu_core_limit': limit, 'resource_profile': raw.get('resource_profile', 'default_half'),
                   'source_id': frozen_source, 'plan_sha256': digest(root / 'plan.json'),
                   'splits_sha256': digest(root / 'splits.json'), 'watchdog_pid': os.getpid(),
                   'git_head': subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip(),

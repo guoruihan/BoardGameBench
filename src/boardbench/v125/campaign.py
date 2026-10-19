@@ -1,6 +1,7 @@
 """Small independent v125 tasks, reusing frozen-source workers and watchdogs."""
 import argparse
 import math
+import os
 from pathlib import Path
 import sys
 import time
@@ -14,6 +15,15 @@ output_version = 'v125'
 episode_module = 'boardbench.v125.episode'
 controller_module = 'boardbench.v125.campaign'
 make_jobs = base.make_jobs
+
+
+def cpu_core_limit(cpus, plan):
+    profile = plan.get('resource_profile', 'default_half')
+    if profile == 'default_half':
+        return len(cpus) // 2
+    if profile != 'b35_reserve16_v1' or os.uname().nodename != 'b35.cluster.helixon.com':
+        raise ValueError('expanded CPU profile is explicitly authorized only on b35')
+    return min(112, max(0, len(cpus) - 16))
 
 
 def resume_parent(plan):
@@ -69,6 +79,10 @@ def prepare_plan(raw, manifest):
         raise ValueError('unique in-split environment indices matching final panel required')
     plan['environment_seeds'] = [pool[i] for i in indices]
     plan['protocol'] = 'autonomous_small_cohort_wall_budget_v125'
+    if 'historical_reference' in plan:
+        from .historical import validate_reference
+        validate_reference(plan['historical_reference'], plan)
+        plan['protocol'] = 'retained_policy_expanded_wall_budget_v125'
     for a in plan['arms']:
         p = a['params']
         if (a['method'] != 'terminal' or a['multiplier'] != 1 or p.get('mode') != 'timed'
@@ -107,6 +121,12 @@ def main():
             resume_parent(raw)
         else:
             raw = read_json(args.plan)
+            if 'historical_reference_file' in raw:
+                reference = (repo / raw['historical_reference_file']).resolve()
+                if not reference.is_relative_to(repo / 'outputs/v125/references'):
+                    p.error('historical reference must be a project v125 snapshot')
+                raw['historical_reference'] = read_json(reference)
+                raw['historical_reference_sha256'] = digest(reference)
         duration = args.task_seconds if args.task_seconds is not None else raw.pop('task_seconds', 1500)
         if not math.isfinite(duration) or not 10 < duration <= 8 * 3600:
             p.error('bounded independent task_seconds required')

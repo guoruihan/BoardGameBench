@@ -1,0 +1,20 @@
+{
+  "research_round": "expanded_concurrency_preflight",
+  "hypothesis": "Exercise100 single-thread CPU workers on four train environments; two-second solver runs validate engineering only, not900-second quality.",
+  "split": "train_calibration",
+  "environment_indices": [3,4,5,6],
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "panels": [4],
+  "search_seeds": [1251001,1251002,1251003,1251004,1251005],
+  "references": ["original","habitat"],
+  "resource_profile": "b35_reserve16_v1",
+  "cpu_cores": 101,
+  "task_seconds": 180,
+  "arms": [
+    {"id":"original","method":"terminal","multiplier":1,"timeout_seconds":60,"params":{"mode":"timed","continuation":"original","seconds":2}},
+    {"id":"habitat","method":"terminal","multiplier":1,"timeout_seconds":60,"params":{"mode":"timed","continuation":"habitat","seconds":2}},
+    {"id":"mixed_roots","method":"terminal","multiplier":1,"timeout_seconds":60,"params":{"mode":"timed","continuation":"mixed_roots","seconds":2}},
+    {"id":"mixed_compiled","method":"terminal","multiplier":1,"timeout_seconds":60,"params":{"mode":"timed","continuation":"mixed_compiled","seconds":2}},
+    {"id":"mixed_confident","method":"terminal","multiplier":1,"timeout_seconds":60,"params":{"mode":"timed","continuation":"mixed_confident","seconds":2}}
+  ]
+}
