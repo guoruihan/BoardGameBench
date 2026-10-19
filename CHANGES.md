@@ -1,5 +1,20 @@
 # Engineering changes
 
+## 2026-10-20 — V1.2.5 stage1 completed
+
+- Complete three genuinely adaptive rounds:64/64 natural-terminal games on12
+  small-cohort development environments; no confirmation/test or GPU usage.
+- Retain mixed roots:117.417 vs original106.833 on the same12 environments,
+  9wins/3losses; vs habitat+8.125 on eight shared environments. These are adaptive
+  development results, not an optimality or independent-test claim.
+- Archive negative continuation/width experiments, retain paired-uncertainty
+  selection for follow-up, and preserve separate original/habitat/compiled controls.
+- Export4663 aligned decisions; replay all64 trajectories and terminal scores
+  exactly. Final CPU regression284passed/21resource-skipped. Record21.343
+  conservativeCPUcore-hours including calibration/recovery/local verification.
+- Publish concise results and exact recovery/data pointers; all experiment
+  processes exited. No production strategy or game-rule changes.
+
 ## 2026-10-20 — V1.2.5 round3, driven by round2 results
 
 - Round2 completes24/24 games. Mixed roots116.50 beats original93.50 on this
