@@ -51,11 +51,14 @@ class Search(TimedRollout):
         elif variant in ('mixed_portfolio','mixed_finish_terrain'):
             self.policy=ComplementaryContinuation(variant.removeprefix('mixed_'))
 
+    def rank_candidates(self, observation):
+        return (mixed_candidates(observation, self.width) if self.variant in MIXED_ROOTS
+                else ranked_actions(observation))
+
     def _decide(self, observation, context, begin):
         if observation['task_id'] != 'harmonies' or context.reference_simulator is None:
             raise ValueError('public Harmonies simulator required')
-        ranked = (mixed_candidates(observation, self.width) if self.variant in MIXED_ROOTS
-                  else ranked_actions(observation))
+        ranked = self.rank_candidates(observation)
         if not ranked:
             raise ValueError('terminal state has no action')
         actions = [a for _, a in ranked[:self.width]]

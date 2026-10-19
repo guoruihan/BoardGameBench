@@ -1,0 +1,19 @@
+{
+  "research_version": "1.2.6-calibration-only",
+  "calibration_only": true,
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "dependency_wait_seconds": 120,
+  "train_indices": [3000,3001],
+  "validation_indices": [3002],
+  "student_selection_indices": [3003],
+  "pilot_indices": [3004],
+  "dagger_indices": [3005],
+  "fresh_indices": [3006],
+  "game_seconds": 0.15,
+  "campaign_cores": 4,
+  "model_specs": [["bc32",32,0.0,12601]],
+  "epochs": 2,
+  "train_seconds": 120,
+  "preflight_cpu_core_seconds": 0,
+  "gpu_uuids": []
+}

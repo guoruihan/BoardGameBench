@@ -1,5 +1,29 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.9 / V1.2.6 search-guided learning
+
+- Add a frozen, independently bounded teacher -> BC/Q-soft-target students ->
+  900-second root/continuation ablations -> student-state relabeling -> retraining
+  and fresh-development comparison pipeline. Reuse existing encodings, MLP,
+  public simulator, natural-terminal runner, campaign locks/watchdogs and reports.
+- Generate new train-only teacher data, replay every labeled transition, split
+  by environment, keep unestimated candidate Q masked and continuation-specific.
+  Export FP32 NumPy inference and verify agreement with training-time Torch.
+- Retain all students and controls; select correction direction by full-budget
+  search, never low-budget student scores. No reward/rule changes, formal tests,
+  production promotion, value truncation or from-scratch PPO sweep.
+- Add resumable model/optimizer/RNG epochs, immutable hashes, per-stage attempts,
+  shared CPU reservation guards, conservative resource ledger and live reports.
+- b35 GPU authorization received, but every visible idle GPU fails actual CUDA;
+  direct system-driver cuInit returns999. Probe again before training and fall
+  back to CPU without resetting the driver or interrupting V125 experiments.
+- Verification: three complete29-game train-only calibrations, each with3 real
+  small-model trainings; final frozen-source calibration has0 failures and
+  completed-task resume launches0 jobs. Initial full suite318passed/9 CUDA skips;
+  latest scoped47tests and11 focused recovery/GPU-failure/provenance checks pass.
+  Concurrent source editing correctly tripped one old provenance gate in a
+  second full sweep; its exact frozen-source rerun passes, guard unchanged.
+
 ## 2026-10-20 — V1.2.5 retained-policy expanded evaluation
 
 - Freeze five retained policies on the exact historical32-environment/3-search-
