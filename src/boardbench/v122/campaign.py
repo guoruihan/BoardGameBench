@@ -93,7 +93,8 @@ def collect_results(root):
     return [read_json(p) for p in sorted((Path(root) / 'resolved').glob('*.json'))]
 
 
-def supervise(root):
+def supervise(root, *, backend=None):
+    backend = backend or sys.modules[__name__]
     root = Path(root)
     plan, allocation = read_json(root / 'plan.json'), read_json(root / 'allocation.json')
     if source_id() != allocation['source_id']:
@@ -103,7 +104,7 @@ def supervise(root):
     if digest(root / 'splits.json') != allocation['splits_sha256']:
         raise ValueError('split hash mismatch')
     jobs = read_json(root / 'jobs.json')
-    if jobs != make_jobs(plan):
+    if jobs != backend.make_jobs(plan):
         raise ValueError('jobs differ from frozen plan')
     queue, active, results = deque(jobs), {}, []
     available = deque(allocation['worker_cpus'])
@@ -123,7 +124,7 @@ def supervise(root):
                               'elapsed_seconds': time.monotonic() - value['started']}
                              for pid, value in active.items()]}
         write_json(root / 'status.json', status)
-        publish(root, plan, jobs, results, status)
+        backend.publish(root, plan, jobs, results, status)
         print(json.dumps({k: status[k] for k in ('phase', 'resolved', 'queued', 'active_count', 'remaining_seconds')}), flush=True)
     try:
         while queue or active:
@@ -136,7 +137,8 @@ def supervise(root):
                 job_path, out = root / 'jobs' / f'{job["id"]}.json', root / 'episodes' / job['id']
                 write_json(job_path, job)
                 stream = (root / 'logs' / f'{job["id"]}.log').open('x')
-                command = ['taskset', '-c', str(cpu), sys.executable, '-u', '-m', 'boardbench.v122.episode',
+                command = ['taskset', '-c', str(cpu), sys.executable, '-u', '-m',
+                           getattr(backend, 'episode_module', 'boardbench.v122.episode'),
                            '--job', str(job_path), '--out', str(out)]
                 child = subprocess.Popen(command, stdout=stream, stderr=subprocess.STDOUT, start_new_session=True)
                 active[child.pid] = {'process': child, 'job': job, 'cpu': cpu, 'stream': stream,
@@ -187,11 +189,13 @@ def supervise(root):
         snapshot()
 
 
-def launch(plan_path, root, repo):
+def launch(plan_path, root, repo, *, backend=None):
+    backend = backend or sys.modules[__name__]
+    version = getattr(backend, 'output_version', 'v122')
     started, started_unix = time.monotonic(), time.time()
     root, repo = Path(root).resolve(), Path(repo).resolve()
-    if not root.is_relative_to(repo / 'outputs/v122') or root.exists():
-        raise ValueError('new output directory under outputs/v122 required')
+    if not root.is_relative_to(repo / 'outputs' / version) or root.exists():
+        raise ValueError(f'new output directory under outputs/{version} required')
     raw = read_json(plan_path)
     if not math.isfinite(raw['deadline_unix']) or not 10 < raw['deadline_unix'] - started_unix <= 8 * 3600:
         raise ValueError('future absolute deadline within eight hours required')
@@ -202,12 +206,12 @@ def launch(plan_path, root, repo):
     if os.getloadavg()[0] > len(cpus) * .5:
         raise RuntimeError('host CPU load too high; no other workload was stopped')
     manifest_path = (repo / raw['split_manifest']).resolve()
-    plan = prepare_plan(raw, read_json(manifest_path))
+    plan = backend.prepare_plan(raw, read_json(manifest_path))
     prior_costs = []
     for relative in plan.get('preflight_cost_receipts', []):
         path = (repo / relative).resolve()
-        if not path.is_relative_to(repo / 'outputs/v122'):
-            raise ValueError('preflight receipt must belong to project V1.2.2 artifacts')
+        if not path.is_relative_to(repo / 'outputs' / version):
+            raise ValueError(f'preflight receipt must belong to project {version} artifacts')
         receipt = read_json(path)
         charge = receipt['charged_cpu_core_seconds']
         if not math.isfinite(charge) or charge < 0:
@@ -215,7 +219,10 @@ def launch(plan_path, root, repo):
         prior_costs.append({'path': str(path), 'sha256': digest(path),
                             'charged_cpu_core_seconds': charge, 'receipt': receipt})
     root.parent.mkdir(parents=True, exist_ok=True)
-    lock = (root.parent / f'{os.uname().nodename}.cpu.lock').open('a')
+    # All CPU research versions share the original host reservation lock.
+    lock_path = repo / 'outputs/v122' / f'{os.uname().nodename}.cpu.lock'
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock = lock_path.open('a')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     cores = cpus[:count]
     root.mkdir()
@@ -229,7 +236,7 @@ def launch(plan_path, root, repo):
     write_json(root / 'source_hashes.json', source_files(root / 'source'))
     shutil.copy2(manifest_path, root / 'splits.json')
     write_json(root / 'plan.json', plan)
-    jobs = make_jobs(plan)
+    jobs = backend.make_jobs(plan)
     write_json(root / 'jobs.json', jobs)
     allocation = {'started_unix': started_unix, 'deadline_unix': plan['deadline_unix'],
                   'cpu_affinity': cores, 'worker_cpus': cores[1:], 'controller_cpu': cores[0],
@@ -246,7 +253,8 @@ def launch(plan_path, root, repo):
                       OMP_NUM_THREADS='1', MKL_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1',
                       NUMEXPR_NUM_THREADS='1', CUDA_VISIBLE_DEVICES='', PYTHONUNBUFFERED='1')
     os.sched_setaffinity(0, {cores[0]})
-    child = subprocess.Popen([sys.executable, '-u', '-m', 'boardbench.v122.campaign',
+    child = subprocess.Popen([sys.executable, '-u', '-m',
+                              getattr(backend, 'controller_module', 'boardbench.v122.campaign'),
                               'control', '--root', str(root)], start_new_session=True)
     deadline = started + plan['deadline_unix'] - started_unix
     stopped = [False]
@@ -290,7 +298,7 @@ def launch(plan_path, root, repo):
                   'resolved': len(results), 'queued': len(jobs) - len(results),
                   'updated_unix': time.time(), 'watchdog': outcome}
         write_json(root / 'status.json', status)
-        publish(root, plan, jobs, results, status)
+        backend.publish(root, plan, jobs, results, status)
         # Include final reconciliation/report writes, not just worker teardown.
         outcome.update(elapsed_seconds=time.monotonic() - started,
                        allocated_cpu_core_seconds=count * (time.monotonic() - started),

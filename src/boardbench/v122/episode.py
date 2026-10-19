@@ -23,14 +23,14 @@ def make_policy(method, multiplier, search_seed, **params):
     raise ValueError(f'unknown method {method}')
 
 
-def run_episode(job, directory, *, max_decisions=256):
+def run_episode(job, directory, *, max_decisions=256, policy_factory=make_policy):
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=False)
     write_json(directory / 'job.json', job)
     started, cpu_started = time.monotonic(), time.process_time()
     engine = TASKS['harmonies'].factory()
     obs, _ = engine.reset(job['environment_seed'])
-    solver = make_policy(job['method'], job['multiplier'], job['search_seed'], **job.get('params', {}))
+    solver = policy_factory(job['method'], job['multiplier'], job['search_seed'], **job.get('params', {}))
     count = terminals = steps = 0
     decision_seconds = 0.
     rollouts = horizon_completed = cache_hits = cache_calls = 0

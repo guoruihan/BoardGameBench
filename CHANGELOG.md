@@ -1,5 +1,17 @@
 # Research milestones
 
+## 0.4.6 / research V1.2.4 — 2026-10-20
+
+- Move from local Q diagnostics to complete-game original/space/habitat
+  continuation controls. Freeze32 development environments, three search seeds,
+  common top6 and60/300/900-second cumulative solver-wall caps.
+- Separate equal-cap from equal-actual-time evidence. Record measured time,
+  discarded incomplete common-sample rounds, fallback and animal components;
+  compare complete environment-level prefixes and preserve all failed attempts.
+- Retain greedy controls and the exact original64-sample teacher. No new RL,
+  held-out test, optimality claim or production promotion. Bound CPU execution
+  to half of b35, frozen source and an independent absolute-deadline watchdog.
+
 ## 0.4.5 / research V1.2.3 — 2026-10-19
 
 - Register local candidate-coverage and continuation-policy diagnostics before

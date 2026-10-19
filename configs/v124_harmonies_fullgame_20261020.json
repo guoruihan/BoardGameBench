@@ -1,0 +1,25 @@
+{
+  "split": "development",
+  "environment_offset": 64,
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "panels": [8, 16, 32],
+  "search_seeds": [12420261020, 12420261021, 12420261022],
+  "cpu_cores": 64,
+  "deadline_unix": 1792454400,
+  "preflight_cost_receipts": ["outputs/v124/preflight_20261020_a.json"],
+  "arms": [
+    {"id":"greedy_original","method":"heuristic","multiplier":1,"timeout_seconds":120,"params":{"mode":"greedy","continuation":"original"}},
+    {"id":"greedy_space","method":"heuristic","multiplier":1,"timeout_seconds":120,"params":{"mode":"greedy","continuation":"space"}},
+    {"id":"greedy_habitat","method":"heuristic","multiplier":1,"timeout_seconds":120,"params":{"mode":"greedy","continuation":"habitat"}},
+    {"id":"original_60s","method":"terminal","multiplier":1,"timeout_seconds":180,"params":{"mode":"timed","continuation":"original","seconds":60}},
+    {"id":"space_60s","method":"terminal","multiplier":1,"timeout_seconds":180,"params":{"mode":"timed","continuation":"space","seconds":60}},
+    {"id":"habitat_60s","method":"terminal","multiplier":1,"timeout_seconds":180,"params":{"mode":"timed","continuation":"habitat","seconds":60}},
+    {"id":"original_300s","method":"terminal","multiplier":1,"timeout_seconds":420,"params":{"mode":"timed","continuation":"original","seconds":300}},
+    {"id":"space_300s","method":"terminal","multiplier":1,"timeout_seconds":420,"params":{"mode":"timed","continuation":"space","seconds":300}},
+    {"id":"habitat_300s","method":"terminal","multiplier":1,"timeout_seconds":420,"params":{"mode":"timed","continuation":"habitat","seconds":300}},
+    {"id":"original_900s","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"original","seconds":900}},
+    {"id":"space_900s","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"space","seconds":900}},
+    {"id":"habitat_900s","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"habitat","seconds":900}},
+    {"id":"original_fixed64","method":"terminal","multiplier":16,"timeout_seconds":3600,"params":{"mode":"fixed","continuation":"original"}}
+  ]
+}

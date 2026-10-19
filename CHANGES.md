@@ -1,5 +1,23 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.6 full-game continuation and wall-cost controls
+
+- Reuse the guarded CPU campaign and public-simulator episode runner through
+  backward-compatible backend/factory hooks; new V1.2.4 code stays separate.
+- Add common-root timed terminal search with complete-round-only evaluation,
+  per-decision future streams, identical fallback and explicit partial-round costs.
+- Add natural-terminal component/trace accounting, complete paired panels,
+  measured-time comparison gates, training-only calibration and bounded tmux runs.
+- Reject an overly front-loaded clock allocator on training-only fallback
+  telemetry; replace it with public-rollout remaining-length allocation. Preserve
+  both calibration snapshots/costs. Final-source calibration14/14 completes,
+  with approximately30.01s actual times for all three30s controls.
+- CPU regression269passed/9explicit-CUDA-skipped; rerun10scoped checks after
+  the allocator revision and25final-source search/lifecycle checks, including
+  real old/new cleanup paths and a deliberately stopped controller.
+- Preserve old artifacts and user design changes; no old live processes remained
+  at the authorized stop check. Publish source/config/tests separately from outputs.
+
 ## 2026-10-19 — 0.4.5 public-state teacher bottleneck diagnosis
 
 - Isolate V1.2.3 from the running V1.2.2 and production: freeze64 public states
