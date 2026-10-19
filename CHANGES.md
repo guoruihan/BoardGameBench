@@ -1,5 +1,21 @@
 # Engineering changes
 
+## 2026-10-20 — V1.2.4 execution batch b, leave16physicalcores
+
+- Honor the user's expanded CPU allowance:112of128physicalcores including
+  controllers, no GPU, unchanged08:00deadline and original1056job identities.
+- Drain the old dispatcher at a verified full-worker frontier without killing
+  games. Freeze disjoint pending ownership; add48cores, borrow old worker cores
+  only after exact-process exit, then transfer the old control core and CPU lock.
+- Keep every worker on the existing frozen0.4.6policy source. Freeze/hash the
+  independent expansion driver and record process identities, resource intervals,
+  inherited costs and all failures. Do not mutate old source/plan/results.
+- Mark merged results as mixed-load and report a separately frozen cohort of
+  wholly unstarted environments. No new strategy tuning or production promotion.
+- Verify4expansion checks, including real worker drain/no duplicate ownership
+  and independent cleanup after a deliberately stopped new controller; rerun
+  the existing10scoped policy/report checks. Frozen policy hash unchanged.
+
 ## 2026-10-20 — 0.4.6 full-game continuation and wall-cost controls
 
 - Reuse the guarded CPU campaign and public-simulator episode runner through
