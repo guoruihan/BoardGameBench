@@ -1,5 +1,24 @@
 # Engineering changes
 
+## 2026-10-19 — 0.4.5 public-state teacher bottleneck diagnosis
+
+- Isolate V1.2.3 from the running V1.2.2 and production: freeze64 public states
+  from32 registered development environments, two producers, stage/action strata.
+- Screen every legal root under original/space/habitat continuations; freeze
+  discoveries before independent common-sample confirmation of the same root set.
+  Preserve negative results, components, action types, traces and incomplete attempts.
+- Add explicit stack/anchor/resource feasibility and compatible shared-terrain
+  goals as diagnostic heuristics; retain true terminal score and original control.
+- Cluster uncertainty by source environment, require complete fixed prefixes, and
+  distinguish continuation gains from root-preference interactions.
+- Queue behind the existing CPU lock; freeze source/bank/plan and use single-thread
+  workers, independent deadlines, receipts and automatic reports. No new RL run,
+  old-task interruption or deployment promotion.
+- Verify256 distinct CPU cases across full regression and admission-safe lifecycle
+  reruns;9 explicit-CUDA checks remain unexecuted. Final-source train calibration
+  completes2/2 states with1296 terminal samples. Fix unreachable-card slot filling
+  and label training calibration separately from development diagnostics.
+
 ## 2026-10-19 — 0.4.4 public terminal-rollout teacher and compute diagnosis
 
 - Preserve the historical width6/rollouts4/depth2turn/cap384 short-search algorithm;

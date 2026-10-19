@@ -1,0 +1,14 @@
+{
+  "state_bank": "outputs/v123/state_bank_20261019_a.json",
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "cpu_cores": 32,
+  "queue_until_unix": 1792428000,
+  "run_seconds": 7200,
+  "job_timeout_seconds": 1800,
+  "panels": [8, 16, 32],
+  "width": 6,
+  "seed": 12320261019,
+  "discovery_samples": 8,
+  "confirmation_samples": 64,
+  "preflight_cost_receipts": ["outputs/v123/preflight_20261019_a.json"]
+}

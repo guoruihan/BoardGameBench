@@ -1,5 +1,16 @@
 # Research milestones
 
+## 0.4.5 / research V1.2.3 — 2026-10-19
+
+- Register local candidate-coverage and continuation-policy diagnostics before
+  macro planning or more training. Treat space utilization as a competing factor
+  to animal-pattern planning, not assume the105-point plateau is optimality.
+- Separate8-sample discovery from64-sample independent confirmation; group the
+  two source states per environment and retain the original development/test boundary.
+  These are local Q contrasts, not full-game or equal-time performance claims.
+- Bound the first pilot to32 physical cores and two hours after the existing
+  campaign releases its CPU lock. Preserve prior sources/results and production.
+
 ## 0.4.4 / research V1.2.2 — 2026-10-19
 
 - Register a Harmonies-only teacher-strength diagnostic before additional RL or
