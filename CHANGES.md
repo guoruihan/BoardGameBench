@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.10 / V1.2.6 a218 eight-GPU handoff
+
+- Add host-scoped a218 resource profile,128-core physical allocation ceiling,
+  reserved orchestrator core, and enforce b35 CPU-only for new pipeline launches.
+- Import completed b35 teachers only after exact cohort, source/plan/split hash,
+  natural-terminal and replay checks; carry original costs once without rerunning games.
+- Expand first training batch to BC versus conditional-Q ×128/256 hidden ×two
+  matched seeds on eight independently validated GPU UUIDs. CUDA-required runs
+  fail explicitly if GPUs become unavailable instead of silently running on CPU.
+- Preserve frozen original runs; new host/run identity and checkpoint lineage.
+  Add host/resource/provenance regression tests and opt-in CUDA training/export/recovery check.
+
 ## 2026-10-20 — V1.2.6 immutable child-source inheritance
 
 - Force every later CPU stage to inherit the executing outer pipeline snapshot,

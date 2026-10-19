@@ -1,5 +1,6 @@
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -195,3 +196,27 @@ def test_child_campaign_copies_frozen_pipeline_not_mutable_repo(tmp_path,monkeyp
     parent=tmp_path/'previous_attempt'
     monkeypatch.setattr(campaign,'resume_parent',lambda plan:parent)
     assert campaign.snapshot_repository(live,{'resume_from':str(parent)})==parent/'source'
+
+
+@pytest.mark.skipif(os.environ.get('BOARDBENCH_V126_CUDA_CHECK')!='1',
+                    reason='requires a specifically reserved V126 CUDA device')
+def test_real_cuda_training_export_and_epoch_recovery(dataset,tmp_path):
+    p,_,_=dataset
+    config={'dataset':str(p),'dataset_sha256':digest(p),'seed':11,'hidden':32,'q_weight':.5,
+            'epochs':2,'threads':1,'max_seconds':60,'device':'cuda'}
+    directory=tmp_path/'cuda_train';result=train(config,directory)
+    assert result['device']=='cuda' and result['gpu_seconds']>0 and result['parameter_changed']
+    (directory/'summary.json').rename(directory/'preserved_summary.json')
+    recovered=train(config,directory)
+    assert recovered['updates']==result['updates'] and recovered['checkpoint_sha256']==result['checkpoint_sha256']
+    model=PolicyNetwork(1346,240,32).cuda()
+    with np.load(result['checkpoint'],allow_pickle=False) as weights:
+        model.load_state_dict({k:torch.from_numpy(weights[k]).cuda() for k in weights.files})
+    student=Student(result['checkpoint'],result['checkpoint_sha256'])
+    e=Harmonies();obs,_=e.reset(113);data=encode(obs,allow_stop=False)
+    with torch.inference_mode():
+        logits,_=model(torch.tensor([data['features']],device='cuda'),
+                       torch.tensor([data['action_mask']],device='cuda'))
+    valid=np.array(data['action_mask'])
+    np.testing.assert_allclose(student.logits(obs)[valid],logits.cpu().numpy()[0,valid],rtol=1e-4,atol=1e-6)
+    assert student.decide(obs) in obs['legal_actions']

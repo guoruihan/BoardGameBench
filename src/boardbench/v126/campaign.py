@@ -1,19 +1,29 @@
 """V126 adapter for existing frozen-source campaign and deadline watchdog."""
 import argparse
 import math
+import os
 from pathlib import Path
 import sys
 import time
 
 from boardbench.artifacts.store import read_json, write_json, digest, source_root
 from boardbench.v122 import campaign as base
-from boardbench.v125.campaign import cpu_core_limit, initial_results, resume_parent
+from boardbench.v125.campaign import cpu_core_limit as prior_cpu_core_limit, initial_results, resume_parent
 from boardbench.v125.report import publish as prior_publish
 
 output_version='v126'
 episode_module='boardbench.v126.episode'
 controller_module='boardbench.v126.campaign'
 make_jobs=base.make_jobs
+
+
+def cpu_core_limit(cpus, plan):
+    if plan.get('resource_profile') == 'a218_128_v1':
+        if os.uname().nodename != 'a218.cluster.helixon.com':
+            raise ValueError('a218 profile requires the explicitly authorized a218 host')
+        # Reserve one additional physical core for the outer pipeline.
+        return min(127, max(0, len(cpus)-1))
+    return prior_cpu_core_limit(cpus, plan)
 
 
 def snapshot_repository(repo, plan):

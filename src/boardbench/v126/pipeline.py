@@ -17,7 +17,7 @@ import traceback
 
 from boardbench.artifacts.store import read_json, write_json, digest, source_id, source_files
 from boardbench.v12.budget import kill_tree
-from boardbench.v122.campaign import physical_cpus
+from boardbench.v122.campaign import physical_cpus, make_jobs
 
 MODELS=[('bc128_a',128,0.,12601),('bc128_b',128,0.,12602),
         ('q128_a',128,.5,12601),('q128_b',128,.5,12602),('bc256_a',256,0.,12601)]
@@ -36,6 +36,57 @@ def validate_config(config):
             raise ValueError('calibration train cohorts overlap')
     elif config['game_seconds']!=900 or config['campaign_cores']>101:
         raise ValueError('research requires900s and at most101 campaign cores')
+    specs=config.get('model_specs',MODELS)
+    if (not 1<=len(specs)<=8 or any(len(s)!=4 for s in specs) or
+        len({s[0] for s in specs})!=len(specs)):
+        raise ValueError('one to eight uniquely named model specifications required')
+    if len(set(config['gpu_uuids']))!=len(config['gpu_uuids']):
+        raise ValueError('duplicate GPU UUID')
+    if config.get('require_cuda') and len(config['gpu_uuids'])<len(specs):
+        raise ValueError('one authorized GPU per model required; no silent CPU fallback')
+
+
+def validate_host(config, hostname):
+    if config.get('calibration_only'):
+        return
+    profile=config.get('resource_profile','b35_reserve16_v1')
+    if profile=='a218_128_v1' and hostname=='a218.cluster.helixon.com':
+        return
+    if profile=='b35_reserve16_v1' and hostname=='b35.cluster.helixon.com' and not config['gpu_uuids']:
+        return
+    raise ValueError('resource policy: a218 for mixed work; b35 CPU-only')
+
+
+def verify_external_teacher(path, config, manifest_path):
+    """Reuse completed work only with pinned provenance and exact train cohort."""
+    path=Path(path)
+    state=read_json(path/'status.json');allocation=read_json(path/'allocation.json')
+    plan=read_json(path/'plan.json');manifest=read_json(manifest_path)
+    if (state['phase']!='completed' or state.get('active_count',1) or
+        not (path/'watchdog_result.json').exists()):
+        raise ValueError('external teacher must be finalized and inactive')
+    if (source_id(path/'source')!=allocation['source_id'] or
+        allocation['source_id']!=config['external_teacher_source_id'] or
+        digest(path/'plan.json')!=allocation['plan_sha256'] or
+        allocation['plan_sha256']!=config['external_teacher_plan_sha256'] or
+        digest(path/'splits.json')!=allocation['splits_sha256'] or
+        digest(manifest_path)!=allocation['splits_sha256']):
+        raise ValueError('external teacher source/plan/split hash mismatch')
+    expected=[manifest['sets']['train'][i] for i in config['train_indices']+config['validation_indices']]
+    jobs=read_json(path/'jobs.json')
+    params=arm('teacher',seconds=config['game_seconds'])['params']
+    if (plan['split']!='train_calibration' or sorted(j['environment_seed'] for j in jobs)!=sorted(expected) or
+        any(j['params']!=params or j['arm']!='teacher' or j['search_seed']!=12620261020 for j in jobs)):
+        raise ValueError('external teacher cohort or policy differs')
+    if jobs!=make_jobs(plan):
+        raise ValueError('external teacher jobs differ from frozen plan')
+    if len(list((path/'resolved').glob('*.json')))!=len(jobs):
+        raise ValueError('missing external teacher results')
+    for p in (path/'resolved').glob('*.json'):
+        r=read_json(p)
+        if r['status']!='completed' or not r['natural_terminal']:
+            raise ValueError('external teacher includes failed or censored games')
+    return path
 
 
 def arm(name,variant='mixed_roots',model=None,seconds=900):
@@ -52,6 +103,8 @@ class Pipeline:
         validate_config(self.config)
         self.manifest=read_json(self.repo/self.config['split_manifest'])
         self.cpus=read_json(self.root/'launch.json')['physical_cpus']
+        if len(self.cpus)>128 or len(set(self.cpus))!=len(self.cpus):
+            raise ValueError('per-node aggregate CPU allocation exceeds128 or duplicates cores')
         self.env={**os.environ,'PYTHONPATH':str(self.root/'source/src'),'PYTHONNOUSERSITE':'1',
                   'OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MKL_NUM_THREADS':'1','NUMEXPR_NUM_THREADS':'1'}
         self.state=read_json(self.root/'state.json') if (self.root/'state.json').exists() else {'stages':{},'decisions':[]}
@@ -148,7 +201,7 @@ class Pipeline:
         spec={'research_round':name,'split':split,'environment_indices':indices,
               'split_manifest':self.config['split_manifest'],'panels':sorted(set([min(4,len(indices)),len(indices)])),
               'search_seeds':[12620261020+i for i in range(repeats)],'references':['mixed_roots','habitat'],
-              'resource_profile':'default_half' if self.config.get('calibration_only') else 'b35_reserve16_v1',
+              'resource_profile':'default_half' if self.config.get('calibration_only') else self.config.get('resource_profile','b35_reserve16_v1'),
               'cpu_cores':count,'task_seconds':seconds,'arms':arms}
         if self.config.get('calibration_only'): spec['split']='train_calibration'
         attempt=1
@@ -179,7 +232,7 @@ class Pipeline:
         begin=time.monotonic()
         try:
             self.run([sys.executable,'-m','boardbench.v126.data','--runs',*map(str,runs),'--out',str(path),
-                      '--validation-seeds',*map(str,validation)],self.root/'logs'/f'data_{name}.log',900,cpus=self.cpus[101:105])
+                      '--validation-seeds',*map(str,validation)],self.root/'logs'/f'data_{name}.log',900,cpus=self.cpus[-5:-1])
         finally:
             write_json(self.root/'receipts'/f'data_{name}_{time.time_ns()}.json',{'cpu_core_seconds':4*(time.monotonic()-begin)})
         return path
@@ -222,6 +275,8 @@ class Pipeline:
         self.state['active_training']={'started_unix':time.time(),'cpu_cores':2*len(specs),'gpu_count':0}
         try:
             gpus=self.probe_gpus()
+            if self.config.get('require_cuda') and len(gpus)<len(specs):
+                raise RuntimeError('not enough idle working authorized GPUs; no CPU fallback for this run')
             self.state['active_training']['gpu_count']=min(len(gpus),len(specs))
             for i,(ident,hidden,q_weight,seed) in enumerate(specs):
                 directory=out/ident
@@ -267,8 +322,28 @@ class Pipeline:
         self.state.pop('error',None);self.state.pop('finished_unix',None)
         self.wait_ready(self.config.get('wait_for'))
         budget=self.config.get('game_seconds',900)
-        teacher=self.campaign('teacher',self.config['train_indices']+self.config['validation_indices'],
-                              [arm('teacher',seconds=budget)],split='train_calibration',repeats=1,seconds=3600)
+        if self.config.get('external_teacher'):
+            teacher=verify_external_teacher(self.repo/self.config['external_teacher'],self.config,
+                                            self.repo/self.config['split_manifest'])
+            self.state['stages']['teacher']={'status':'completed','path':str(teacher),
+                                            'kind':'campaign','external':True}
+            charge=read_json(teacher/'watchdog_result.json')['allocated_cpu_core_seconds']
+            parent=self.config.get('inherited_pipeline')
+            if parent:
+                parent=self.repo/parent
+                old=read_json(parent/'state.json')
+                if old['phase'] not in ('completed','stopped_with_error'):
+                    raise ValueError('prior pipeline must be stopped before ownership transfer')
+                if Path(old['stages']['teacher']['path']).resolve()!=teacher.resolve():
+                    raise ValueError('inherited pipeline does not own this teacher')
+                # Includes teacher, original preflight and old orchestration exactly once.
+                charge=max(charge,old['cost']['cpu_core_hours']*3600)
+            write_json(self.root/'receipts/external_teacher.json',{'cpu_core_seconds':charge,'gpu_seconds':0,
+                       'origin':str(teacher),'accounting':'imported prior costs once; do not sum old and new totals'})
+            self.publish('running')
+        else:
+            teacher=self.campaign('teacher',self.config['train_indices']+self.config['validation_indices'],
+                                  [arm('teacher',seconds=budget)],split='train_calibration',repeats=1,seconds=3600)
         dataset=self.dataset('initial',[teacher])
         models=self.training('initial',dataset,self.config.get('model_specs',MODELS))
         self.campaign('pure_students',self.config['student_selection_indices'],
@@ -279,7 +354,7 @@ class Pipeline:
             for suffix,variant in [('roots','student_roots'),('rollout','student_rollout')]:
                 key=f'{name}_{suffix}';lookup[key]=(name,variant)
                 arms.append(arm(key,variant,model,seconds=budget))
-        pilot=self.campaign('pilot',self.config['pilot_indices'],arms)
+        pilot=self.campaign('pilot',self.config['pilot_indices'],arms,seconds=self.config.get('pilot_seconds',2400))
         panel=read_json(pilot/'summary.json')['balanced_panel']
         winner=max(lookup,key=lambda k:panel[k]['mean'])
         model_name,variant=lookup[winner];model=models[model_name]
@@ -317,22 +392,26 @@ def main():
     if a.mode=='launch':
         if not root.is_relative_to(repo/'outputs/v126') or root.exists(): raise ValueError('new project V126 root required')
         config=read_json(a.config);validate_config(config)
-        if not config.get('calibration_only') and os.uname().nodename!='b35.cluster.helixon.com':
-            raise ValueError('b35-only research resource authorization')
-        cpus=physical_cpus()
-        if len(cpus)<128: raise ValueError('expected b35 physical core topology')
+        validate_host(config,os.uname().nodename)
+        cpus=physical_cpus()[:128]
+        if len(cpus)<128: raise ValueError('expected at least128 physical cores')
+        orchestrator=cpus[111] if os.uname().nodename=='b35.cluster.helixon.com' else cpus[-1]
         root.mkdir(parents=True)
         shutil.copy2(a.config,root/'config.json')
         for relative in source_files(repo):
             target=root/'source'/relative;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(repo/relative,target)
         write_json(root/'launch.json',{'started_unix':time.time(),'source_id':source_id(root/'source'),
-            'physical_cpus':cpus,'orchestrator_cpu':cpus[111],
+            'physical_cpus':cpus,'orchestrator_cpu':orchestrator,'host':os.uname().nodename,
             'git_head':subprocess.check_output(['git','-C',str(repo),'rev-parse','HEAD'],text=True).strip()})
-        os.sched_setaffinity(0,{cpus[111]})
+        os.sched_setaffinity(0,{orchestrator})
         os.environ.update(PYTHONPATH=str(root/'source/src'),PYTHONNOUSERSITE='1',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1')
         os.execv(sys.executable,[sys.executable,'-u','-m','boardbench.v126.pipeline','run','--root',str(root),'--repo',str(repo)])
     if source_id()!=read_json(root/'launch.json')['source_id']:
         raise ValueError('must run the frozen pipeline source')
+    if a.mode!='report':
+        validate_host(read_json(root/'config.json'),os.uname().nodename)
+        if read_json(root/'launch.json').get('host',os.uname().nodename)!=os.uname().nodename:
+            raise ValueError('cross-host resume requires a new allocation, not old CPU affinities')
     os.sched_setaffinity(0,{read_json(root/'launch.json')['orchestrator_cpu']})
     pipeline=Pipeline(root,repo)
     if a.mode=='report': pipeline.publish(pipeline.state.get('phase','unknown'));return
