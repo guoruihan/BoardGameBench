@@ -214,3 +214,42 @@ def test_portfolio_round_shared_and_finish_switch(states):
         p.select_round(1);assert p.decide(obs)==rank_actions(obs,'habitat')[0][1]
     p=ComplementaryContinuation('finish_terrain')
     assert p.decide(states[-1])==ranked_actions(states[-1])[0][1]
+
+
+def test_wide_root_prefix_and_legal_coverage(states):
+    seen_expansion = False
+    for obs in states[::5]:
+        narrow, wide = mixed_candidates(obs, 6), mixed_candidates(obs, 10)
+        assert wide[:6] == narrow
+        assert len(wide) == min(10, len(obs['legal_actions']))
+        assert len({action_key(a) for _, a in wide}) == len(wide)
+        seen_expansion |= len(wide) > 6
+    assert seen_expansion
+    assert Search(1,'mixed_wide',1).width == 10
+    assert Search(1,'mixed_compiled',1).width == 6
+    with pytest.raises(ValueError,match='top6'):
+        TimedRollout(1,'habitat',1,width=10)
+
+
+def test_paired_selection_covariance_and_missing_samples():
+    from boardbench.v125.search import paired_selection
+    # root0=(10,10); candidate1=(18,8), candidate2=(12,12).
+    # Raw best is candidate1; paired uncertainty selects candidate2 instead.
+    values, errors = paired_selection([20,26,24],[0,6,4],[0,68,8],2)
+    assert errors == [0.,5.,0.]
+    assert values == [10.,8.,12.]
+    assert paired_selection([10,18],[0,8],[0,64],1) == ([10.,None],[0.,None])
+    assert paired_selection([0,0],[0,0],[0,0],0) == ([None,None],[None,None])
+
+
+def test_confident_logs_raw_mean_separately_from_selection(states):
+    p=Search(11,'mixed_confident',10,clock=Clock())
+    obs=states[-5];p.decide(obs,context(obs,[]));s=p.last_search
+    assert s['completed_rounds'] > 1
+    assert s['selection_rule']=='mean_minus_paired_1se'
+    candidates=s['candidates']
+    for c in candidates:
+        assert c['paired_standard_error'] >= 0
+        assert c['selection_value']==pytest.approx(c['mean']-c['paired_standard_error'])
+        assert c['paired_mean_improvement']==pytest.approx(c['mean']-candidates[0]['mean'])
+    assert s['selected_rank']==max(range(len(candidates)),key=lambda i:candidates[i]['selection_value'])

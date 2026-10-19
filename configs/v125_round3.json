@@ -1,0 +1,19 @@
+{
+  "research_round": 3,
+  "hypothesis": "Round2 continuation mixtures did not beat mixed roots. Mixed root6 still excludes legal moves on170/270 sampled decisions, chooses ranks4+ on41, and has top2 gap<1 on168. Test coverage versus sampling and paired-noise-aware selection, retaining exact compiled and original controls.",
+  "split": "development",
+  "environment_indices": [104, 105, 106, 107],
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "panels": [4],
+  "search_seeds": [12520261020],
+  "references": ["original", "mixed_roots", "mixed_compiled"],
+  "cpu_cores": 21,
+  "task_seconds": 1500,
+  "arms": [
+    {"id":"original","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"original","seconds":900}},
+    {"id":"mixed_roots","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_roots","seconds":900}},
+    {"id":"mixed_compiled","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_compiled","seconds":900}},
+    {"id":"mixed_wide","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_wide","seconds":900}},
+    {"id":"mixed_confident","method":"terminal","multiplier":1,"timeout_seconds":1020,"params":{"mode":"timed","continuation":"mixed_confident","seconds":900}}
+  ]
+}

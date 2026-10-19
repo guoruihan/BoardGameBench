@@ -3,13 +3,37 @@
 The time allocation and random-future streams deliberately match V1.2.4.
 Only complete balanced candidate rounds contribute to Q estimates.
 """
+import math
+
 from boardbench.solvers.board import ranked_actions
 from boardbench.v124.search import TimedRollout
 from .policies import ComplementaryContinuation, GoalContinuation, mixed_candidates
 
 VARIANTS = ('original', 'habitat', 'habitat_fast', 'mixed_roots', 'resource_habitat',
-            'mixed_compiled', 'mixed_portfolio', 'mixed_finish_terrain')
-MIXED_ROOTS = ('mixed_roots','mixed_compiled','mixed_portfolio','mixed_finish_terrain')
+            'mixed_compiled', 'mixed_portfolio', 'mixed_finish_terrain',
+            'mixed_wide', 'mixed_confident')
+MIXED_ROOTS = ('mixed_roots','mixed_compiled','mixed_portfolio','mixed_finish_terrain',
+               'mixed_wide','mixed_confident')
+
+
+def paired_selection(sums, difference_sums, difference_squares, rounds):
+    """One paired-standard-error penalty relative to root0, not a confidence bound.
+
+    Every difference uses the same complete simulated future for both actions.
+    One sample cannot estimate uncertainty: conservatively keep root0 then.
+    Raw candidate means remain separate from this heuristic selection objective.
+    """
+    errors = [None] * len(sums)
+    values = [None] * len(sums)
+    if not rounds:
+        return values, errors
+    values[0], errors[0] = sums[0] / rounds, 0.
+    if rounds > 1:
+        for i in range(1, len(sums)):
+            variance = max(0., (difference_squares[i] - difference_sums[i] ** 2 / rounds) / (rounds - 1))
+            errors[i] = math.sqrt(variance / rounds)
+            values[i] = sums[i] / rounds - errors[i]
+    return values, errors
 
 
 class Search(TimedRollout):
@@ -18,9 +42,11 @@ class Search(TimedRollout):
             raise ValueError('unknown v125 variant')
         super().__init__(seed, 'original' if variant == 'original' else 'habitat', seconds, **kwargs)
         self.variant = variant
+        if variant == 'mixed_wide':
+            self.width = 10  # explicit V1.2.5 variant; old top6 contract is unchanged
         if variant in ('habitat_fast', 'mixed_roots', 'resource_habitat'):
             self.policy = GoalContinuation(resource_aware=variant == 'resource_habitat')
-        elif variant=='mixed_compiled':
+        elif variant in ('mixed_compiled','mixed_wide','mixed_confident'):
             self.policy=GoalContinuation(compiled=True)
         elif variant in ('mixed_portfolio','mixed_finish_terrain'):
             self.policy=ComplementaryContinuation(variant.removeprefix('mixed_'))
@@ -37,6 +63,7 @@ class Search(TimedRollout):
         allowance = remaining * min(1., 2 / max(2., self.horizon))
         deadline = begin + allowance
         sums, squares = [0.] * len(actions), [0.] * len(actions)
+        differences, difference_squares = [0.] * len(actions), [0.] * len(actions)
         rounds = steps = terminals = attempted = terminal_steps = 0
         interrupted = False
         before_calls, before_hits = self.policy.calls, self.policy.hits
@@ -77,10 +104,20 @@ class Search(TimedRollout):
             for rank, value in returns.items():
                 sums[rank] += value
                 squares[rank] += value * value
+                if self.variant == 'mixed_confident':
+                    difference = value - returns[0]
+                    differences[rank] += difference
+                    difference_squares[rank] += difference * difference
             rounds += 1
         selected = max(range(len(actions)), key=lambda i: sums[i]) if rounds else 0
+        selection_values = errors = None
+        if self.variant == 'mixed_confident':
+            selection_values, errors = paired_selection(sums, differences, difference_squares, rounds)
+            selected = max(range(len(actions)), key=lambda i: selection_values[i]
+                           if selection_values[i] is not None else -math.inf)
         self.last_search = {
             'variant': self.variant, 'candidate_count': len(actions),
+            'selection_rule': 'mean_minus_paired_1se' if self.variant == 'mixed_confident' else 'sample_mean',
             'legal_count': len(observation['legal_actions']), 'selected_rank': selected,
             'completed_rounds': rounds, 'accepted_terminal_rollouts': rounds * len(actions),
             'terminal_rollouts': terminals, 'rollouts': attempted, 'simulation_steps': steps,
@@ -94,6 +131,11 @@ class Search(TimedRollout):
                             'sample_variance': max(0., (squares[i] - sums[i] ** 2 / rounds) / (rounds - 1))
                             if rounds > 1 else None} for i, a in enumerate(actions)],
         }
+        if selection_values is not None:
+            for i, candidate in enumerate(self.last_search['candidates']):
+                candidate.update(paired_mean_improvement=differences[i] / rounds if rounds else None,
+                                 paired_standard_error=errors[i], selection_value=selection_values[i],
+                                 paired_reference_rank=0)
         estimate = .2 * self.horizon + .8 * terminal_steps / terminals if terminals else self.horizon
         self.horizon = max(1., estimate - 1)
         return actions[selected]

@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-20 — V1.2.5 round3, driven by round2 results
+
+- Round2 completes24/24 games. Mixed roots116.50 beats original93.50 on this
+  four-environment development cohort; portfolio110.75 and terrain finish105.00
+  do not beat mixed roots. Exact compilation adds about9.9% simulated steps but
+  has no clear score improvement. Small adaptive cohorts are not final test.
+- Test broader10-root coverage and a paired-standard-error selection penalty,
+  keeping raw terminal-Q estimates separate from heuristic selection targets.
+- Use four new development environments104–107,20games/21cores and unchanged
+  per-game900-second caps. No low-budget quality pruning or GPU use.
+- Replay all44 completed first/second-round games from environment seeds:
+  all3173 before/action/after observations and terminal scores match exactly.
+
 ## 2026-10-20 — V1.2.5 round2, driven by round1 results
 
 - Round1 completes20/20 games: mixed roots114.00 vs original113.00 and habitat
