@@ -106,7 +106,9 @@ def supervise(root, *, backend=None):
     jobs = read_json(root / 'jobs.json')
     if jobs != backend.make_jobs(plan):
         raise ValueError('jobs differ from frozen plan')
-    queue, active, results = deque(jobs), {}, []
+    results = getattr(backend, 'initial_results', lambda *_: [])(root, plan, jobs)
+    finished = {r['id'] for r in results}
+    queue, active = deque(j for j in jobs if j['id'] not in finished), {}
     available = deque(allocation['worker_cpus'])
     deadline = time.monotonic() + max(0., allocation['deadline_unix'] - time.time())
     stopping = [False]
@@ -228,10 +230,11 @@ def launch(plan_path, root, repo, *, backend=None):
     root.mkdir()
     for directory in ('logs', 'jobs', 'episodes', 'resolved'):
         (root / directory).mkdir()
-    for relative in source_files(repo):
+    snapshot_repo = getattr(backend, 'snapshot_repository', lambda repo, plan: repo)(repo, plan)
+    for relative in source_files(snapshot_repo):
         target = root / 'source' / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(repo / relative, target)
+        shutil.copy2(snapshot_repo / relative, target)
     frozen_source = source_id(root / 'source')
     write_json(root / 'source_hashes.json', source_files(root / 'source'))
     shutil.copy2(manifest_path, root / 'splits.json')

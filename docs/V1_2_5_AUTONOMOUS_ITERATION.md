@@ -48,3 +48,27 @@ tmux new-session -d -s boardbench-v125-r1 \
 启动前必须验证当前资源、源码与训练集校准，日志目录须已存在。`--preflight-core-seconds`可声明实现/验证费用；不能跨多个任务重复计入同一费用。`task_seconds`在启动时转换为该任务独立的绝对截止。
 
 每轮的`REPORT.md`和`summary.json`自动更新。研究分析与下一轮修改由代理持续执行，调度器本身不负责创造新策略；仅启动tmux不构成三轮完成。
+
+## 恢复与数据导出（0.4.8起）
+
+新版本任务如果被中断，只能在父任务watchdog已经收尾、无活跃worker后恢复，创建新目录，保持任务身份和父策略源码：
+
+```bash
+PYTHONPATH=src .venv/bin/python -m boardbench.v125.campaign resume \
+  --repo /datapool/data3/storage/ruihan/code/boardgame \
+  --parent /datapool/data3/storage/ruihan/code/boardgame/outputs/v125/PARENT \
+  --root /datapool/data3/storage/ruihan/code/boardgame/outputs/v125/NEW_ATTEMPT \
+  --task-seconds 1500
+```
+
+已完成自然终局直接复用、不会重新执行；未完成局从头重试但保留原失败及成本，不伪称恢复到了原局中间。`resume.json`记录血缘，统计结果通过`inherited_from`定位真实轨迹。父任务的核时保留在父账本，跨任务汇总避免重复。初始0.4.7首轮冻结驱动尚无恢复hook，工具会明确拒绝对它自动恢复，而不是静默重复；已完成首轮无需恢复。
+
+```bash
+PYTHONPATH=src .venv/bin/python -m boardbench.v125.research \
+  --repo /datapool/data3/storage/ruihan/code/boardgame \
+  --root outputs/v125/research_20261020
+PYTHONPATH=src .venv/bin/python -m boardbench.v125.data \
+  --run outputs/v125/COMPLETED_TASK --out outputs/v125/datasets/UNIQUE_NAME.jsonl.gz
+```
+
+导出仅接受已收尾任务及train/development，验证合法动作、相邻状态、分数增量和自然终局；失败不伪造训练目标。文件不覆盖，附SHA256/条数清单。`environment_reward`是游戏接口的终局奖励，`raw_score_delta`是额外记录的计分变化，二者不可混淆。候选Q是模拟后续玩家的绝对终局估计，非最优值。

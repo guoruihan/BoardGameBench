@@ -105,7 +105,8 @@ def extension_count(cell):
     return sum(current + (color,) in STACK_INDEX for color in COLORS)
 
 
-def rank_actions(obs, policy, *, goal_function=card_goals):
+def rank_actions(obs, policy, *, goal_function=None):
+    goal_function = card_goals if goal_function is None else goal_function
     if policy not in POLICIES:
         raise ValueError('unknown diagnostic continuation')
     ranked = ranked_actions(obs)

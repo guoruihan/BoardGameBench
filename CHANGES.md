@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.8 / V1.2.5 recovery and aligned demonstrations
+
+- Fix late binding of the optional goal function so existing diagnostic
+  monkeypatches retain their original meaning; no policy change in production.
+- Add explicit opt-in lifecycle hooks for inheriting completed attempts and
+  freezing the exact parent source on recovery. Reject live/corrupt parents,
+  changed task identities and pre-recovery drivers; do not silently rerun jobs.
+- Export public before/action/after demonstrations with terminal return,
+  score-delta return-to-go and candidate uncertainty, retaining source/split IDs.
+- Consolidate registered tasks, per-environment results, research decisions and
+  deduplicated resource receipts. This is not a fixed strategy-selection script.
+- Round1 remains on its immutable0.4.7 snapshot; no hot changes to live workers.
+
 ## 2026-10-20 — 0.4.7 / V1.2.5 small-cohort autonomous iteration
 
 - Add isolated 900-second cumulative-game search variants, exact goal-cache

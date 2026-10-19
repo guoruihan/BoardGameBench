@@ -12,9 +12,17 @@ def publish(root, plan, jobs, results, status):
     for a in panel:
         for ref in plan.get('references', ['original', 'habitat']):
             if ref in panel and ref != a:
-                summary['paired'][f'{a}-vs-{ref}'] = paired(
-                    panel[a]['by_environment'], panel[ref]['by_environment'])
+                comparison = paired(panel[a]['by_environment'], panel[ref]['by_environment'])
+                left, right = panel[a]['decision_seconds'], panel[ref]['decision_seconds']
+                ratio = left / max(1e-12, right) if left is not None and right is not None else None
+                comparison.update(actual_time_ratio=ratio,
+                    actual_mean_times_within_10_percent=ratio is not None and .9 <= ratio <= 1.1)
+                summary['paired'][f'{a}-vs-{ref}'] = comparison
     summary['research_round'] = plan.get('research_round')
+    if 'resource_charge' in summary:
+        summary['resource_charge']['reported_worker_cpu_seconds'] = sum(
+            r.get('cpu_seconds', 0) for r in results if not r.get('reused_completed_attempt'))
+        summary['resource_charge']['resume_parent'] = plan.get('resume_from')
     write_json(Path(root) / 'summary.json', summary)
     report = Path(root) / 'REPORT.md'
     content = report.read_text().replace('Harmonies V1.2.4 完整局后续策略对照', 'Harmonies V1.2.5 小批量策略迭代')

@@ -11,8 +11,8 @@ from boardbench.v123.policies import available_tokens, card_goals, rank_actions
 class GoalContinuation:
     """Memoize exactly the inputs read by card_goals, independent of history.
 
-    Goal objects are read-only in the original ranker; copies protect that contract.
-    Resource-aware mode explicitly changes the heuristic, not game legality.
+    Goal objects are read-only in the original ranker. Resource-aware adjustments
+    use copies and explicitly change the heuristic, not game legality.
     """
     def __init__(self, resource_aware=False, capacity=512):
         self.resource_aware = resource_aware

@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import time
 
-from boardbench.artifacts.store import read_json, write_json
+from boardbench.artifacts.store import digest, read_json, source_id, write_json
 from boardbench.v122 import campaign as base
 from .search import VARIANTS
 from .report import publish
@@ -14,6 +14,50 @@ output_version = 'v125'
 episode_module = 'boardbench.v125.episode'
 controller_module = 'boardbench.v125.campaign'
 make_jobs = base.make_jobs
+
+
+def resume_parent(plan):
+    parent = Path(plan['resume_from']).resolve()
+    state = read_json(parent / 'status.json')
+    if state.get('active_count', 0) or state.get('phase') == 'running' or not (parent / 'watchdog_result.json').exists():
+        raise ValueError('resume requires a finalized inactive parent')
+    allocation = read_json(parent / 'allocation.json')
+    if (source_id(parent / 'source') != allocation['source_id'] or
+            digest(parent / 'plan.json') != allocation['plan_sha256'] or
+            digest(parent / 'splits.json') != allocation['splits_sha256']):
+        raise ValueError('parent source/plan/split hash mismatch')
+    if make_jobs(plan) != read_json(parent / 'jobs.json'):
+        raise ValueError('resume jobs differ from original frozen task')
+    # v0.4.7 had no recovery hook. Refuse an unsafe apparent resume that would
+    # actually rerun completed jobs under its old frozen controller.
+    text = (parent / 'source/src/boardbench/v125/campaign.py').read_text()
+    if 'def initial_results(' not in text:
+        raise ValueError('parent predates recovery support; preserve it, do not silently rerun')
+    return parent
+
+
+def snapshot_repository(repo, plan):
+    return resume_parent(plan) / 'source' if plan.get('resume_from') else repo
+
+
+def initial_results(root, plan, jobs):
+    if not plan.get('resume_from'):
+        return []
+    parent = resume_parent(plan)
+    from boardbench.v124.report import summarize
+    rows = base.collect_results(parent)
+    summarize(plan, jobs, rows)  # verifies identities, parameters and scores
+    completed = []
+    for row in rows:
+        if row['status'] == 'completed' and row['natural_terminal']:
+            inherited = {**row, 'inherited_from': row.get('inherited_from', str(parent)),
+                         'reused_completed_attempt': True}
+            write_json(Path(root) / 'resolved' / (row['id'] + '.json'), inherited)
+            completed.append(inherited)
+    write_json(Path(root) / 'resume.json', {'parent': str(parent), 'reused_completed': len(completed),
+        'pending_or_retry': len(jobs) - len(completed), 'parent_costs_remain_at': str(parent / 'watchdog_result.json'),
+        'policy_source_id': source_id(parent / 'source')})
+    return completed
 
 
 def prepare_plan(raw, manifest):
@@ -37,21 +81,33 @@ def prepare_plan(raw, manifest):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('mode', choices=('launch', 'control', 'report'))
+    p.add_argument('mode', choices=('launch', 'resume', 'control', 'report'))
     p.add_argument('--root', required=True)
     p.add_argument('--plan')
     p.add_argument('--repo')
     p.add_argument('--preflight-core-seconds', type=float, default=0.)
+    p.add_argument('--parent')
+    p.add_argument('--task-seconds', type=float)
     args = p.parse_args()
     backend = sys.modules[__name__]
-    if args.mode == 'launch':
-        if not args.plan or not args.repo:
-            p.error('--plan and --repo required')
+    if args.mode in ('launch', 'resume'):
+        if not args.repo or (args.mode == 'launch' and not args.plan) or (args.mode == 'resume' and not args.parent):
+            p.error('--repo plus --plan (launch) or --parent (resume) required')
         repo, root = Path(args.repo).resolve(), Path(args.root).resolve()
         if not root.is_relative_to(repo / 'outputs/v125') or root.exists():
             p.error('new output root under project outputs/v125 required')
-        raw = read_json(args.plan)
-        duration = raw.pop('task_seconds', 1500)
+        if args.mode == 'resume':
+            parent = Path(args.parent).resolve()
+            if not parent.is_relative_to(repo / 'outputs/v125'):
+                p.error('resume parent must belong to this project v125')
+            raw = read_json(parent / 'plan.json')
+            raw['resume_from'] = str(parent)
+            raw['preflight_cost_receipts'] = []  # parent keeps its own ledger
+            # Validate before creating a new directory or charging a reservation.
+            resume_parent(raw)
+        else:
+            raw = read_json(args.plan)
+        duration = args.task_seconds if args.task_seconds is not None else raw.pop('task_seconds', 1500)
         if not math.isfinite(duration) or not 10 < duration <= 8 * 3600:
             p.error('bounded independent task_seconds required')
         raw['deadline_unix'] = time.time() + duration

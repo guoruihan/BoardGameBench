@@ -128,3 +128,66 @@ def test_episode_learning_alignment_and_true_return(tmp_path):
         if i:
             assert row['observation_before']==rows[i-1]['observation']
     assert rows[-1]['observation']['terminated']
+
+
+def test_resume_validates_source_and_reuses_only_complete(tmp_path):
+    from pathlib import Path
+    import shutil
+    from boardbench.artifacts.store import write_json, source_files, source_id, digest
+    from boardbench.v125.campaign import initial_results, snapshot_repository, resume_parent
+    parent=tmp_path/'parent'; parent.mkdir()
+    origin=Path(__file__).resolve().parents[1]
+    for relative in source_files(origin):
+        destination=parent/'source'/relative
+        destination.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(origin/relative,destination)
+    manifest=make_splits(train_count=8); plan=prepare_plan(raw_plan(),manifest); jobs=make_jobs(plan)
+    write_json(parent/'plan.json',plan);write_json(parent/'splits.json',manifest);write_json(parent/'jobs.json',jobs)
+    write_json(parent/'allocation.json',{'source_id':source_id(parent/'source'),
+        'plan_sha256':digest(parent/'plan.json'),'splits_sha256':digest(parent/'splits.json')})
+    write_json(parent/'status.json',{'phase':'deadline','active_count':0});write_json(parent/'watchdog_result.json',{})
+    row={**jobs[0],'status':'completed','natural_terminal':True,'score':60,
+         'components':{'total':60,'animals':10},'simulation_steps':5,'decision_seconds':900,
+         'solver_budget_utilization':1,'terminal_metrics':dict(terrain=50,animals_placed=2,completed_cards=0,turns=12,tokens=36)}
+    write_json(parent/'resolved'/f"{row['id']}.json",row)
+    write_json(parent/'resolved'/f"{jobs[1]['id']}.json",{**jobs[1],'status':'job_timeout','natural_terminal':False,
+        'score':None,'components':{},'simulation_steps':0,'decision_seconds':10})
+    resumed={**plan,'resume_from':str(parent)}
+    assert snapshot_repository(origin,resumed)==parent/'source'
+    dest=tmp_path/'resumed'
+    rows=initial_results(dest,resumed,jobs)
+    assert len(rows)==1 and rows[0]['id']==jobs[0]['id'] and rows[0]['reused_completed_attempt']
+    assert rows[0]['inherited_from']==str(parent)
+    assert not (dest/'episodes').exists()  # no phantom game is executed
+    bad={**resumed,'search_seeds':[12]}
+    with pytest.raises(ValueError,match='jobs differ'):
+        resume_parent(bad)
+    write_json(parent/'status.json',{'phase':'running','active_count':1})
+    with pytest.raises(ValueError,match='inactive'):
+        resume_parent(resumed)
+    write_json(parent/'status.json',{'phase':'deadline','active_count':0})
+    (parent/'source/pyproject.toml').write_text('corrupt')
+    with pytest.raises(ValueError,match='hash mismatch'):
+        resume_parent(resumed)
+
+
+def test_demonstration_export_alignment_and_no_overwrite(tmp_path):
+    import gzip
+    from boardbench.artifacts.store import write_json, read_json
+    from boardbench.v125.data import export
+    run=tmp_path/'run';job={'id':'sample','method':'terminal','multiplier':1,
+        'environment_seed':7,'search_seed':11,'params':{'mode':'timed','continuation':'original','seconds':.02}}
+    result=run_episode(job,run/'episodes/sample')
+    write_json(run/'resolved/sample.json',result)
+    write_json(run/'plan.json',{'split':'development'})
+    write_json(run/'status.json',{'phase':'completed','active_count':0})
+    write_json(run/'allocation.json',{'source_id':'test-source'})
+    out=tmp_path/'dataset.jsonl.gz';manifest=export(run,out)
+    assert manifest['completed_games']==1 and manifest['records']==result['real_steps']
+    with gzip.open(out,'rt') as f:
+        rows=[json.loads(x) for x in f]
+    assert rows[-1]['next_observation']['terminated']
+    assert sum(r['raw_score_delta'] for r in rows)==result['score']
+    assert rows[0]['score_delta_return_to_go']==result['score']
+    with pytest.raises(ValueError,match='overwrite'):
+        export(run,out)
