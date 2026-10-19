@@ -13,6 +13,9 @@
   separately without treating search repetitions as independent environments.
 - Retain bounded task/worker watchdogs, frozen-source recovery and resource
   accounting; validate100-worker concurrency on train, never prune by2s scores.
+- Validation:299CPU tests pass/21resource-skipped;26 b35 lifecycle/guard checks
+  pass;100/100 train calibration games finish. Launch480 frozen jobs at05:24CST,
+  verify100live single-thread workers with exact core bindings; results pending.
 
 ## 2026-10-20 — V1.2.5 stage1 completed
 
