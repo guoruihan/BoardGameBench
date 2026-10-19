@@ -1,5 +1,27 @@
 # Engineering changes
 
+## 2026-10-19 — 0.4.4 public terminal-rollout teacher and compute diagnosis
+
+- Preserve the historical width6/rollouts4/depth2turn/cap384 short-search algorithm;
+  scale actual sample counts and proportional caps at1/4/16/64x. Add a separate
+  heuristic-to-natural-terminal teacher with public conditional future sampling,
+  common candidate samples and an exact public-action cache, not learned dynamics.
+- Freeze development panels and three search seeds; report components, actual
+  solver/CPU/wall costs, root coverage, horizon/terminal fractions and every failed
+  or censored attempt. Average search repetitions before environment-level pairing;
+  only fully covered predeclared panels enter the main curve.
+- Add frozen-source, single-thread CPU workers, a half-physical-core resource guard,
+  process-level timeouts, independent absolute-deadline watchdog, durable heartbeats,
+  and automatically refreshed JSON/CSV/SVG/Chinese reports with preflight accounting.
+- Test public-information equivalence, legal terminal trajectories, sample-budget
+  consumption, cache/restore equivalence, non-pseudoreplicated aggregation, real
+  worker timeout/global deadline, and cleanup after a deliberately stopped controller.
+- Final b35 CPU regression:238passed,9explicit-CUDA checks skipped; all three
+  actual timeout/cleanup lifecycle checks pass. Training-seed calibration completes8/8
+  games; retain both the1x gains and4x regressions without development-based tuning.
+- Keep old PPO artifacts, test boundaries and production policy pointers unchanged.
+  Calibration uses training seeds only; no policy-quality or optimality claim.
+
 ## 2026-10-04 — 0.4.3 mature-policy numerical repair and audited recovery
 
 - First publish the pre-fix snapshot32d0c66, then reproduce the saved E11_T16_913

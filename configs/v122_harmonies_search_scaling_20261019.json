@@ -1,0 +1,86 @@
+{
+  "research_version": "1.2.2",
+  "experiment": "harmonies_search_scaling_20261019_a",
+  "split": "development",
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "panels": [
+    8,
+    16,
+    32,
+    64,
+    96,
+    128
+  ],
+  "search_seeds": [
+    90210,
+    90211,
+    90212
+  ],
+  "cpu_cores": 64,
+  "deadline_unix": 1792426320,
+  "deadline_local": "2026-10-20 00:12:00 Asia/Shanghai",
+  "request_started_local": "2026-10-19 16:12 Asia/Shanghai",
+  "prior_calibration_roots": [
+    "outputs/v122/calibration_20261019_a"
+  ],
+  "preflight_cost_receipts": [
+    "outputs/v122/preflight_20261019_a.json"
+  ],
+  "preflight_note": "Training seeds only; include calibration and verification costs, no development-score tuning. Absolute deadline includes implementation/preflight wall time. GPU allocation is zero.",
+  "arms": [
+    {
+      "id": "heuristic",
+      "method": "heuristic",
+      "multiplier": 1,
+      "timeout_seconds": 120
+    },
+    {
+      "id": "short_1x",
+      "method": "short",
+      "multiplier": 1,
+      "timeout_seconds": 300
+    },
+    {
+      "id": "short_4x",
+      "method": "short",
+      "multiplier": 4,
+      "timeout_seconds": 900
+    },
+    {
+      "id": "short_16x",
+      "method": "short",
+      "multiplier": 16,
+      "timeout_seconds": 2400
+    },
+    {
+      "id": "short_64x",
+      "method": "short",
+      "multiplier": 64,
+      "timeout_seconds": 7200
+    },
+    {
+      "id": "terminal_1x",
+      "method": "terminal",
+      "multiplier": 1,
+      "timeout_seconds": 900
+    },
+    {
+      "id": "terminal_4x",
+      "method": "terminal",
+      "multiplier": 4,
+      "timeout_seconds": 2400
+    },
+    {
+      "id": "terminal_16x",
+      "method": "terminal",
+      "multiplier": 16,
+      "timeout_seconds": 7200
+    },
+    {
+      "id": "terminal_64x",
+      "method": "terminal",
+      "multiplier": 64,
+      "timeout_seconds": 18000
+    }
+  ]
+}

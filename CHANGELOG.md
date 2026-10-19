@@ -1,5 +1,18 @@
 # Research milestones
 
+## 0.4.4 / research V1.2.2 — 2026-10-19
+
+- Register a Harmonies-only teacher-strength diagnostic before additional RL or
+  imitation training: unchanged short-horizon search versus heuristic terminal
+  rollout, four sample budgets, three fixed search repetitions and matched
+  development panels. Search sampling repetitions are not training repetitions.
+- Separate full-game high-compute reference quality from the unchanged3-second
+  deployment protocol; a flat curve cannot establish optimality. Approximate
+  terminal rollout is not guaranteed to improve every game or with more samples.
+- Bound the initial background campaign by the user's eight-hour return window
+  and half of b35's physical CPU cores. No new GPU training, test evaluation,
+  cross-game claim or automatic production promotion is part of this release.
+
 ## 0.4.3 / research V1.2.1 — 2026-10-04
 
 - Register explicitly identified FP64 arithmetic continuations of all four T16
