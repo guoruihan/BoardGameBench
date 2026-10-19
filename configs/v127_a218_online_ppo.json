@@ -1,0 +1,35 @@
+{
+  "dataset": "outputs/v126/learning_a218_20261020_a/datasets/initial.npz",
+  "dataset_sha256": "35c777383a9bde93cbfd7ecf95d93ce207ea7c630e3fc06f194d6635d5961728",
+  "parents": "outputs/v126/learning_a218_20261020_a/models/initial",
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "split_sha256": "78449ba20859f51353a37aa4314a645f94739532b196806772446cb7298076d7",
+  "preflight_cpu_core_seconds": 7200,
+  "preflight_gpu_seconds": 1800,
+  "preflight_accounting": "Conservative V127 testing allowance, not measured GPU kernel time. Historical V126 costs excluded and retained separately.",
+  "training": {
+    "batch_episodes": 128,
+    "workers": 14,
+    "learning_rate": 0.0001,
+    "epochs": 4,
+    "minibatch": 1024,
+    "gae_lambda": 0.95,
+    "entropy_coef": 0.005,
+    "target_kl": 0.02,
+    "critic_batches": 2,
+    "critic_epochs": 8,
+    "target_actions": 2000000,
+    "max_seconds": 14400,
+    "milestones": [50000,100000,250000,500000,1000000,2000000]
+  },
+  "gpu_uuids": [
+    "GPU-bbb68b88-9c8d-eb24-01df-05116dafb926",
+    "GPU-e9f9586b-5ddd-4597-42b9-3a3fe7eed421",
+    "GPU-23112522-36ac-c315-d5fc-def6fb6ce1cd",
+    "GPU-1708dc45-9cfa-cbe5-83a3-5c48dfc691f1",
+    "GPU-d375907a-f547-b49c-37e8-5ed205a14419",
+    "GPU-84c80303-bff2-5af0-bd59-c321149fafd9",
+    "GPU-27f3518d-d5d4-a66d-e77b-804ba161b6e3",
+    "GPU-4e4d424f-4007-c252-6995-32193fd4a7be"
+  ]
+}

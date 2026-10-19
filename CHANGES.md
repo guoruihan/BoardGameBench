@@ -1,5 +1,20 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.11 / V1.2.7 knowledge-initialized online PPO
+
+- Stop the authorized V126 imitation/search pipeline, preserving teachers, models,
+  pilot results and interrupted attempts with their original cost ledger.
+- Reuse the masked compact policy and batched public environment pool for genuine
+  reward-driven PPO. Import hashed imitation weights; calibrate only the critic
+  on own-policy returns, then optimize actor and critic with gamma1/GAE/PPO.
+- Add four matched two-seed arms: BC initialization, soft-label initialization,
+  fading demonstration auxiliary, and random initialization. Frozen actors are
+  explicit controls; all headline evaluation is model-only natural-terminal score.
+- Add exact update-boundary optimizer/RNG recovery, finite/legality/ratio gates,
+  per-game traces, development curves and separate final paired evaluation.
+- Add frozen-source a218 orchestration: eight independent GPU jobs,121 physical
+  CPU cores aggregate, shared node lock, bounded task watchdogs and all-attempt costs.
+
 ## 2026-10-20 — 0.4.10 / V1.2.6 a218 eight-GPU handoff
 
 - Add host-scoped a218 resource profile,128-core physical allocation ceiling,
