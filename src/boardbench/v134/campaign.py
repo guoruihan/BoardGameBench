@@ -79,7 +79,7 @@ def prepare(repo, root, config):
     write_json(stage / "config.json", config)
 
 
-def report(root, state):
+def report(root, state, *, title="V134 public-plan RL"):
     rows, curves = [], {}
     jobs = read_json(root / "jobs.json")
     for name, config in jobs:
@@ -100,7 +100,7 @@ def report(root, state):
                      "heartbeat_age": time.time() - p["updated_unix"] if p else None})
     write_json(root / "results.json", rows)
     write_json(root / "curves.json", curves)
-    lines = ["# V134 public-plan RL", "", f"State: {state['phase']}",
+    lines = ["# " + title, "", f"State: {state['phase']}",
              "Development512; fixed endpoints, no search or altered rewards.",
              "", "|trial|phase|additional actions|latest score|", "|---|---|---:|---:|"]
     lines += [f"|{r['trial']}|{r['phase']}|{r['additional_actions']}|{r['latest_score']}|" for r in rows]
@@ -109,7 +109,7 @@ def report(root, state):
     colors = ["#2563eb", "#60a5fa", "#dc2626", "#f87171", "#059669", "#34d399", "#7c3aed", "#a78bfa"]
     svg = ['<svg xmlns="http://www.w3.org/2000/svg" width="950" height="450">',
            '<rect width="950" height="450" fill="white"/>',
-           '<text x="40" y="25">V134 development512: additional actions per stage</text>']
+           f'<text x="40" y="25">{title}: development512, additional actions per stage</text>']
     maximum = max(c["target_actions"] - read_json(Path(c["continuation"]["checkpoint"]).with_suffix(".json"))["ppo_actions"] for _, c in jobs)
     for score in range(80, 126, 5):
         y = 400 - (score - 75) * 6
@@ -217,23 +217,24 @@ def finalize(root):
                "selection": "frozen matched-budget endpoints; no further tuning from these results"})
 
 
-def run(root, repo):
+def run(root, repo, **hooks):
     def stop(*_):
         raise InterruptedError("campaign stopped at bounded deadline")
     previous = {sig: signal.signal(sig, stop) for sig in (signal.SIGTERM, signal.SIGINT)}
     try:
-        return _run(root, repo)
+        return _run(root, repo, **hooks)
     finally:
         for sig, handler in previous.items():
             signal.signal(sig, handler)
 
 
-def _run(root, repo):
+def _run(root, repo, *, stage_builder=stage2, reporter=report,
+         training_module="boardbench.v134.training", campaign_module="boardbench.v134.campaign"):
     config, launch = read_json(root / "config.json"), read_json(root / "launch.json")
     if source_id() != launch["source_id"] or os.uname().nodename != config["host"]:
         raise ValueError("authorized frozen source/host required")
     for index in (1, 2):
-        stage = root / "stage1" if index == 1 else stage2(root)
+        stage = root / "stage1" if index == 1 else stage_builder(root)
         stage_config = read_json(stage / "config.json")
         jobs = read_json(stage / "jobs.json")
         cpus = launch["cpus"][:len(jobs) * (config["training"]["workers"] + 1) + 1]
@@ -250,7 +251,7 @@ def _run(root, repo):
         costs = read_json(root / "waiting_cost.json") if (root / "waiting_cost.json").exists() else {}
         costs[f"stage{index}"] = costs.get(f"stage{index}", 0.) + (time.monotonic() - tick) / 3600
         write_json(root / "waiting_cost.json", costs)
-        execute(stage, repo, training_module="boardbench.v134.training", reporter=report,
+        execute(stage, repo, training_module=training_module, reporter=reporter,
                 expected_host=config["host"], absolute_deadline=launch["deadline_unix"] - 1200)
         state = read_json(stage / "state.json")
         if any(v["status"] != "completed" for v in state["jobs"].values()) or len(state["jobs"]) != len(jobs):
@@ -273,7 +274,7 @@ def _run(root, repo):
     try:
         with (root / "finalization.log").open("a") as stream:
             child = subprocess.Popen(["taskset", "-c", ",".join(map(str, launch["cpus"][:7])), sys.executable,
-                                      "-u", "-m", "boardbench.v134.campaign", "finalize", "--root", str(root),
+                                      "-u", "-m", campaign_module, "finalize", "--root", str(root),
                                       "--repo", str(repo)], env={**os.environ, "CUDA_VISIBLE_DEVICES": config["gpu_uuids"][0]},
                                      stdout=stream, stderr=subprocess.STDOUT, start_new_session=True)
             code = child.wait(timeout=min(900, max(1, launch["deadline_unix"] - time.time() - 60)))
@@ -298,7 +299,7 @@ def guard(root, repo):
     os.sched_setaffinity(0, {launch["cpus"][-1]})
     with (root / "guard.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        child = subprocess.Popen([sys.executable, "-u", "-m", "boardbench.v134.campaign", "run",
+        child = subprocess.Popen([sys.executable, "-u", "-m", launch.get("campaign_module", "boardbench.v134.campaign"), "run",
                                   "--repo", str(repo), "--root", str(root)], start_new_session=True)
         write_json(root / "guard.json", {"pid": os.getpid(), "child_pid": child.pid,
                    "deadline_unix": launch["deadline_unix"]})

@@ -79,6 +79,8 @@ def manager_targets(trajectory, decisions, lam):
 
 
 class Trainer(BaseTrainer):
+    checkpoint_version = 134
+
     def __init__(self, config, device="cpu"):
         if (config.get("planning_version") != "1.3.4" or config["arm"] not in ARMS
                 or config.get("bc_weight", 0) or config.get("critic_batches", 0)):
@@ -284,7 +286,7 @@ class Trainer(BaseTrainer):
         if digest(path) != spec["sha256"] or meta["sha256"] != spec["sha256"] or meta["source_id"] != spec["source_id"]:
             raise ValueError("parent hash/source mismatch")
         saved = torch.load(path, map_location=self.device, weights_only=False)
-        if saved["version"] == 134:
+        if saved["version"] == self.checkpoint_version:
             mutable = {"continuation", "target_actions", "milestones", "max_seconds", "trajectory_directory", "workers"}
             if (saved["source_id"] != self.source or saved["device"] != self.device or
                     {k: v for k, v in saved["config"].items() if k not in mutable} !=
@@ -339,7 +341,7 @@ class Trainer(BaseTrainer):
             raise RuntimeError("complete batch checkpoint required")
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        saved = {"version": 134, "source_id": self.source, "config": self.config, "device": self.device,
+        saved = {"version": self.checkpoint_version, "source_id": self.source, "config": self.config, "device": self.device,
                  "model": self.model.state_dict(), "manager": self.manager.state_dict(),
                  "optimizer": self.optimizer.state_dict(), "critic_optimizer": self.critic_optimizer.state_dict(),
                  "manager_optimizer": self.manager_optimizer.state_dict(), "lineage": self.lineage,
@@ -357,7 +359,7 @@ class Trainer(BaseTrainer):
         if digest(path) != read_json(Path(path).with_suffix(".json"))["sha256"]:
             raise ValueError("resume checksum mismatch")
         saved = torch.load(path, map_location=self.device, weights_only=False)
-        if saved["version"] != 134 or saved["source_id"] != self.source or saved["config"] != self.config or saved["device"] != self.device:
+        if saved["version"] != self.checkpoint_version or saved["source_id"] != self.source or saved["config"] != self.config or saved["device"] != self.device:
             raise ValueError("resume source/config/device mismatch")
         for key in ("model", "manager", "optimizer", "critic_optimizer", "manager_optimizer"):
             getattr(self, key).load_state_dict(saved[key])
@@ -371,14 +373,14 @@ class Trainer(BaseTrainer):
             setattr(self, key, value)
 
 
-def run(config, out, device="cuda"):
+def run(config, out, device="cuda", *, trainer_class=Trainer):
     """Save the worker AND manager at every boundary; never swap only half a policy."""
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     if (out / "config.json").exists() and read_json(out / "config.json") != config:
         raise ValueError("immutable trial config")
     write_json(out / "config.json", config)
-    trainer = Trainer(config, device)
+    trainer = trainer_class(config, device)
     started, prior_wall, stopping = time.monotonic(), 0., [False]
     previous = {sig: signal.signal(sig, lambda *_: stopping.__setitem__(0, True))
                 for sig in (signal.SIGINT, signal.SIGTERM)}
