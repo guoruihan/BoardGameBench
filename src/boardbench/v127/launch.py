@@ -124,11 +124,12 @@ def report(root,state):
     (root/'curves.svg').write_text('\n'.join(svg))
 
 
-def execute(root,repo,*,training_module='boardbench.v127.training',reporter=report):
+def execute(root,repo,*,training_module='boardbench.v127.training',reporter=report,
+            expected_host='a218.cluster.helixon.com', absolute_deadline=None):
     root,repo=Path(root),Path(repo)
     launch=read_json(root/'launch.json');config=read_json(root/'config.json')
-    if os.uname().nodename!='a218.cluster.helixon.com' or source_id()!=launch['source_id']:
-        raise ValueError('run on a218 using this run frozen source')
+    if os.uname().nodename!=expected_host or source_id()!=launch['source_id']:
+        raise ValueError('run on the authorized host using this run frozen source')
     cores_per_job=config['training']['workers']+1
     jobs=read_json(root/'jobs.json')
     validate_allocation(launch['cpus'],config['gpu_uuids'],cores_per_job,config.get('jobs_per_gpu',1),len(jobs))
@@ -177,9 +178,14 @@ def execute(root,repo,*,training_module='boardbench.v127.training',reporter=repo
                 env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             attempt={'trial':name,'pid':child.pid,'started_unix':time.time(),'gpu':env['CUDA_VISIBLE_DEVICES'],'cpus':affinity}
             state['attempts'].append(attempt);state['jobs'][name]={'status':'running','pid':child.pid}
-            active[name]={'child':child,'log':log,'attempt':attempt,'deadline':time.monotonic()+trial['max_seconds']-previous_wall}
+            remaining=trial['max_seconds']-previous_wall
+            if absolute_deadline is not None:
+                remaining=min(remaining,absolute_deadline-time.time()-120.)
+            active[name]={'child':child,'log':log,'attempt':attempt,'deadline':time.monotonic()+max(0.,remaining)}
             publish('running')
         while active:
+            if absolute_deadline is not None and time.time()>=absolute_deadline-120:
+                stopping[0]=True
             for name,item in list(active.items()):
                 child=item['child']
                 if (stopping[0] or time.monotonic()>=item['deadline']) and 'terminated' not in item:

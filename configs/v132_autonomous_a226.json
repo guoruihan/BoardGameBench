@@ -1,0 +1,22 @@
+{
+  "started_unix": 1792471594,
+  "deadline_unix": 1792507594,
+  "host": "a226.cluster.helixon.com",
+  "gpu_uuids": [
+    "GPU-19c4a068-0c21-98fe-a3c5-8600922b80bb",
+    "GPU-814b0686-8e37-4008-b841-0f48bf443ec7",
+    "GPU-829be823-80a5-bc50-bee4-27422b19e0c8",
+    "GPU-ff9f7b99-6859-0e9e-cdb7-06f61f675308"
+  ],
+  "jobs_per_gpu": 2,
+  "base_config": "configs/v131_continuation_guidance.json",
+  "archive": "outputs/trajectory_archive/harmonies_20261020_a",
+  "fresh_teacher": "outputs/v125/v132_fresh_teacher_20261020_a",
+  "actions_per_round": 4000000,
+  "max_round_seconds": 3000,
+  "workers": 6,
+  "minimum_corpus_seconds": 300,
+  "record_games_per_batch": 4,
+  "max_rounds": 20,
+  "finish_buffer_seconds": 300
+}
