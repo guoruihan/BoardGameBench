@@ -13,6 +13,11 @@
   next-update resume checks and fast/native/native/fast eight-job comparisons.
 - Add pool/reset/STOP/equivalence/provenance/PPO/budget regression tests and
   recoverable migration runbook; no game/learning/formal-test changes.
+- Verification:355passed/12explicitGPU skips;32actual CUDA benchmark processes
+  pass exact-next-update recovery and share identical final model hash. Native
+  PPO throughput+25.9%, environment-stage time-41.0% on matched two-card repeats.
+- Launch all eight native continuations from6.19M-6.47M actions; verify65-core
+  union, four CUDA jobs/card onGPU0/1 and64processes mapping the pinned library.
 ## 2026-10-20 — V1.2.8 isolated native encoding feasibility
 
 - Keep the launched two-GPU PPO snapshot untouched. Add a standalone single-CPU

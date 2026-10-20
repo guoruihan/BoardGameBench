@@ -77,3 +77,12 @@ tmux new-session -d -s boardbench-v129-ppo "bash -o pipefail -c 'cd /datapool/da
 正式test/confirmation保持未运行。固定32开发局面用于曲线；另64开发局面历史已使用，只能叫开发对照，不能改称未见测试。
 
 打包验证：运行环境自带setuptools58.1低于项目要求>=68，不能用该版本关闭隔离构建（产生的UNKNOWN wheel无效，未使用）。标准隔离构建成功产出`outputs/v129/wheel_check_isolated_20261020/boardbench-0.4.13-py3-none-any.whl`，检查包含`boardbench/v129/native/encode.cpp`和全部原生模块；运行环境未被升级。训练使用冻结源码，不依赖该wheel。
+
+## 已验证的新任务启动
+
+- 2026-10-20 08:45:11 CST启动`outputs/v129/ppo_native_a218_20261020_a`，tmux `boardbench-v129-ppo`，外层PID26841。冻结提交`fe09f7662d2b0beab1e7288d7eae5b95fb79afef`，源码哈希与上述成熟GPU基准一致。
+- 全量回归355passed/12显式GPU skips，293.70秒；针对性44passed/2GPU skips。原生后端的真实CUDA下一更新恢复检查由四组基准的32个训练进程另行完成，不把普通回归的skip说成CUDA已测。
+- 第一轮现场核对：八任务均为`native_v129`，各自计数从父检查点继续增长至约626万–654万，PPO优化器更新持续增加。
+- 亲和性并集65个物理核，73个后代进程；其中64个learner/worker进程映射了固定`native_build_20261020_a/harmonies_encode.so`。GPU0/1各四个CUDA训练进程，GPU2–7未分配。
+- 各任务配置中的剩余预算为13,620.1–13,621.2秒，累计目标1000万；没有从0重跑，也没有通过新root恢复完整4小时。
+- 报告/曲线在新root持续更新，运行结束保留latest/best/final和逐局成绩；旧root、最优检查点、账本及停止receipt全部保留。
