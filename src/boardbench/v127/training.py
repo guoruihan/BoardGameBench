@@ -232,7 +232,7 @@ class Trainer:
     def batch(self):
         if not self.boundary: raise RuntimeError('cannot reuse failed partial rollout')
         if self.pool is None:
-            self.pool=EnvironmentPool(self.config['batch_episodes'],self.config['workers'])
+            self.pool=self.make_pool(self.config['batch_episodes'],self.config['workers'])
         self.boundary=False
         seeds=[self.train_seeds[(4096+self.episodes+i)%len(self.train_seeds)] for i in range(self.pool.count)]
         start=time.monotonic();rows,metrics=self.collect(self.pool,seeds)
@@ -247,9 +247,17 @@ class Trainer:
                 'total_actions':self.actions,'ppo_actions':self.ppo_actions,'batches':self.batches,
                 'updates':self.updates,'batch_seconds':time.monotonic()-start}
 
+    def make_pool(self,count,workers):
+        backend=self.config.get('environment_backend','reference')
+        if backend=='reference':return EnvironmentPool(count,workers)
+        if backend=='fast_v128':
+            from boardbench.v128.collector import EnvironmentPool as FastPool
+            return FastPool(count,workers)
+        raise ValueError('unknown environment backend')
+
     def evaluate(self,seeds):
         # Evaluation is greedy and uses no sampling RNG or optimizer operations.
-        with EnvironmentPool(len(seeds),workers=0) as pool:
+        with self.make_pool(len(seeds),workers=0) as pool:
             _,metrics=self.collect(pool,seeds,greedy=True,keep_rows=False)
         return metrics
 
@@ -282,6 +290,39 @@ class Trainer:
     def close(self):
         if self.pool is not None: self.pool.close();self.pool=None
 
+    def import_sampling_continuation(self,spec):
+        """Explicit cross-source import, distinct from exact same-source resume.
+
+        Only execution/budget fields may differ. Preserve PPO Adam, critic, RNG
+        and environment counters; start a new cost ledger and evaluation stage.
+        """
+        if self.actions or self.updates or self.optimizer.state or self.pool is not None:
+            raise ValueError('continuation requires a fresh trainer')
+        path=Path(spec['checkpoint'])
+        meta=read_json(path.with_suffix('.json'))
+        if digest(path)!=spec['sha256'] or meta['sha256']!=spec['sha256'] or meta['source_id']!=spec['source_id']:
+            raise ValueError('continuation parent hash/source mismatch')
+        state=torch.load(path,map_location=self.device,weights_only=False)
+        mutable={'workers','environment_backend','target_actions','max_seconds','milestones',
+                 'continuation','efficiency_version','benchmark_batches'}
+        old={k:v for k,v in state['config'].items() if k not in mutable}
+        new={k:v for k,v in self.config.items() if k not in mutable}
+        if state['version']!=127 or state['source_id']!=spec['source_id'] or old!=new or state['device']!=self.device:
+            raise ValueError('continuation changes algorithm, model or data')
+        if any(not torch.isfinite(v).all() for v in state['model'].values()):
+            raise ValueError('nonfinite continuation model')
+        self.model.load_state_dict(state['model']);self.optimizer.load_state_dict(state['optimizer'])
+        self.critic_optimizer.load_state_dict(state['critic_optimizer'])
+        self.rng.bit_generator.state=state['rng_numpy'];torch.set_rng_state(state['rng_torch'].cpu())
+        if state['rng_cuda']:torch.cuda.set_rng_state_all([v.cpu() for v in state['rng_cuda']])
+        for k in ('episodes','actions','ppo_actions','batches','warm_batches','updates'):
+            setattr(self,k,state['counters'][k])
+        self.lineage={'kind':'explicit_sampling_continuation','parent_checkpoint':str(path),
+            'sha256':spec['sha256'],'parent_source_id':spec['source_id'],'parent_lineage':state['lineage'],
+            'starting_ppo_actions':self.ppo_actions,'preserved':'model, both optimizers, RNG, episode/action counters',
+            'changed':'execution backend/workers and bounded stage budget; evaluation restarted',
+            'exact_cross_source_resume':False}
+
 
 def run(config,out,device='cuda'):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
@@ -298,6 +339,7 @@ def run(config,out,device='cuda'):
     prior={sig:signal.signal(sig,lambda *_:stopped.__setitem__(0,True)) for sig in (signal.SIGINT,signal.SIGTERM)}
     prior_wall=0.
     if (out/'latest.pt').exists(): trainer.load(out/'latest.pt');prior_wall=trainer.wall_seconds
+    elif config.get('continuation'):trainer.import_sampling_continuation(config['continuation'])
     def elapsed(): return prior_wall+time.monotonic()-started
     def publish(phase,**extra):
         write_json(out/'progress.json',{'phase':phase,'pid':os.getpid(),'updated_unix':time.time(),

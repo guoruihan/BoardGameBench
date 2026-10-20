@@ -77,11 +77,11 @@ class _Shard:
             self._publish(slot)
 
 
-def _worker(connection, buffers, count, slots, core):
+def _worker(connection, buffers, count, slots, core, shard_class=_Shard):
     try:
         if core is not None:
             os.sched_setaffinity(0, {core})
-        shard = _Shard(slots, _views(buffers, count))
+        shard = shard_class(slots, _views(buffers, count))
         connection.send(('ready', None))
         while True:
             command, value = connection.recv()
@@ -106,7 +106,7 @@ def _worker(connection, buffers, count, slots, core):
 
 
 class EnvironmentPool:
-    def __init__(self, count=16, workers=0, timeout=60.):
+    def __init__(self, count=16, workers=0, timeout=60., shard_class=_Shard):
         if type(count) is not int or count < 1 or type(workers) is not int or not 0 <= workers <= count:
             raise ValueError('positive cohort size and workers in [0, count] required')
         cores = sorted(os.sched_getaffinity(0))
@@ -124,14 +124,14 @@ class EnvironmentPool:
             'stats': ctx.RawArray(ctypes.c_double, count * 7),
         }
         self.arrays = _views(self.buffers, count)
-        self.local = _Shard(list(range(count)), self.arrays) if workers == 0 else None
+        self.local = shard_class(list(range(count)), self.arrays) if workers == 0 else None
         self.arrays['done'].fill(True)
         self.started = False
         try:
             for i in range(workers):
                 parent, child = ctx.Pipe()
                 process = ctx.Process(target=_worker, args=(child, self.buffers, count,
-                    list(range(i, count, workers)), cores[i + 1]), daemon=True)
+                    list(range(i, count, workers)), cores[i + 1], shard_class), daemon=True)
                 process.start()
                 child.close()
                 self.connections.append(parent)

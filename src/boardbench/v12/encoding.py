@@ -79,8 +79,8 @@ def decode(obs, action_index, version, allow_stop=False, episode_finished=False)
     return dict(mapping[action_index])
 
 
-def encode(obs, version='slots240_v1', observation_version='cards_v1', allow_stop=True,
-           *, remaining_seconds=None, time_budget_seconds=None, episode_finished=False):
+def feature_vector(obs, version='slots240_v1', observation_version='cards_v1',
+                   *, remaining_seconds=None, time_budget_seconds=None):
     if observation_version not in OBSERVATIONS:
         raise ValueError('unknown observation encoding')
     if version == 'slots240_v1' and observation_version == 'legacy_v1':
@@ -102,6 +102,13 @@ def encode(obs, version='slots240_v1', observation_version='cards_v1', allow_sto
         raise ValueError('invalid time conditioning')
     x.extend([float(has_time), math.log1p(max(0., remaining_seconds)) if has_time else 0.,
               max(0., min(1., remaining_seconds / time_budget_seconds)) if has_time else 0.])
+    return tuple(x)
+
+
+def encode(obs, version='slots240_v1', observation_version='cards_v1', allow_stop=True,
+           *, remaining_seconds=None, time_budget_seconds=None, episode_finished=False):
+    x = feature_vector(obs, version, observation_version, remaining_seconds=remaining_seconds,
+                       time_budget_seconds=time_budget_seconds)
     mapping = action_map(obs, version, allow_stop, episode_finished)
     mask = tuple(i in mapping for i in range(COUNTS[version] + int(allow_stop)))
     return {'features': tuple(x), 'action_mask': mask}

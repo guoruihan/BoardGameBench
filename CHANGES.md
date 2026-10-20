@@ -1,5 +1,21 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.12 / V1.2.8 exact environment acceleration and GPU packing
+
+- Add opt-in fast Harmonies observations, compiled animal predicates, cached
+  action maps and environment reuse; preserve original transitions, scoring,
+  action order, public information and synchronous PPO sampling semantics.
+- Benchmark real matched PPO updates on a218 GPU0/1: identical final model hashes
+  across reference/fast, worker counts and packing. Single-job speed improves
+  57%; packed eight-job throughput improves31% at121cores or15% at65cores.
+- Continue all eight completed V127 trials with model, optimizers, RNG and counters
+  preserved; explicit guarded cross-source import, unchanged learning settings,
+  new bounded stage and immutable old artifacts. Two GPUs/four trials per GPU.
+- Account shared physical GPU occupancy by interval union, preserve separate
+  process hours, and include benchmark/preflight/failed-attempt costs once.
+- Add engine/encoding/trajectory/PPO/resume/resource checks; verify mature old
+  checkpoint continuation and exact-next-update recovery on both target GPUs.
+
 ## 2026-10-20 — 0.4.11 / V1.2.7 knowledge-initialized online PPO
 
 - Stop the authorized V126 imitation/search pipeline, preserving teachers, models,

@@ -1,0 +1,37 @@
+{
+  "dataset": "outputs/v126/learning_a218_20261020_a/datasets/initial.npz",
+  "dataset_sha256": "35c777383a9bde93cbfd7ecf95d93ce207ea7c630e3fc06f194d6635d5961728",
+  "parents": "outputs/v126/learning_a218_20261020_a/models/initial",
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "split_sha256": "78449ba20859f51353a37aa4314a645f94739532b196806772446cb7298076d7",
+  "preflight_cpu_core_seconds": 20202.398218073853,
+  "preflight_gpu_seconds": 580.0721507072449,
+  "preflight_accounting": "Includes both measured V128 benchmark ledgers once, plus conservative3600CPU-core-second/120physicalGPU-second regression and continuation-probe allowance; V127 history excluded.",
+  "training": {
+    "batch_episodes": 128,
+    "workers": 14,
+    "learning_rate": 0.0001,
+    "epochs": 4,
+    "minibatch": 1024,
+    "gae_lambda": 0.95,
+    "entropy_coef": 0.005,
+    "target_kl": 0.02,
+    "critic_batches": 2,
+    "critic_epochs": 8,
+    "target_actions": 10000000,
+    "max_seconds": 14400,
+    "milestones": [
+      3000000,
+      5000000,
+      10000000
+    ],
+    "environment_backend": "fast_v128",
+    "efficiency_version": "1.2.8"
+  },
+  "gpu_uuids": [
+    "GPU-bbb68b88-9c8d-eb24-01df-05116dafb926",
+    "GPU-e9f9586b-5ddd-4597-42b9-3a3fe7eed421"
+  ],
+  "jobs_per_gpu": 4,
+  "continuation_root": "outputs/v127/ppo_a218_20261020_a"
+}

@@ -38,10 +38,28 @@ def build_jobs(config,repo):
     return jobs
 
 
-def validate_allocation(cpus,gpus,cores_per_job=15):
+def validate_allocation(cpus,gpus,cores_per_job=15,jobs_per_gpu=1):
     if len(cpus)>128 or len(set(cpus))!=len(cpus): raise ValueError('CPU aggregate cap or duplicates')
-    if len(gpus)!=8 or len(set(gpus))!=8: raise ValueError('eight distinct GPUs required')
+    if len(gpus)*jobs_per_gpu!=8 or len(set(gpus))!=len(gpus): raise ValueError('eight distinct jobs and unique GPU list required')
+    if cores_per_job<1 or jobs_per_gpu<1:raise ValueError('positive allocation required')
     if 8*cores_per_job+1>len(cpus): raise ValueError('learners/workers/controller exceed CPU allocation')
+
+
+def physical_gpu_seconds(attempts,now):
+    """Union wall intervals per device, not sum of shared process lifetimes."""
+    groups={}
+    for a in attempts:
+        end=a['started_unix']+a['elapsed_seconds'] if 'elapsed_seconds' in a else now
+        groups.setdefault(a['gpu'],[]).append((a['started_unix'],max(a['started_unix'],end)))
+    total=0.
+    for intervals in groups.values():
+        left=right=None
+        for start,end in sorted(intervals):
+            if left is None:left,right=start,end
+            elif start<=right:right=max(right,end)
+            else:total+=right-left;left,right=start,end
+        if left is not None:total+=right-left
+    return total
 
 
 def report(root,state):
@@ -67,8 +85,9 @@ def report(root,state):
            '', '|任务|状态|PPO动作|初始|最近开发均分|最好开发均分|','|---|---|---:|---:|---:|---:|']
     fmt=lambda v:'—' if v is None else f'{v:.2f}'
     for r in rows: lines.append(f"|{r['trial']}|{r['phase']}|{r['actions']}|{fmt(r['initial'])}|{fmt(r['latest_curve'])}|{fmt(r['best_curve'])}|")
-    lines+=['',f"资源记账：{state.get('cost',{})}",'历史V126费用单独保留，不重复计入。失败、预检、评估和清理均计费。',
-            '开发均分用于筛选，不代表正式测试或已超越高预算搜索。每任务最多2M PPO动作/4h，完成后保留检查点停止。']
+    specification=read_json(root/'config.json');target=specification['training']['target_actions']
+    lines+=['',f"资源记账：{state.get('cost',{})}",'历史费用单独保留，不重复计入。失败、预检、评估和清理均计费；同卡并发按物理GPU时间合并。',
+            f'开发均分用于筛选，不代表正式测试或已超越高预算搜索。每任务累计目标{target}PPO动作；本阶段限时后保存停止。']
     (root/'REPORT.md').write_text('\n'.join(lines)+'\n')
     colors=['#2563eb','#60a5fa','#dc2626','#f87171','#059669','#34d399','#7c3aed','#a78bfa']
     svg=['<svg xmlns="http://www.w3.org/2000/svg" width="960" height="470" viewBox="0 0 960 470">',
@@ -77,11 +96,11 @@ def report(root,state):
     for score in (0,30,60,90,120,150):
         y=420-score*2.4;svg.append(f'<path d="M55 {y} H750" stroke="#ddd"/><text x="15" y="{y+4}" font-size="12">{score}</text>')
     for i,(name,pts) in enumerate(curves.items()):
-        coords=' '.join(f"{55+min(p['actions']/2000000,1)*695},{420-p['score']*2.4}" for p in pts)
+        coords=' '.join(f"{55+min(p['actions']/target,1)*695},{420-p['score']*2.4}" for p in pts)
         svg.append(f'<polyline points="{coords}" fill="none" stroke="{colors[i]}" stroke-width="2"/>')
         svg.append(f'<text x="775" y="{60+24*i}" font-family="sans-serif" fill="{colors[i]}">{name}</text>')
-        for p in pts: svg.append(f'<circle cx="{55+min(p["actions"]/2000000,1)*695}" cy="{420-p["score"]*2.4}" r="3" fill="{colors[i]}"/>')
-    svg+=['<text x="55" y="450">0</text><text x="650" y="450">2M PPO actions</text>','</svg>']
+        for p in pts: svg.append(f'<circle cx="{55+min(p["actions"]/target,1)*695}" cy="{420-p["score"]*2.4}" r="3" fill="{colors[i]}"/>')
+    svg+=['<text x="55" y="450">0</text>',f'<text x="610" y="450">{target/1e6:g}M PPO actions</text>','</svg>']
     (root/'curves.svg').write_text('\n'.join(svg))
 
 
@@ -90,7 +109,8 @@ def execute(root,repo):
     launch=read_json(root/'launch.json');config=read_json(root/'config.json')
     if os.uname().nodename!='a218.cluster.helixon.com' or source_id()!=launch['source_id']:
         raise ValueError('run on a218 using this run frozen source')
-    validate_allocation(launch['cpus'],config['gpu_uuids'])
+    cores_per_job=config['training']['workers']+1
+    validate_allocation(launch['cpus'],config['gpu_uuids'],cores_per_job,config.get('jobs_per_gpu',1))
     os.sched_setaffinity(0,{launch['cpus'][-1]})
     lock=(repo/'outputs/v122'/f'{os.uname().nodename}.cpu.lock').open('a')
     fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -100,12 +120,14 @@ def execute(root,repo):
     def publish(phase):
         controller=prior_controller+time.monotonic()-started
         cpu=config.get('preflight_cpu_core_seconds',0)+controller
-        gpu=config.get('preflight_gpu_seconds',0)
+        gpu=config.get('preflight_gpu_seconds',0)+physical_gpu_seconds(state['attempts'],time.time())
+        gpu_process=0.
         for attempt in state['attempts']:
             elapsed=attempt.get('elapsed_seconds',max(0.,time.time()-attempt['started_unix']))
-            cpu+=15*elapsed;gpu+=elapsed
+            cpu+=len(attempt['cpus'])*elapsed;gpu_process+=elapsed
         state.update(phase=phase,pid=os.getpid(),updated_unix=time.time(),controller_seconds=controller,
-            cost={'cpu_core_hours':cpu/3600,'gpu_hours':gpu/3600,'basis':'reserved15CPU+1GPU per active process; controller1CPU; all attempts and preflight'})
+            cost={'cpu_core_hours':cpu/3600,'gpu_hours':gpu/3600,'gpu_process_hours':gpu_process/3600,
+                  'basis':'CPU affinity reservation; physical GPU interval union; process hours separate; all attempts and preflight'})
         write_json(root/'state.json',state);report(root,state)
     try:
         probe=subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.used,utilization.gpu','--format=csv,noheader,nounits'],text=True)
@@ -126,13 +148,13 @@ def execute(root,repo):
                 state['jobs'][name]['status']='time_limit';continue
             env={**os.environ,'PYTHONPATH':str(root/'source/src'),'PYTHONNOUSERSITE':'1',
                  'OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MKL_NUM_THREADS':'1','NUMEXPR_NUM_THREADS':'1',
-                 'CUDA_VISIBLE_DEVICES':config['gpu_uuids'][i]}
-            affinity=launch['cpus'][i*15:(i+1)*15]
+                 'CUDA_VISIBLE_DEVICES':config['gpu_uuids'][i%len(config['gpu_uuids'])]}
+            affinity=launch['cpus'][i*cores_per_job:(i+1)*cores_per_job]
             log=(root/'logs'/f'{name}.log').open('a')
             child=subprocess.Popen(['taskset','-c',','.join(map(str,affinity)),sys.executable,'-u','-m',
                 'boardbench.v127.training','--config',str(p/'config.json'),'--out',str(p),'--device','cuda'],
                 env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-            attempt={'trial':name,'pid':child.pid,'started_unix':time.time(),'gpu':config['gpu_uuids'][i],'cpus':affinity}
+            attempt={'trial':name,'pid':child.pid,'started_unix':time.time(),'gpu':env['CUDA_VISIBLE_DEVICES'],'cpus':affinity}
             state['attempts'].append(attempt);state['jobs'][name]={'status':'running','pid':child.pid}
             active[name]={'child':child,'log':log,'attempt':attempt,'deadline':time.monotonic()+trial['max_seconds']-previous_wall}
             publish('running')
@@ -169,13 +191,19 @@ def main():
     if a.mode=='report':report(root,read_json(root/'state.json'));return
     if a.mode in ('launch','resume'):
         if os.uname().nodename!='a218.cluster.helixon.com':raise ValueError('a218 only')
-        if not root.is_relative_to(repo/'outputs/v127'): raise ValueError('V127 project output required')
+        if not any(root.is_relative_to(repo/'outputs'/v) for v in ('v127','v128')): raise ValueError('project PPO output required')
         if a.mode=='launch':
             if root.exists(): raise ValueError('refusing run overwrite')
             config=read_json(a.config);cpus=physical_cpus()[:128]
-            validate_allocation(cpus,config['gpu_uuids'])
-            if config['training']['workers']!=14: raise ValueError('fixed15-core trial allocation')
+            validate_allocation(cpus,config['gpu_uuids'],config['training']['workers']+1,config.get('jobs_per_gpu',1))
             jobs=build_jobs(config,repo)
+            if config.get('continuation_root'):
+                parent=repo/config['continuation_root']
+                if read_json(parent/'state.json')['phase']!='finished':raise ValueError('parent campaign must be finished')
+                for name,trial in jobs:
+                    path=parent/'trials'/name/'final.pt';meta=read_json(path.with_suffix('.json'))
+                    if read_json(path.parent/'summary.json')['status']!='completed':raise ValueError('parent trial incomplete')
+                    trial['continuation']={'checkpoint':str(path),'sha256':meta['sha256'],'source_id':meta['source_id']}
             root.mkdir(parents=True);(root/'logs').mkdir()
             write_json(root/'config.json',config);write_json(root/'jobs.json',jobs)
             for relative in source_files(repo):
