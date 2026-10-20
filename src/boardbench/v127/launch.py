@@ -38,11 +38,11 @@ def build_jobs(config,repo):
     return jobs
 
 
-def validate_allocation(cpus,gpus,cores_per_job=15,jobs_per_gpu=1):
+def validate_allocation(cpus,gpus,cores_per_job=15,jobs_per_gpu=1,job_count=8):
     if len(cpus)>128 or len(set(cpus))!=len(cpus): raise ValueError('CPU aggregate cap or duplicates')
-    if len(gpus)*jobs_per_gpu!=8 or len(set(gpus))!=len(gpus): raise ValueError('eight distinct jobs and unique GPU list required')
+    if job_count<1 or len(gpus)*jobs_per_gpu!=job_count or len(set(gpus))!=len(gpus): raise ValueError('distinct jobs and unique GPU list required')
     if cores_per_job<1 or jobs_per_gpu<1:raise ValueError('positive allocation required')
-    if 8*cores_per_job+1>len(cpus): raise ValueError('learners/workers/controller exceed CPU allocation')
+    if job_count*cores_per_job+1>len(cpus): raise ValueError('learners/workers/controller exceed CPU allocation')
 
 
 def physical_gpu_seconds(attempts,now):
@@ -130,7 +130,8 @@ def execute(root,repo,*,training_module='boardbench.v127.training',reporter=repo
     if os.uname().nodename!='a218.cluster.helixon.com' or source_id()!=launch['source_id']:
         raise ValueError('run on a218 using this run frozen source')
     cores_per_job=config['training']['workers']+1
-    validate_allocation(launch['cpus'],config['gpu_uuids'],cores_per_job,config.get('jobs_per_gpu',1))
+    jobs=read_json(root/'jobs.json')
+    validate_allocation(launch['cpus'],config['gpu_uuids'],cores_per_job,config.get('jobs_per_gpu',1),len(jobs))
     os.sched_setaffinity(0,{launch['cpus'][-1]})
     lock=(repo/'outputs/v122'/f'{os.uname().nodename}.cpu.lock').open('a')
     fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -156,7 +157,7 @@ def execute(root,repo,*,training_module='boardbench.v127.training',reporter=repo
         if any(g not in inventory or inventory[g][0]>=256 or inventory[g][1]>=5 for g in config['gpu_uuids']):
             raise RuntimeError('GPU busy or missing; do not preempt unrelated work')
         if os.getloadavg()[0]>64: raise RuntimeError('CPU load too high for new allocation')
-        for i,(name,trial) in enumerate(read_json(root/'jobs.json')):
+        for i,(name,trial) in enumerate(jobs):
             state['jobs'].setdefault(name,{'status':'pending'})
             p=root/'trials'/name
             if (p/'summary.json').exists() and read_json(p/'summary.json')['status'] in ('completed','time_limit'):

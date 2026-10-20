@@ -1,0 +1,50 @@
+{
+  "parent": "outputs/v130/teacher_guided_20261020_a/round_02/ppo/trials/control_a/final.pt",
+  "dataset": "outputs/v126/learning_a218_20261020_a/datasets/initial.npz",
+  "dataset_sha256": "35c777383a9bde93cbfd7ecf95d93ce207ea7c630e3fc06f194d6635d5961728",
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "split_sha256": "78449ba20859f51353a37aa4314a645f94739532b196806772446cb7298076d7",
+  "source_runs": [
+    "outputs/v130/teacher_guided_20261020_a/round_01/teacher_attempt_01",
+    "outputs/v130/teacher_guided_20261020_a/round_02/teacher_attempt_01"
+  ],
+  "states_per_environment": 16,
+  "diagnostic_repeats": 32,
+  "labels_repeats": 32,
+  "counterfactual_job_seconds": 240,
+  "diagnostic_task_seconds": 600,
+  "labels_task_seconds": 3600,
+  "counterfactual_cores": 65,
+  "guidance_weight": 0.02,
+  "guidance_minimum_gain": 1.0,
+  "guidance_gain_scale": 5.0,
+  "guidance_z": 1.96,
+  "actions_per_round": 2000000,
+  "milestone_offsets": [250000, 500000, 1000000, 2000000],
+  "training": {
+    "batch_episodes": 128,
+    "workers": 7,
+    "learning_rate": 0.0001,
+    "epochs": 4,
+    "minibatch": 1024,
+    "gae_lambda": 0.95,
+    "entropy_coef": 0.005,
+    "target_kl": 0.02,
+    "critic_batches": 2,
+    "critic_epochs": 8,
+    "max_seconds": 1800,
+    "environment_backend": "native_v129",
+    "native_artifact": {
+      "path": "/datapool/data3/storage/ruihan/code/boardgame/outputs/v129/native_build_20261020_a/harmonies_encode.so",
+      "sha256": "a42c4b6337f6ebd8fb86880ef4ea28fd72c50113445cb94b7920525882cb2aee",
+      "cpp_sha256": "01bc18a1b29bdc1c945c34a15c4b44e4a56e09893382bf220bc672d4fbe80fc7",
+      "layout": "public161_cards1346_v1"
+    }
+  },
+  "gpu_uuids": [
+    "GPU-23112522-36ac-c315-d5fc-def6fb6ce1cd"
+  ],
+  "jobs_per_gpu": 6,
+  "preflight_cpu_core_seconds": 14400,
+  "preflight_gpu_seconds": 600
+}

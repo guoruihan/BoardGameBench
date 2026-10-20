@@ -120,6 +120,10 @@ def report(root, state):
             if ctrl.exists() and 'latest' in read_json(ctrl):
                 row['latest_minus_control'] = paired(c['latest'],read_json(ctrl)['latest'])
             rows.append(row)
+            # final_comparison is published before the final checkpoint and
+            # summary. A report may observe this legitimate publication window.
+            if not all((trial/name).exists() for name in ('summary.json','best.pt','best.json')):
+                continue
             summary = read_json(trial/'summary.json')
             candidates.append({'curve_score':summary['best_curve_score'],'path':str(trial/'best.pt'),
                                'development64':c['best']['mean_score'],'trial':trial.name,'round':round_dir.name})
@@ -279,7 +283,16 @@ def run(root, repo):
             publish(f'round{number}: completed')
         publish('saved at task boundary' if stopping[0] else 'three rounds completed', 'interrupted' if stopping[0] else 'completed')
     except BaseException as exc:
-        state['error'] = repr(exc); publish(state.get('stage','initializing'),'failed'); raise
+        # Persist failure independently of the reporter that may have failed.
+        state.update(error=repr(exc),phase='failed',updated_unix=time.time(),
+                     controller_seconds=prior_seconds+time.monotonic()-started)
+        write_json(root/'state.json',state)
+        try:
+            report(root,state)
+        except Exception as report_error:
+            state['report_error'] = repr(report_error)
+            write_json(root/'state.json',state)
+        raise
     finally:
         lock.close()
         for sig,handler in prior.items(): signal.signal(sig,handler)
