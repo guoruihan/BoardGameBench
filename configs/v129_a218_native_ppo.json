@@ -1,0 +1,45 @@
+{
+  "dataset": "outputs/v126/learning_a218_20261020_a/datasets/initial.npz",
+  "dataset_sha256": "35c777383a9bde93cbfd7ecf95d93ce207ea7c630e3fc06f194d6635d5961728",
+  "parents": "outputs/v126/learning_a218_20261020_a/models/initial",
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "split_sha256": "78449ba20859f51353a37aa4314a645f94739532b196806772446cb7298076d7",
+  "preflight_cpu_core_seconds": 12512.898145412997,
+  "preflight_gpu_seconds": 276.2876353263855,
+  "preflight_accounting": "Measured mature GPU benchmark all attempts plus controller; conservative3600CPU-core-seconds for local build/tests/review/wheel checks. Includes benchmark CUDA resume checks. Prior V127/V128/native-prototype costs excluded, retained separately.",
+  "training": {
+    "batch_episodes": 128,
+    "workers": 7,
+    "learning_rate": 0.0001,
+    "epochs": 4,
+    "minibatch": 1024,
+    "gae_lambda": 0.95,
+    "entropy_coef": 0.005,
+    "target_kl": 0.02,
+    "critic_batches": 2,
+    "critic_epochs": 8,
+    "target_actions": 10000000,
+    "max_seconds": 14400,
+    "milestones": [7500000, 10000000],
+    "environment_backend": "native_v129",
+    "efficiency_version": "1.2.9",
+    "native_artifact": {
+      "path": "/datapool/data3/storage/ruihan/code/boardgame/outputs/v129/native_build_20261020_a/harmonies_encode.so",
+      "sha256": "a42c4b6337f6ebd8fb86880ef4ea28fd72c50113445cb94b7920525882cb2aee",
+      "cpp_sha256": "01bc18a1b29bdc1c945c34a15c4b44e4a56e09893382bf220bc672d4fbe80fc7",
+      "layout": "public161_cards1346_v1",
+      "compiler_command": ["/usr/bin/g++", "-O3", "-std=c++17", "-shared", "-fPIC", "/datapool/data3/storage/ruihan/code/boardgame/src/boardbench/v129/native/encode.cpp", "-o", "/datapool/data3/storage/ruihan/code/boardgame/outputs/v129/native_build_20261020_a/harmonies_encode.so"],
+      "compiler_version": "g++ (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0",
+      "host": "a226.cluster.helixon.com",
+      "build_seconds": 0.5206266959721688
+    }
+  },
+  "gpu_uuids": [
+    "GPU-bbb68b88-9c8d-eb24-01df-05116dafb926",
+    "GPU-e9f9586b-5ddd-4597-42b9-3a3fe7eed421"
+  ],
+  "jobs_per_gpu": 4,
+  "continuation_root": "outputs/v128/ppo_packed_a218_20261020_a",
+  "allow_interrupted_parent": true,
+  "carry_stage_budget": true
+}

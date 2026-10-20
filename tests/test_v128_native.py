@@ -11,6 +11,7 @@ np = pytest.importorskip('numpy')
 from boardbench.environments.harmonies import CARDS, COLORS
 from boardbench.v12.encoding import feature_vector
 from boardbench.v128.environment import FastHarmonies
+from boardbench.v129.encoding import CPP_SOURCE
 
 
 @pytest.fixture(scope='module')
@@ -23,7 +24,7 @@ def native(tmp_path_factory):
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
     library = tmp_path_factory.mktemp('native')/'encoder.so'
     subprocess.run([compiler, '-O3', '-std=c++17', '-shared', '-fPIC',
-                    str(scripts/'native/harmonies_encode.cpp'), '-o', str(library)], check=True, timeout=120)
+                    str(CPP_SOURCE), '-o', str(library)], check=True, timeout=120)
     return module, module.NativeEncoder(library)
 
 

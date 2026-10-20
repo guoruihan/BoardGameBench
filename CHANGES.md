@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.13 / V1.2.9 native sampling continuation
+
+- Package and hash-pin the verified C++ public encoder; batch each worker's live
+  observations and skip unused internal reset metadata, preserving original
+  transitions, legal actions, scoring, RNG and synchronous PPO semantics.
+- Keep reference/fast backends intact. Require explicit native artifact identity;
+  no automatic compiler install, silent fallback or fast-math.
+- Add guarded interrupted-parent import and remaining stage-time carryover.
+  Preserve all eight optimizer/RNG checkpoints and the cumulative10M action goal.
+- Extend the frozen two-GPU benchmark with mature-checkpoint imports, exact CUDA
+  next-update resume checks and fast/native/native/fast eight-job comparisons.
+- Add pool/reset/STOP/equivalence/provenance/PPO/budget regression tests and
+  recoverable migration runbook; no game/learning/formal-test changes.
 ## 2026-10-20 — V1.2.8 isolated native encoding feasibility
 
 - Keep the launched two-GPU PPO snapshot untouched. Add a standalone single-CPU

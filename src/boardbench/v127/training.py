@@ -253,6 +253,9 @@ class Trainer:
         if backend=='fast_v128':
             from boardbench.v128.collector import EnvironmentPool as FastPool
             return FastPool(count,workers)
+        if backend=='native_v129':
+            from boardbench.v129.collector import EnvironmentPool as NativePool
+            return NativePool(count,workers,native_artifact=self.config['native_artifact'])
         raise ValueError('unknown environment backend')
 
     def evaluate(self,seeds):
@@ -304,7 +307,7 @@ class Trainer:
             raise ValueError('continuation parent hash/source mismatch')
         state=torch.load(path,map_location=self.device,weights_only=False)
         mutable={'workers','environment_backend','target_actions','max_seconds','milestones',
-                 'continuation','efficiency_version','benchmark_batches'}
+                 'continuation','efficiency_version','benchmark_batches','native_artifact'}
         old={k:v for k,v in state['config'].items() if k not in mutable}
         new={k:v for k,v in self.config.items() if k not in mutable}
         if state['version']!=127 or state['source_id']!=spec['source_id'] or old!=new or state['device']!=self.device:

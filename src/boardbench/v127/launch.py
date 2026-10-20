@@ -62,6 +62,26 @@ def physical_gpu_seconds(attempts,now):
     return total
 
 
+def attach_continuations(config,repo,jobs):
+    if not config.get('continuation_root'):return
+    parent=Path(repo)/config['continuation_root'];state=read_json(parent/'state.json')
+    allowed={'finished'}
+    if config.get('allow_interrupted_parent'):allowed.add('interrupted')
+    if state['phase'] not in allowed:raise ValueError('parent campaign must be quiescent')
+    for name,trial in jobs:
+        path=parent/'trials'/name/'final.pt';summary=read_json(path.parent/'summary.json')
+        statuses={'completed'}
+        if config.get('allow_interrupted_parent'):statuses.add('interrupted')
+        if summary['status'] not in statuses:raise ValueError('parent trial incomplete')
+        meta=read_json(path.with_suffix('.json'))
+        if digest(path)!=meta['sha256'] or summary['source_id']!=meta['source_id']:
+            raise ValueError('parent final checkpoint/source mismatch')
+        if config.get('carry_stage_budget'):
+            trial['max_seconds']-=summary['wall_seconds']
+            if trial['max_seconds']<=0:raise ValueError('parent exhausted stage budget')
+        trial['continuation']={'checkpoint':str(path),'sha256':meta['sha256'],'source_id':meta['source_id']}
+
+
 def report(root,state):
     root=Path(root);curves={};rows=[]
     for name in state['jobs']:
@@ -191,19 +211,13 @@ def main():
     if a.mode=='report':report(root,read_json(root/'state.json'));return
     if a.mode in ('launch','resume'):
         if os.uname().nodename!='a218.cluster.helixon.com':raise ValueError('a218 only')
-        if not any(root.is_relative_to(repo/'outputs'/v) for v in ('v127','v128')): raise ValueError('project PPO output required')
+        if not any(root.is_relative_to(repo/'outputs'/v) for v in ('v127','v128','v129')): raise ValueError('project PPO output required')
         if a.mode=='launch':
             if root.exists(): raise ValueError('refusing run overwrite')
             config=read_json(a.config);cpus=physical_cpus()[:128]
             validate_allocation(cpus,config['gpu_uuids'],config['training']['workers']+1,config.get('jobs_per_gpu',1))
             jobs=build_jobs(config,repo)
-            if config.get('continuation_root'):
-                parent=repo/config['continuation_root']
-                if read_json(parent/'state.json')['phase']!='finished':raise ValueError('parent campaign must be finished')
-                for name,trial in jobs:
-                    path=parent/'trials'/name/'final.pt';meta=read_json(path.with_suffix('.json'))
-                    if read_json(path.parent/'summary.json')['status']!='completed':raise ValueError('parent trial incomplete')
-                    trial['continuation']={'checkpoint':str(path),'sha256':meta['sha256'],'source_id':meta['source_id']}
+            attach_continuations(config,repo,jobs)
             root.mkdir(parents=True);(root/'logs').mkdir()
             write_json(root/'config.json',config);write_json(root/'jobs.json',jobs)
             for relative in source_files(repo):

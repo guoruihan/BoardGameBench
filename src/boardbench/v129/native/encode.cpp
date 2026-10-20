@@ -1,5 +1,5 @@
-// Research-only public-state encoder; not a game engine or a training backend.
-// Layout/version is pinned by benchmark_harmonies_native.py. No fast-math.
+// Exact public-state encoder, shared by prototype and native PPO collector.
+// Layout/version is pinned by v129.encoding. No fast-math or hidden supply.
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>

@@ -29,7 +29,17 @@ def worker(config,out,gate):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     trainer=Trainer(config,'cuda');began=time.monotonic()
     try:
+        if config.get('continuation'):trainer.import_sampling_continuation(config['continuation'])
         for _ in range(3):trainer.batch()  #2critic warmups +1 PPO warmup
+        if config.get('continuation'):
+            # Exact update-boundary resume gate on the real target GPU.
+            trainer.save(out/'resume_probe.pt');expected=trainer.batch()
+            expected_weights={k:v.detach().clone() for k,v in trainer.model.state_dict().items()}
+            trainer.close();trainer=Trainer(config,'cuda');trainer.load(out/'resume_probe.pt');actual=trainer.batch()
+            if expected['games']!=actual['games']:raise RuntimeError('native resume trajectory mismatch')
+            import torch
+            for k,v in trainer.model.state_dict().items():
+                if not torch.equal(v,expected_weights[k]):raise RuntimeError('native resume update mismatch')
         write_json(out/'ready.json',{'pid':os.getpid(),'warmup_seconds':time.monotonic()-began})
         while not Path(gate).exists():
             if time.monotonic()-began>240:raise TimeoutError('benchmark gate')
@@ -64,15 +74,23 @@ def campaign(repo,out):
         raise RuntimeError('benchmark resources busy')
     if source_id()!=read_json(out/'launch.json')['source_id']:raise ValueError('frozen benchmark source required')
     start=time.monotonic()
+    launch=read_json(out/'launch.json');suite=launch.get('suite','initial')
     config=build_jobs(read_json(repo/'configs/v127_a218_online_ppo.json'),repo)[0][1]
+    if suite=='native':
+        path=Path(launch['checkpoint']);meta=read_json(path.with_suffix('.json'))
+        config=read_json(path.parent/'config.json')
+        config['continuation']={'checkpoint':str(path),'sha256':meta['sha256'],'source_id':meta['source_id']}
+        config['native_artifact']=launch['native_artifact']
     summary={'source_id':source_id(),'cases':[],'cpu_core_seconds':0.,'gpu_seconds':0.,'gpu_process_seconds':0.}
     write_json(out/'config.json',config)
-    suite=read_json(out/'launch.json').get('suite','initial')
     cases=[('reference_w14','reference',14,1,1),('fast_w14','fast_v128',14,1,1),
            ('fast_w7','fast_v128',7,1,1),('fast_w4','fast_v128',4,1,1),('fast_w2','fast_v128',2,1,1)]
     if suite=='packed':
         cases=[('packed8_w7','fast_v128',7,8,2),('packed8_w4','fast_v128',4,8,2),
                ('reference_packed8_w14','reference',14,8,2),('fast_packed8_w14_repeat','fast_v128',14,8,2)]
+    if suite=='native':
+        cases=[('fast_w7','fast_v128',7,8,2),('native_w7','native_v129',7,8,2),
+               ('native_w7_repeat','native_v129',7,8,2),('fast_w7_repeat','fast_v128',7,8,2)]
     # After the worker sweep use the observed fastest worker count for packing.
     current=[]
     try:
@@ -150,17 +168,21 @@ def campaign(repo,out):
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('mode',choices=('campaign','run','worker'))
     p.add_argument('--repo');p.add_argument('--out',required=True);p.add_argument('--config');p.add_argument('--gate')
-    p.add_argument('--suite',choices=('initial','packed'),default='initial')
+    p.add_argument('--suite',choices=('initial','packed','native'),default='initial')
+    p.add_argument('--checkpoint');p.add_argument('--native-artifact')
     a=p.parse_args()
     if a.mode=='worker':worker(read_json(a.config),a.out,a.gate)
     elif a.mode=='run':campaign(a.repo,a.out)
     else:
         repo=Path(a.repo).resolve();out=Path(a.out).resolve()
-        if os.uname().nodename!='a218.cluster.helixon.com' or not out.is_relative_to(repo/'outputs/v128'):
+        if os.uname().nodename!='a218.cluster.helixon.com' or not any(out.is_relative_to(repo/'outputs'/v) for v in ('v128','v129')):
             raise ValueError('a218 project benchmark only')
         out.mkdir(parents=True,exist_ok=False)
         for relative in source_files(repo):
             target=out/'source'/relative;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(repo/relative,target)
-        write_json(out/'launch.json',{'source_id':source_id(out/'source'),'started_unix':time.time(),'suite':a.suite})
+        launch={'source_id':source_id(out/'source'),'started_unix':time.time(),'suite':a.suite}
+        if a.suite=='native':
+            launch.update(checkpoint=str(Path(a.checkpoint).resolve()),native_artifact=read_json(a.native_artifact))
+        write_json(out/'launch.json',launch)
         os.environ['PYTHONPATH']=str(out/'source/src')
         os.execv(sys.executable,[sys.executable,'-u','-m','boardbench.v128.benchmark','run','--repo',str(repo),'--out',str(out)])
