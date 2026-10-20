@@ -1,5 +1,21 @@
 # Research milestones
 
+## 0.4.19 / research V1.3.4 — 2026-10-21
+
+- Add public spatial blueprints, optional two-turn commitment, and a separate
+  semi-Markov PPO manager over a bounded candidate set. Reuse the unchanged
+  native game, legal masks and true-score full-game PPO worker.
+- Compare identical worker-adapter capacity with zero goals, reactive goals,
+  persistent goals, and learned plan selection, each with two training seeds.
+  Zero-initialized residual preserves the predesignated mature PPO-a policy.
+- Freeze new512 development,512 audit and512 confirmation environments. First
+  compare4M actions per arm; automatically continue the development-selected
+  non-control and capacity control for8M more, preserving both policy levels,
+  optimizers and RNG. Final confirmation and plan-removal audits do not tune.
+- Bound the campaign to3hours, GPU0-3 on a226 and57 physical CPUs maximum.
+  Preserve V133 and all unselected policies. No online LLM/API, new search,
+  rule change, reward shaping, or performance gain claimed before results.
+
 ## 0.4.14 / research V1.2.10 — 2026-10-20
 
 - Change the learning experiment from weak imitation initialization followed by
