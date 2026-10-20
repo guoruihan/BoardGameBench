@@ -70,3 +70,12 @@ tmux new-session -d -s boardbench-v128-ppo "bash -o pipefail -c 'cd /datapool/da
 观察`REPORT.md`、`curves.svg`、`results.json`和`state.json`。逐任务的`training.jsonl`含阶段时间、动作/局数、逐局得分、KL和行为概率误差；`*.pt`及旁边JSON保存检查点与来源。正在追加的详细日志优先通过写入节点a218读取，避免跨机缓存视图误判。
 
 复跑吞吐基准入口为`python -m boardbench.v128.benchmark campaign --repo <repo> --out <new outputs/v128/root>`；追加`--suite packed`运行两卡八任务对照。它与正式训练互斥，不应为了测速度而中断训练。
+
+## 已验证启动记录
+
+- 2026-10-20 08:27:03 CST启动`outputs/v128/ppo_packed_a218_20261020_a`，tmux `boardbench-v128-ppo`，外层PID791。冻结提交`ec6b70e26e8fb3fa6b308236549524256216e02b`，源码哈希`e557d0e9c48c41283c0c5ef5ade6feca42dcb153139f73f557142f7d80a17277`。
+- 启动前干净全量回归347passed/12显式CUDA skips，283.15秒；本轮两张目标卡另行通过成熟检查点CUDA导入/恢复。前一次全量检查因并发源码编辑正确触发来源校验；停止编辑后原用例和全量均通过，没有放宽门槛。
+- 启动后八个任务均从各自约200万动作继续，先后达到约237万、287万–294万；非零PPO更新持续推进，最近30批行为概率重算误差约2.3e-14–3.2e-14。
+- 运行时亲和性并集严格为65个物理核：0–63、127。73个后代进程包含资源跟踪器，不代表73核。GPU0/1各四个训练进程，各约3.2GB显存；GPU2–7未使用。
+- 成熟策略最近30批约1.36–1.42秒/批，环境/等待0.71–0.76秒、推理/传输0.23–0.26秒、更新0.30–0.33秒。不能把短基准46,612动作/秒直接写成这个长训练的固定速度。
+- 用户进一步支持内部紧凑表示和C++探索；独立CPU原型见`docs/V1_2_8_NATIVE_PROTOTYPE.md`。没有修改本次冻结训练源码或占用其GPU。

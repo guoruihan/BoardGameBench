@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-10-20 — V1.2.8 isolated native encoding feasibility
+
+- Keep the launched two-GPU PPO snapshot untouched. Add a standalone single-CPU
+  C++ public-feature encoder and train-only matched replay benchmark, not a new
+  production environment or learning method. Preserve all1346 float32 features.
+- Include Python packing and FFI in timing: encoding4.6–6.6x, fixed-trace full
+  environment replay1.65x locally; do not claim an end-to-end PPO speedup.
+- Verify all32 cards/counts, complete trajectories, input bounds and isolation;
+  record the independent CPU cost, reproducible source copies and compiler flags.
+- Document residual reset metadata/packing/synchronization costs and staged
+  native-batch integration gates. Full C++ transitions remain unimplemented.
+
 ## 2026-10-20 — 0.4.12 / V1.2.8 exact environment acceleration and GPU packing
 
 - Add opt-in fast Harmonies observations, compiled animal predicates, cached
