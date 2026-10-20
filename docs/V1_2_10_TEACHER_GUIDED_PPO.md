@@ -93,3 +93,10 @@ PYTHONPATH=src .venv-train/bin/python -m boardbench.v130.pipeline resume --repo 
 跨机器编排预检`outputs/v130/pipeline_smoke_20261020_a`使用同一源码、三轮真实补标/PPO/评估，但每局教师30秒、每轮仅新增1万动作；只检验b35→a218→新学生→下一轮的数据和恢复链路，不用于判断算法收益，也不导入正式实验。
 
 该预检已完整完成：192个teacher-labeled学生对局、三轮共24个PPO任务全部成功，各final检查点哈希通过，均生成64dev自然终局评测。最后GPU0/1释放。正式配置不会使用预检模型或低预算标签，仍从同一个V129最佳模型重新进行900秒补标。
+
+## 正式启动记录
+
+- 2026-10-20 10:01:25 CST启动`outputs/v130/teacher_guided_20261020_a`，a218外层PID13647，tmux`boardbench-v130-guided`。冻结提交`3ca1fe152b128b4f3c804102f5396091d3fc822e`已推送origin/main；源码与上述通过验证的版本完全一致。
+- b35首轮teacher watchdog PID57571、controller PID57628，64个worker全部运行；实际亲和性worker为物理核1–64，控制核0，共65核，授权上限112。
+- 全部64任务明确配置每局900秒累计搜索；现场两个worker均已完成首个真实动作，各进行约1.1万模拟步、累计决策28.13秒，确认不是仅排队或空转。
+- 当前是正式首轮CPU补标阶段，GPU正式PPO尚未开始；数据回放验收后自动启动a218 GPU0/1上的八个任务。三轮结束保留报告/曲线/最佳模型并停止；此记录不声称正式成绩已有提升。
