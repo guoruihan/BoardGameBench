@@ -24,7 +24,7 @@ def make_policy(method, multiplier, search_seed, **params):
 
 
 def run_episode(job, directory, *, max_decisions=256, policy_factory=make_policy,
-                log_pre_observation=False):
+                log_pre_observation=True):
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=False)
     write_json(directory / 'job.json', job)
@@ -95,12 +95,16 @@ def run_episode(job, directory, *, max_decisions=256, policy_factory=make_policy
                 horizon_completed += stats.get('horizon_completed_rollouts', 0)
                 cache_hits += stats.get('cache_hits', 0)
                 cache_calls += stats.get('cache_calls', 0)
-                obs = engine.step(action).observation
+                transition = engine.step(action)
+                obs = transition.observation
                 steps += 1
                 extra = ({'observation_before': public,
                           'raw_score_delta': obs['score_breakdown']['total'] - public['score_breakdown']['total']}
                          if log_pre_observation else {})
                 log.write(json.dumps({'decision': steps, 'action': action, 'observation': obs,
+                                      'reward': transition.reward, 'terminated': transition.terminated,
+                                      'truncated': transition.truncated,
+                                      'behavior_log_probability': None,
                                       'seconds': elapsed, 'simulation_steps': count - before_count,
                                       'search': stats, **extra}, allow_nan=False) + '\n')
                 # Shared cluster storage can make per-action atomic replacement

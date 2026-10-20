@@ -1,5 +1,19 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.16 trajectory preservation
+
+- Preserve existing actual-game logs in a resumable content-addressed gzip archive
+  with per-campaign provenance, split metadata, behavior identity and all outcomes.
+  Keep original artifacts, failed attempts and legacy raw evidence intact.
+- Add a fail-closed train-only reader: replay the complete episode before returning
+  transitions, reject held-out environments and never substitute teacher suggestions
+  for student behavior actions or fabricate unknown behavior probabilities.
+- Default the shared search episode logger to public pre-observations and record
+  exact environment rewards and termination/truncation flags. No rule, scoring,
+  policy, RNG, search-budget or training changes.
+- Byte/hash verification is separate from game replay. Search-internal rollouts
+  are not claimed to be archived; this is a local copy, not an offsite backup.
+
 ## 2026-10-20 — 0.4.14 / V1.2.10 persistent teacher-guided PPO
 
 - Add three restartable rounds of student-only roll-in, public-search correction
