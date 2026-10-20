@@ -50,3 +50,38 @@ def test_export_sidecar_cannot_overwrite_games(tmp_path):
     confirmation.export_primary(tmp_path, {"checkpoint": str(checkpoint)})
     assert confirmation.read_json(metrics) == result()
     assert (tmp_path / "model/primary_round08_final.json").exists()
+
+
+def test_fresh_panel_deterministic_unique_and_disjoint():
+    excluded = confirmation.fresh_panel({}, count=20)
+    sets = {"train": excluded[:5], "development": excluded[5:10],
+            "confirmation": excluded[10:15], "test": excluded[15:]}
+    values = confirmation.fresh_panel(sets)
+    assert values == confirmation.fresh_panel(sets)
+    assert len(values) == len(set(values)) == 512
+    assert not set(values) & set(excluded)
+    assert all(20000000 <= v < 30000000 for v in values)
+
+
+@pytest.mark.parametrize("count", [0, -1, 10000001])
+def test_reject_invalid_fresh_panel_size(count):
+    with pytest.raises(ValueError):
+        confirmation.fresh_panel({}, count=count)
+
+
+def test_panel_aggregation_weights_games_not_batches():
+    class Trainer:
+        def evaluate(self, seeds):
+            return {
+                "games": [{"environment_seed": s, "score": float(s), "earned_score": float(s),
+                           "animal_score": 0., "completed_cards": 0., "initial_score": 0.,
+                           "natural_terminal": True, "curriculum_reset": False} for s in seeds],
+                "mean_score": sum(seeds) / len(seeds), "actions": len(seeds),
+                "environment_seconds": 1., "model_seconds": .1,
+            }
+    metrics = confirmation.evaluate_panel(Trainer(), [1, 2, 9], batch_size=2)
+    assert metrics["mean_score"] == 4.
+    assert metrics["actions"] == 3
+    assert metrics["environment_seconds"] == 2.
+    assert [g["environment_seed"] for g in metrics["games"]] == [1, 2, 9]
+    confirmation.validate_games(metrics, [1, 2, 9])
