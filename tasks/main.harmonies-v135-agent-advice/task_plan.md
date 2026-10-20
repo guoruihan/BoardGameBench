@@ -33,9 +33,10 @@ Do not call success merely because advised training beats its own starting score
 
 - [x] Inspect V134 results, source and live resources.
 - [x] Specify interpretable goal-to-action advice and independent controls.
-- [ ] Unit/regression tests, mature CUDA update/resume and diagnostic gate.
-- [ ] Freeze source, commit small version, launch bounded autonomous campaign.
-- [ ] Verify real progress; later read completed paired results and decide next cycle.
+- [x] Unit/regression tests, mature CUDA update/resume and diagnostic gate.
+- [x] Freeze source, commit small version, launch bounded autonomous campaign.
+- [x] Verify real progress:all8 learners,6–12 PPO batches,586264 added actions.
+- [ ] Read completed paired results and decide next cycle.
 
 ## Evidence
 
@@ -46,4 +47,5 @@ goal usage is unproven. Direct advice is a falsifiable alternative to more featu
 
 ## Next action
 
-Implement protocol/tests and run local verification before GPU preflight.
+Analyze stage promotion and fresh confirmation after this autonomous campaign
+finishes. No further user decision is needed to run the current two stages.
