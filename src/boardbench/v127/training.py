@@ -196,7 +196,7 @@ class Trainer:
                 raise RuntimeError(f'behavior probability mismatch before update: {ratio_error}')
             variance = float(target.var(unbiased=False))
             explained = 1-float((target-values).var(unbiased=False))/max(variance,1e-12)
-        anchor = self.config.get('bc_weight',0.)*max(0.,1-self.ppo_actions/self.config.get('bc_decay_actions',500000))
+        anchor = self.imitation_weight()
         metrics = []; stop = False
         actor_before = self.model.actor.weight.detach().clone()
         critic_before = self.model.critic.weight.detach().clone()
@@ -211,10 +211,7 @@ class Trainer:
                 value_loss = (value-target[ids]).square().mean(); entropy=dist.entropy().mean()
                 auxiliary = torch.zeros((),device=self.device,dtype=torch.float64)
                 if anchor:
-                    d = self.rng.integers(len(self.demo['y']),size=min(256,len(self.demo['y'])))
-                    dl,_ = self.model(torch.as_tensor(self.demo['x'][d],device=self.device,dtype=torch.float64),
-                                      torch.as_tensor(self.demo['mask'][d],device=self.device))
-                    auxiliary = F.cross_entropy(dl,torch.as_tensor(self.demo['y'][d],device=self.device))
+                    auxiliary = self.demonstration_loss()
                 loss = policy+.5*value_loss-self.config['entropy_coef']*entropy+anchor*auxiliary
                 if not torch.isfinite(loss): raise RuntimeError('nonfinite PPO loss')
                 self.optimizer.zero_grad(set_to_none=True);loss.backward()
@@ -228,6 +225,15 @@ class Trainer:
                 'kl_early_stop':stop,'optimizer_steps':len(metrics),
                 'actor_change_l2':float((self.model.actor.weight.detach()-actor_before).norm()),
                 'critic_change_l2':float((self.model.critic.weight.detach()-critic_before).norm())}
+
+    def imitation_weight(self):
+        return self.config.get('bc_weight',0.)*max(0.,1-self.ppo_actions/self.config.get('bc_decay_actions',500000))
+
+    def demonstration_loss(self):
+        d = self.rng.integers(len(self.demo['y']),size=min(256,len(self.demo['y'])))
+        logits,_ = self.model(torch.as_tensor(self.demo['x'][d],device=self.device,dtype=torch.float64),
+                              torch.as_tensor(self.demo['mask'][d],device=self.device))
+        return F.cross_entropy(logits,torch.as_tensor(self.demo['y'][d],device=self.device))
 
     def batch(self):
         if not self.boundary: raise RuntimeError('cannot reuse failed partial rollout')
@@ -327,7 +333,7 @@ class Trainer:
             'exact_cross_source_resume':False}
 
 
-def run(config,out,device='cuda'):
+def run(config,out,device='cuda',*,trainer_class=Trainer):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     if (out/'config.json').exists() and read_json(out/'config.json')!=config:
         raise ValueError('immutable run config mismatch')
@@ -337,7 +343,7 @@ def run(config,out,device='cuda'):
         if summary['source_id']!=source_id() or digest(out/'final.pt')!=read_json(out/'final.json')['sha256']:
             raise ValueError('completed run source/checkpoint mismatch')
         return summary
-    started=time.monotonic();trainer=Trainer(config,device)
+    started=time.monotonic();trainer=trainer_class(config,device)
     stopped=[False]
     prior={sig:signal.signal(sig,lambda *_:stopped.__setitem__(0,True)) for sig in (signal.SIGINT,signal.SIGTERM)}
     prior_wall=0.

@@ -1,0 +1,42 @@
+{
+  "rounds": 3,
+  "parent": "outputs/v129/ppo_native_a218_20261020_a/trials/anchor_a/best.pt",
+  "dataset": "outputs/v126/learning_a218_20261020_a/datasets/initial.npz",
+  "dataset_sha256": "35c777383a9bde93cbfd7ecf95d93ce207ea7c630e3fc06f194d6635d5961728",
+  "split_manifest": "outputs/v121/factorial_f64_20261004_c/plan/splits.json",
+  "split_sha256": "78449ba20859f51353a37aa4314a645f94739532b196806772446cb7298076d7",
+  "actions_per_round": 2000000,
+  "milestone_offsets": [250000, 500000, 1000000, 2000000],
+  "teacher_game_seconds": 900,
+  "teacher_job_seconds": 1080,
+  "teacher_task_seconds": 1800,
+  "teacher_cores": 65,
+  "preflight_cpu_core_seconds": 19150.794808422215,
+  "preflight_gpu_seconds": 729.946280002594,
+  "preflight_accounting": "7200 CPU-core-seconds +600 physical-GPU-seconds conservative allowance for local implementation/regression and all direct b35/CUDA checks, plus measured three-round pipeline_smoke_20261020_a cost exactly once (3.3196652245617266 CPU-core-hours,0.03609618888960944 GPU-hours). Smoke data/models excluded from formal training; prior research versions excluded.",
+  "training": {
+    "batch_episodes": 128,
+    "workers": 7,
+    "learning_rate": 0.0001,
+    "epochs": 4,
+    "minibatch": 1024,
+    "gae_lambda": 0.95,
+    "entropy_coef": 0.005,
+    "target_kl": 0.02,
+    "critic_batches": 2,
+    "critic_epochs": 8,
+    "max_seconds": 1800,
+    "environment_backend": "native_v129",
+    "native_artifact": {
+      "path": "/datapool/data3/storage/ruihan/code/boardgame/outputs/v129/native_build_20261020_a/harmonies_encode.so",
+      "sha256": "a42c4b6337f6ebd8fb86880ef4ea28fd72c50113445cb94b7920525882cb2aee",
+      "cpp_sha256": "01bc18a1b29bdc1c945c34a15c4b44e4a56e09893382bf220bc672d4fbe80fc7",
+      "layout": "public161_cards1346_v1"
+    }
+  },
+  "gpu_uuids": [
+    "GPU-bbb68b88-9c8d-eb24-01df-05116dafb926",
+    "GPU-e9f9586b-5ddd-4597-42b9-3a3fe7eed421"
+  ],
+  "jobs_per_gpu": 4
+}

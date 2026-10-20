@@ -1,5 +1,25 @@
 # Engineering changes
 
+## 2026-10-20 — 0.4.14 / V1.2.10 persistent teacher-guided PPO
+
+- Add three restartable rounds of student-only roll-in, public-search correction
+  and native-collector PPO from the same mature V129 parent. Preserve trained
+  critic/Adam and lifetime counters; use paired new RNG streams for the first round.
+- Keep PPO-only and static-demonstration controls alongside two persistent
+  correction strengths, two seeds each. Teacher returns never become PPO rewards
+  or current-policy value targets; all headline evaluation stays model-only.
+- Use FP64 NumPy roll-in matching the actual actor, replay-validate every label,
+  reject insufficient search samples and forced-only correction datasets.
+- Reuse existing frozen CPU watchdogs, GPU packing, resource locks, checkpoint
+  and exact-next-update recovery. b35 supplies CPU-only labels; a218 usesGPU0/1,
+  four independent jobs/card,66aggregate CPU cores including outer control.
+- Preserve all sources/checkpoints/failed preflights and report per-environment
+  scores, paired controls, candidate estimates, costs and retained model pointers.
+- Verify363regression tests, actual exact-next-update CUDA recovery onGPU0/1,
+  and a full three-round cross-host smoke with192labeled games and24completed
+  PPO trials. Low-budget smoke scores are not method-selection evidence.
+
+
 ## 2026-10-20 — 0.4.13 / V1.2.9 native sampling continuation
 
 - Package and hash-pin the verified C++ public encoder; batch each worker's live

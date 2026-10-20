@@ -36,12 +36,12 @@ def targets(obs, action, candidates, temperature=5.):
     return np.asarray(data['features'],np.float32),np.asarray(data['action_mask'],bool),label,q,valid
 
 
-def build(runs, destination, validation_seeds):
+def build(runs, destination, validation_seeds, *, minimum_teacher_rounds=0):
     destination=Path(destination)
     if destination.exists():
         raise ValueError('refusing dataset overwrite')
     arrays={k:[] for k in ('x','mask','y','q','qmask','seed','validation','return_to_go')}
-    games=0;sources=[]; val=set(validation_seeds); seen=set()
+    games=0;sources=[]; val=set(validation_seeds); seen=set(); discarded=0
     for run in map(Path,runs):
         plan=read_json(run/'plan.json');status=read_json(run/'status.json')
         manifest=read_json(run/'splits.json');validate_manifest(manifest)
@@ -73,7 +73,11 @@ def build(runs, destination, validation_seeds):
                 x,mask,y,q,qmask=targets(obs,teacher,row['search'].get('candidates',[]))
                 values=(x,mask,y,q,qmask,r['environment_seed'],r['environment_seed'] in val,
                         (r['score']-obs['score_breakdown']['total'])/200.)
-                for k,value in zip(arrays,values): arrays[k].append(value)
+                usable = (not minimum_teacher_rounds or row['search'].get('forced_action',False) or
+                          row['search'].get('completed_rounds',0)>=minimum_teacher_rounds)
+                if usable:
+                    for k,value in zip(arrays,values): arrays[k].append(value)
+                else: discarded+=1
                 obs=engine.step(row['action']).observation
                 if obs!=row['observation']:
                     raise ValueError('teacher replay successor mismatch')
@@ -89,7 +93,8 @@ def build(runs, destination, validation_seeds):
     info={'records':len(arrays['y']),'games':games,'environments':len(seen),'validation_seeds':sorted(val),
           'sha256':digest(temporary),'sources':sources,'q_semantics':'terminal score under habitat continuation; not optimal Q',
           'value_semantics':'behavior trajectory score delta return, not candidate Q; diagnostic only',
-          'training_permission':'train split only; environment seed is metadata, never a feature'}
+          'training_permission':'train split only; environment seed is metadata, never a feature',
+          'minimum_teacher_rounds':minimum_teacher_rounds,'discarded_unsampled_labels':discarded}
     write_json(destination.with_suffix('.json'),info)
     temporary.rename(destination)
     return info

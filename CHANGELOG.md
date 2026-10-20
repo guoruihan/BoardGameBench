@@ -1,5 +1,20 @@
 # Research milestones
 
+## 0.4.14 / research V1.2.10 — 2026-10-20
+
+- Change the learning experiment from weak imitation initialization followed by
+  mostly unconstrained PPO to persistent imitation plus recurrent correction on
+  states visited by the current student. Keep the true-score PPO objective.
+- Register four two-seed arms starting from the identical10M-action mature model:
+  PPO-only, static BC, and correction BC at0.05/0.20. Three rounds add2M actions
+  each; each round gathers64teacher-labeled student games at900seconds/game.
+- Search remains a training teacher, not inference fallback. Its candidate
+  estimates are habitat-continuation returns, not optimal Q or unbiased student
+  values. Preserve paired development-only evaluation and untouched formal test.
+- No score improvement or teacher parity claimed at implementation time; retain
+  previous best strategies and separate teacher computation from PPO-action cost.
+
+
 ## 0.4.6 / research V1.2.4 — 2026-10-20
 
 - Move from local Q diagnostics to complete-game original/space/habitat

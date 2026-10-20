@@ -124,7 +124,7 @@ def report(root,state):
     (root/'curves.svg').write_text('\n'.join(svg))
 
 
-def execute(root,repo):
+def execute(root,repo,*,training_module='boardbench.v127.training',reporter=report):
     root,repo=Path(root),Path(repo)
     launch=read_json(root/'launch.json');config=read_json(root/'config.json')
     if os.uname().nodename!='a218.cluster.helixon.com' or source_id()!=launch['source_id']:
@@ -148,7 +148,7 @@ def execute(root,repo):
         state.update(phase=phase,pid=os.getpid(),updated_unix=time.time(),controller_seconds=controller,
             cost={'cpu_core_hours':cpu/3600,'gpu_hours':gpu/3600,'gpu_process_hours':gpu_process/3600,
                   'basis':'CPU affinity reservation; physical GPU interval union; process hours separate; all attempts and preflight'})
-        write_json(root/'state.json',state);report(root,state)
+        write_json(root/'state.json',state);reporter(root,state)
     try:
         probe=subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.used,utilization.gpu','--format=csv,noheader,nounits'],text=True)
         inventory={v[0].strip():(int(v[1]),int(v[2])) for v in (line.split(',') for line in probe.splitlines())}
@@ -172,7 +172,7 @@ def execute(root,repo):
             affinity=launch['cpus'][i*cores_per_job:(i+1)*cores_per_job]
             log=(root/'logs'/f'{name}.log').open('a')
             child=subprocess.Popen(['taskset','-c',','.join(map(str,affinity)),sys.executable,'-u','-m',
-                'boardbench.v127.training','--config',str(p/'config.json'),'--out',str(p),'--device','cuda'],
+                training_module,'--config',str(p/'config.json'),'--out',str(p),'--device','cuda'],
                 env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             attempt={'trial':name,'pid':child.pid,'started_unix':time.time(),'gpu':env['CUDA_VISIBLE_DEVICES'],'cpus':affinity}
             state['attempts'].append(attempt);state['jobs'][name]={'status':'running','pid':child.pid}
