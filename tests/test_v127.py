@@ -138,6 +138,21 @@ def test_cpu_cap_and_eight_paired_configs():
     assert all(v['workers']==14 and v['target_actions']==2000000 for v in jobs.values())
 
 
+def test_preflight_shares_node_lock_and_refuses_busy_gpu(tmp_path,monkeypatch):
+    import fcntl
+    from boardbench.v127 import preflight
+    root=tmp_path/'outputs/v122';root.mkdir(parents=True)
+    name=f'{os.uname().nodename}.cpu.lock'
+    occupied=(root/name).open('a');fcntl.flock(occupied,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    with pytest.raises(BlockingIOError):preflight.reserve(tmp_path,{'gpu_uuids':['gpu']})
+    occupied.close()
+    monkeypatch.setattr(preflight.os,'getloadavg',lambda:(0.,0.,0.))
+    monkeypatch.setattr(preflight.subprocess,'check_output',lambda *a,**k:'gpu, 900, 50\n')
+    with pytest.raises(RuntimeError,match='busy'):preflight.reserve(tmp_path,{'gpu_uuids':['gpu']})
+    monkeypatch.setattr(preflight.subprocess,'check_output',lambda *a,**k:'gpu, 14, 0\n')
+    lock=preflight.reserve(tmp_path,{'gpu_uuids':['gpu']});lock.close()
+
+
 @pytest.mark.skipif(os.environ.get('BOARDBENCH_V127_CUDA')!='1',reason='explicit authorized CUDA probe only')
 def test_cuda_collection_update_and_resume(config,tmp_path):
     assert torch.cuda.is_available()
