@@ -435,6 +435,9 @@ def run(config, out, device="cuda", *, trainer_class=Trainer):
             evaluate("final", config["final_seeds"])
         save("final.pt")
         save("latest.pt")
+        if hasattr(trainer, "finalize_diagnostics"):
+            publish("diagnostics", training_status=status)
+            trainer.finalize_diagnostics(out, status)
         summary = {"status": status, "source_id": trainer.source, "ppo_actions": trainer.ppo_actions,
                    "wall_seconds": elapsed(), "lineage": trainer.lineage, "best_curve_score": trainer.best_score}
         write_json(out / "summary.json", summary)

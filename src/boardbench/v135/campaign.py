@@ -150,6 +150,12 @@ def finalize(root):
                                 "warning": "development-only off-distribution diagnostic; not independent causal proof"})
         finally:
             t.close()
+    summarize(root, results, interventions)
+
+
+def summarize(root, results, interventions):
+    """Pure aggregation also supports recovery without repeating any evaluation."""
+    seeds = read_json(root / "splits.json")["sets"]["confirmation"]
     means, contrasts = {}, {}
     for method in read_json(root / "promotion.json")["selected"]:
         scores, gaps = [], []
@@ -165,8 +171,8 @@ def finalize(root):
         contrasts[method] = {"minus_control": delta, "environment_paired_descriptive95": [delta - half, delta + half],
                              "warning": "conditional on only two training seeds"}
     winner = read_json(root / "promotion.json")["selected"][1]
-    useful = (contrasts[winner]["environment_paired_descriptive95"][0] > 0 and
-              all(interventions[winner + "_" + s]["zero"]["mean"] > 0 for s in "ab"))
+    useful = bool(contrasts[winner]["environment_paired_descriptive95"][0] > 0 and
+                  all(interventions[winner + "_" + s]["zero"]["mean"] > 0 for s in "ab"))
     # This is an analysis decision only: never auto-spend another campaign budget.
     write_json(root / "confirmation.json", {"n": len(seeds), "method_means": means, "contrasts": contrasts,
                "models": {name: r["mean_score"] for name, r in results.items()},
