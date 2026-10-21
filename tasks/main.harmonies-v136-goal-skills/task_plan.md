@@ -18,9 +18,9 @@
 
 ## Success Criteria
 
-- [ ] Immutable train-only data and fresh curve/audit/confirmation panels.
-- [ ] Probability, masks, no-leakage, real gradient, exact resume, actual CUDA checks pass.
-- [ ] Detached bounded training running with saved checkpoint and real completed PPO updates.
+- [x] Immutable train-only data and fresh curve/audit/confirmation panels.
+- [x] Probability, masks, no-leakage, real gradient, exact resume, actual CUDA checks pass.
+- [x] Detached bounded training running with saved checkpoint and real completed PPO updates.
 
 ## Parallel Tracks
 
@@ -39,18 +39,18 @@
 
 ### Phase 2: Implement or run the decisive test
 
-- [ ] Make the smallest coherent change or launch.
-- [ ] Record only decision-relevant evidence and material checkpoints.
-- **Status:** pending
-- **Evidence:** none
+- [x] Make the smallest coherent change or launch.
+- [x] Record only decision-relevant evidence and material checkpoints.
+- **Status:** complete
+- **Evidence:** commit aa9c213; source219401d9dd401b861144878ec6ad39be4809530bcc5c7f12bf4206018c9387c2; real CUDA+resume passed. live_handoff.json verifies6 trials,8–9 batches each, saved checkpoints and actual gradients.
 
 ### Phase 3: Interpret and hand off
 
 - [ ] Compare the evidence against the stable anchor and expected signal.
 - [ ] Close remaining phases as complete, superseded_by_evidence, or abandoned_with_evidence.
 - [ ] Commit/push coherent work and archive or hand off the task.
-- **Status:** pending
-- **Evidence:** none
+- **Status:** in_progress
+- **Evidence:** Live handoff verified; final experimental comparison remains pending. Guard15:50:18–19:50:18CST,2026-10-21.
 
 ## Decisions And Blockers
 
@@ -60,10 +60,10 @@
 
 ## Verification Contract
 
-- Command or probe: `[pending]`
-- Expected signal: `[pending]`
-- Experiment/run pointer, if any: `[none]`
+- Command or probe: `bash tasks/main.harmonies-v136-goal-skills/run_a226.sh preflight` on a226; local pytest six version modules plus targeted branch tests.
+- Expected signal: source-matched passed receipts, real CUDA, ratio error<1e-4, exact next batch, actor/gate changes.
+- Experiment/run pointer, if any: `outputs/v136/skills_a226_20261021_a`
 
 ## Next Action
 
-Implement train-only goal segment extraction and anchored warm-start, retaining mature sticky checkpoint and PPO objective.
+Read stage1 fixed-endpoint audit and execution probes when complete; existing daemon selects stage2 and runs fresh confirmation automatically within original deadline.
