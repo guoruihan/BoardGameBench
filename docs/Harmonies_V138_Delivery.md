@@ -19,6 +19,11 @@
 
 ## 使用
 
+完整交付包：outputs/v138/BoardBench_V138_Solo_Baseline_r2.tar.gz（约5MB）。
+SHA256：0749d57c29f88ffaba65650223a248388af739dbca100afcf2d4bee56caf00ce。
+源码提交a1d5e0f，模型仍为冻结V138；解包后权重位于boardgame/baseline/weights.pt。
+前一份包和其摘要也保留，不覆盖历史产物。
+
 源码在Git，权重不随Git上传。需取得上面的产物，或通过交付包同时取得源码与权重。
 Python3.10+，安装项目train依赖；本机实测PyTorch2.4.1、NumPy1.26。
 
@@ -29,7 +34,7 @@ from boardbench.v138.baseline import BaselineSolver
 env = Harmonies()
 obs, _ = env.reset(123)
 policy = BaselineSolver()
-policy.load_weights("weights.pt")
+policy.load_weights("baseline/weights.pt")  # 在解包后的boardgame目录中运行
 policy.start_episode(obs)
 while not obs["terminated"]:
     obs = env.step(policy.decide(obs)).observation

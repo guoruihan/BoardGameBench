@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-10-22 — V140 launch verification and artifact handoff
+
+- Record four actual A100 mature-parent CUDA update/exact-resume gates, matching
+  behavior probabilities, real PPO progress and57-core affinity audit.
+- Replay128 archived matches/15,280 real actions independently. Record the frozen
+  initial paired-seat baseline and absolute07:27:07 campaign deadline.
+- Publish source+solo-weight bundle pointer and digest; outputs remain local,
+  and ongoing training is not reported as a completed confirmation result.
+
 ## 2026-10-22 — 0.4.24 / V1.4.0 two-player environment and baseline
 
 - Implement separate official duo-A/base32 rules: shared five-slot markets,
