@@ -20,7 +20,7 @@
 
 - [x] Verified train-only data and independent futures/panels; environment-level aggregation.
 - [x] Actual CUDA, frozen-worker, PPO ratios, joint gradient and exact resume checks pass.
-- [ ] Frozen, committed, detached bounded experiment with real updates and saved checkpoints.
+- [x] Frozen, committed, detached bounded experiment with real updates and saved checkpoints.
 
 ## Parallel Tracks
 
@@ -41,16 +41,16 @@
 
 - [x] Make the smallest coherent implementation.
 - [x] Record decision-relevant evidence and material checkpoints.
-- **Status:** in_progress
+- **Status:** complete
 - **Evidence:** source-matched regression77 passed/20 explicit CUDA skips, additional shared-stage test1 passed. Actual CUDA4 fixtures and mature control/selector/joint ratio, gradient and next-batch resume checks passed on the final source.
 
 ### Phase 3: Interpret and hand off
 
-- [ ] Compare the evidence against the stable anchor and expected signal.
+- [x] Compare initial diagnostic evidence against the stable anchor; complete-game endpoint analysis still pending.
 - [ ] Close remaining phases as complete, superseded_by_evidence, or abandoned_with_evidence.
 - [ ] Commit/push coherent work and archive or hand off the task.
-- **Status:** pending
-- **Evidence:** none
+- **Status:** in_progress
+- **Evidence:** Six live PPO trials, each>170k new actions, current checkpoints; selector worker exactly frozen; first-batch environment pairing verified. Final score evidence pending bounded background completion.
 
 ## Decisions And Blockers
 
@@ -69,4 +69,4 @@
 
 ## Next Action
 
-Commit/freeze/launch after source-matched gates; observe initial labels and real training checkpoints.
+Background runner completes stage1, refreshes own-state labels, runs all8 stage2 branches and independent confirmation512 before04:36:47 CST. On return inspect guard_result.json/completion.json, confirmation.json and retained curves. Do not renew deadline or use confirmation for tuning.
