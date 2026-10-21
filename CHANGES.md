@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-22 — V141 measured speedup and verified continuation
+
+- Four A100 PPO/exact-resume gates passed. Equal-resource128-match/13-worker
+  paired collections:9.0466s to5.3057s (1.705x), identical complete greedy paths
+  across three panels; mature-weight logits error4.00e-15/gradients2.78e-17.
+- Gracefully preserve all four V140 trials atbatch490, migrate full state and
+  verify actual continued PPO updates on GPUs0–3 with57 physical CPUs.
+- Verify11 new batches per trial (about1.60–1.62x live training throughput),
+  behavior-ratio error below4e-14; replay128 new matches/15,578 actions.
+- Keep original07:27:07 deadline and all parent artifacts; new runs do not reset
+  learning, best-checkpoint selection or the budget. This is a speed result,
+  not evidence of improved game scores.
+
 ## 2026-10-22 — 0.4.25 / V1.4.1 duo sampling acceleration
 
 - Reuse each public view's representation across actor, gate and context heads;
