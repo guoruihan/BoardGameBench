@@ -69,7 +69,8 @@ class PlanShard(NativeShard):
 
 
 class EnvironmentPool(BasePool):
-    def __init__(self, count=128, workers=0, timeout=120., *, native_artifact, arm, horizon=2):
+    def __init__(self, count=128, workers=0, timeout=120., *, native_artifact, arm, horizon=2,
+                 shard_class=PlanShard):
         if arm not in ARMS or horizon < 1:
             raise ValueError("explicit plan mode/horizon required")
         ctx = mp.get_context("spawn")
@@ -79,6 +80,6 @@ class EnvironmentPool(BasePool):
                  "success": (ctypes.c_float, count), "turn": (ctypes.c_int64, count)}
         self.plan_buffers = {k: ctx.RawArray(t, n) for k, (t, n) in specs.items()}
         self.extra = views(self.plan_buffers, count)
-        factory = partial(PlanShard, native_artifact=native_artifact, plan_buffers=self.plan_buffers,
+        factory = partial(shard_class, native_artifact=native_artifact, plan_buffers=self.plan_buffers,
                           count=count, arm=arm, horizon=horizon)
         super().__init__(count, workers, timeout, shard_class=factory)

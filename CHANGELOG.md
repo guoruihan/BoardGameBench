@@ -1,5 +1,19 @@
 # Research milestones
 
+## 0.4.22 / research V1.3.7 — 2026-10-22
+
+- Test whether V136 goal-execution skills improve complete games through learned
+  goal selection. Compare continued PPO, frozen-worker selector PPO, joint PPO,
+  and joint PPO with refreshed own-state goal labels, two replicas each.
+- Label public planning states with the current worker and selector, not expert
+  continuation. Separate fitting futures, verification futures and environment
+  holdouts; preserve true terminal rewards and sealed formal tests.
+- Share identical joint/refresh first-stage training, then branch on refreshed
+  data. Retain every mechanism through fixed endpoints and fresh confirmation512;
+  do not eliminate a skill branch based on a tiny development difference.
+- Bound formal work to four hours on a226 GPU0–3, at most57 physical CPUs. Retain
+  all artifacts and validation costs. Pilot values do not establish score gains.
+
 ## 0.4.19 / research V1.3.4 — 2026-10-21
 
 - Add public spatial blueprints, optional two-turn commitment, and a separate

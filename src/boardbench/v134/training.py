@@ -107,6 +107,7 @@ class Trainer(BaseTrainer):
         arrays = pool.reset(seeds)
         env_seconds, model_seconds = time.monotonic() - started, 0.
         trajectories, high = [[] for _ in seeds], [[] for _ in seeds]
+        planning_steps = [[] for _ in seeds]
         plans_used, successes, decisions, requests = 0, 0, 0, 0
         while not arrays["done"].all():
             slots = np.flatnonzero(~arrays["done"])
@@ -138,6 +139,9 @@ class Trainer(BaseTrainer):
                     # Top public candidate, or no goal when no feasible blueprint.
                     choices = np.where(bank_mask[:, 1], 1, 0)
                 extra["choice"][requesting] = choices
+                if keep_rows:
+                    for slot in requesting:
+                        planning_steps[slot].append(len(trajectories[slot]))
                 selected[request_indices] = bank[np.arange(len(requesting)), choices]
                 requests += len(requesting)
                 plans_used += int((choices != 0).sum())
@@ -179,6 +183,7 @@ class Trainer(BaseTrainer):
             self.manager_rows = high_rows
             self.last_trajectories = [
                 {"environment_seed": int(seeds[i]), "actions": [r[2] for r in t],
+                 "planning_steps": planning_steps[i],
                  "rewards": [r[4] for r in t], "behavior_logp": [r[3] for r in t],
                  "worker_plan_vectors": [r[0][1346:].tolist() for r in t],
                  "plans": [{"start": d["start"], "choice": d["action"],

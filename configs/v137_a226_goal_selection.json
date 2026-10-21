@@ -1,0 +1,21 @@
+{
+  "host": "a226.cluster.helixon.com",
+  "gpu_uuids": [
+    "GPU-19c4a068-0c21-98fe-a3c5-8600922b80bb",
+    "GPU-814b0686-8e37-4008-b841-0f48bf443ec7",
+    "GPU-829be823-80a5-bc50-bee4-27422b19e0c8",
+    "GPU-ff9f7b99-6859-0e9e-cdb7-06f61f675308"
+  ],
+  "jobs_per_gpu": 2,
+  "parent_directory": "outputs/v136/skills_a226_20261021_a/stage1/trials",
+  "strong_reference": "outputs/v136/skills_a226_20261021_a/stage2/trials/control_a/final.pt",
+  "stage1_actions": 4000000,
+  "stage2_actions": 4000000,
+  "stage1_seconds": 4200,
+  "stage2_seconds": 4200,
+  "label_seconds": 1800,
+  "resource_wait_seconds": 600,
+  "guard_seconds": 14400,
+  "training": {"workers": 6},
+  "labels": {"environments": 64, "fit_futures": 4, "verify_futures": 4, "cohort": 256, "workers": 6}
+}
