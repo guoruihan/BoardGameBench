@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-10-22 — 0.4.25 / V1.4.1 duo sampling acceleration
+
+- Reuse each public view's representation across actor, gate and context heads;
+  batch three encodings and two advice computations without changing weights.
+- Group collection by model identity (learner/current share one call), transfer
+  features/masks once and fetch action/logp/value together. Preserve role labels.
+- Add FP64 forward/gradient and complete-trajectory parity, identity-grouping,
+  exact-resume and full-state migration tests; actual A100 paired speed gate.
+- Continue in new frozen-source runs with preserved Adam, opponent pool, RNG,
+  best checkpoint, counters and original deadline. Sampling random draw order
+  changes across versions; only same-version resume is claimed bit-exact.
+
 ## 2026-10-22 — V140 launch verification and artifact handoff
 
 - Record four actual A100 mature-parent CUDA update/exact-resume gates, matching

@@ -1,6 +1,9 @@
 # BoardGameBench
 
-## 当前版本：V1.4.0 / 0.4.24
+## 当前版本：V1.4.1 / 0.4.25
+
+双人采样新增共享特征、合批推理与显式完整状态接续；规则、奖励和PPO目标不变。
+[V141加速验证与恢复说明](docs/Harmonies_V141_Acceleration.md)。
 
 新增独立双人Harmonies A面/base32环境及成熟单人技能初始化的自对局PPO。
 [双人规则、方法、评测和资源约束](docs/Harmonies_V140_Duo.md)；

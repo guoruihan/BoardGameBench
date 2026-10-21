@@ -22,6 +22,47 @@ from .encoding import LAYOUT
 from .model import DuoPolicy
 
 
+def infer_actions(models, roles, xs, masks, device, rng, greedy=False, *, legacy=False):
+    """Group by model identity; upload inputs and fetch results once per step.
+
+    The legacy branch is only a paired benchmark reference. Grouping changes RNG
+    draw order, not behavior probabilities; exact resume is version-local.
+    """
+    if legacy:
+        result = np.zeros((len(roles), 3), np.float64)
+        for role in sorted(set(roles)):
+            ids = np.array([j for j, r in enumerate(roles) if r == role])
+            with torch.no_grad():
+                logits, value = models[role].forward_reference(
+                    torch.as_tensor(xs[ids], dtype=torch.float64, device=device),
+                    torch.as_tensor(masks[ids], device=device))
+                dist = torch.distributions.Categorical(logits=logits)
+                chosen = logits.argmax(-1) if greedy else torch.multinomial(dist.probs, 1, generator=rng).squeeze(-1)
+                result[ids, 0] = chosen.cpu().numpy()
+                result[ids, 1] = dist.log_prob(chosen).cpu().numpy()
+                result[ids, 2] = value.cpu().numpy()
+        return result, len(set(roles))
+    groups = {}
+    for j, role in enumerate(roles):
+        key = id(models[role])
+        if key not in groups: groups[key] = (models[role], [])
+        groups[key][1].append(j)
+    with torch.inference_mode():
+        x = torch.as_tensor(xs, dtype=torch.float64, device=device)
+        mask = torch.as_tensor(masks, device=device)
+        output = torch.empty((len(roles), 3), dtype=torch.float64, device=device)
+        for model, indices in groups.values():
+            ids = torch.tensor(indices, device=device)
+            logits, value = model(x[ids], mask[ids])
+            # Model enforces nonempty legal masks. PPO separately checks finite
+            # losses and exact behavior ratios; avoid Categorical's GPU->CPU
+            # distribution-validation synchronization on every small subgroup.
+            dist = torch.distributions.Categorical(logits=logits, validate_args=False)
+            chosen = logits.argmax(-1) if greedy else torch.multinomial(dist.probs, 1, generator=rng).squeeze(-1)
+            output[ids] = torch.stack((chosen.to(torch.float64), dist.log_prob(chosen), value), -1)
+        return output.cpu().numpy(), len(groups)
+
+
 def summarize(games):
     seeds = sorted({g['seed'] for g in games})
     # Environmental clusters, not independent Bernoulli games for paired seats.
@@ -65,11 +106,12 @@ class Trainer:
         return EnvironmentPool(count, min(self.config['workers'], count),
                                native_artifact=self.config['native_artifact'])
 
-    def collect(self, pool, seeds, learner_seats, opponents, greedy=False, keep_rows=True):
+    def collect(self, pool, seeds, learner_seats, opponents, greedy=False, keep_rows=True, *, legacy=False):
         if len(seeds) != pool.count or len(learner_seats) != pool.count or len(opponents) != pool.count:
             raise ValueError('one match specification per slot')
         tick = time.monotonic(); arrays = pool.reset(seeds)
         env_seconds = time.monotonic()-tick; model_seconds = 0.
+        inference_calls = total_actions = 0
         trajectories, traces = [[] for _ in seeds], [[] for _ in seeds]
         models = {'learner': self.model, 'frozen': self.frozen, 'current': self.model,
                   **{f'lag{i}': m for i, m in enumerate(self.snapshots)}}
@@ -77,17 +119,10 @@ class Trainer:
             slots = np.flatnonzero(~arrays['done']); seats = arrays['stats'][slots, 4].astype(int)
             xs = arrays['features'][slots].copy(); masks = arrays['masks'][slots].copy()
             roles = ['learner' if seat == learner_seats[slot] else opponents[slot] for slot, seat in zip(slots, seats)]
-            actions = np.zeros(len(slots), np.int64); logps = np.zeros(len(slots)); values = np.zeros(len(slots))
             tick = time.monotonic()
-            for role in sorted(set(roles)):
-                ids = np.array([j for j, r in enumerate(roles) if r == role])
-                with torch.no_grad():
-                    logits, v = models[role](torch.as_tensor(xs[ids], dtype=torch.float64, device=self.device),
-                                             torch.as_tensor(masks[ids], device=self.device))
-                    dist = torch.distributions.Categorical(logits=logits)
-                    chosen = logits.argmax(-1) if greedy else torch.multinomial(dist.probs, 1, generator=self.rng).squeeze(-1)
-                    actions[ids] = chosen.cpu().numpy(); values[ids] = v.cpu().numpy()
-                    logps[ids] = dist.log_prob(chosen).cpu().numpy()
+            inferred, calls = infer_actions(models, roles, xs, masks, self.device, self.rng, greedy, legacy=legacy)
+            actions = inferred[:, 0].astype(np.int64); logps = inferred[:, 1]; values = inferred[:, 2]
+            inference_calls += calls; total_actions += len(slots)
             model_seconds += time.monotonic()-tick
             if keep_rows:
                 for j, slot in enumerate(slots):
@@ -119,7 +154,9 @@ class Trainer:
                 rows.extend((*r[:4], float(targets[i]), float(adv[i])) for i, r in enumerate(trajectory))
         if keep_rows:
             self.last_traces = [dict(**g, decisions=trace) for g, trace in zip(games, traces)]
-        return rows, dict(**summarize(games), per_game=games, environment_seconds=env_seconds, model_seconds=model_seconds)
+        return rows, dict(**summarize(games), per_game=games, environment_seconds=env_seconds, model_seconds=model_seconds,
+                         total_player_actions=total_actions, inference_calls=inference_calls,
+                         mean_inference_batch=total_actions/max(1, inference_calls))
 
     def update(self, rows):
         x = torch.as_tensor(np.stack([r[0] for r in rows]), dtype=torch.float64, device=self.device)

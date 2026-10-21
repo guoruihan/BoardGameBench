@@ -44,7 +44,7 @@ def execute(repo, root):
         raise ValueError('authorized host and frozen source required')
     lock = reserve(repo, config)
     cpus = launch['cpus']; os.sched_setaffinity(0, {cpus[-1]})
-    started = time.time(); deadline = started+config['wall_seconds']
+    started = time.time(); deadline = min(started+config['wall_seconds'], config.get('deadline_unix', float('inf')))
     env = {**os.environ, 'PYTHONPATH': str(root/'source/src'), 'PYTHONNOUSERSITE': '1',
            'OMP_NUM_THREADS': '1', 'OPENBLAS_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1',
            'NUMEXPR_NUM_THREADS': '1', 'CUBLAS_WORKSPACE_CONFIG': ':4096:8'}
@@ -94,14 +94,34 @@ def execute(repo, root):
             gate = read_json(root/f'preflight_gpu{i}/result.json')
             if not gate['passed'] or gate['source_id'] != launch['source_id']:
                 raise ValueError('CUDA gate source mismatch')
+        if config.get('continuation_run'):
+            previous = Path(config['continuation_run'])
+            # Benchmark on idle authorized hardware, at the actual training
+            # batch/workers, before any replacement learner is started.
+            start(['-m', 'boardbench.v141.verify', '--config', str(previous/'trials/score_a/config.json'),
+                   '--checkpoint', str(previous/'trials/score_a/latest.pt'), '--out', str(root/'speed_gate')],
+                  cpus[:14], config['gpu_uuids'][0], root/'logs/speed_gate.log', 'paired_speed_gate')
+            if wait(min(deadline, time.time()+900)):
+                raise RuntimeError('paired speed/parity gate failed; no replacement training started')
+            gate = read_json(root/'speed_gate/result.json')
+            if not gate['passed'] or gate['source_id'] != launch['source_id']:
+                raise ValueError('speed gate source mismatch')
         for i, (objective, replica) in enumerate((('score', 0), ('score', 1), ('margin', 0), ('margin', 1))):
             name = objective+'_'+'ab'[replica]
-            c = trial_config(root/'source', read_json(root/'resolved_config.json'), objective, replica)
-            c['max_seconds'] = max(0., deadline-time.time()-30)
-            c['deadline_unix'] = deadline-15
+            module = 'boardbench.v140.training'
+            if config.get('continuation_run'):
+                from boardbench.v141.training import continuation_config
+                c = continuation_config(Path(config['continuation_run'])/'trials'/name, launch['source_id'])
+                module = 'boardbench.v141.training'
+                if c['deadline_unix'] > deadline or c['deadline_unix'] <= time.time():
+                    raise ValueError('original trial deadline invalid')
+            else:
+                c = trial_config(root/'source', read_json(root/'resolved_config.json'), objective, replica)
+                c['max_seconds'] = max(0., deadline-time.time()-30)
+                c['deadline_unix'] = deadline-15
             path = root/'configs'/(name+'.json'); write_json(path, c)
             cores = cpus[14*i:14*i+14]; gpu = config['gpu_uuids'][i]
-            p = start(['-m', 'boardbench.v140.training', '--config', str(path), '--out', str(root/'trials'/name)],
+            p = start(['-m', module, '--config', str(path), '--out', str(root/'trials'/name)],
                       cores, gpu, root/'logs'/(name+'.log'), name)
             jobs.append(dict(name=name, gpu=gpu, cpus=cores, pid=p.pid))
         write_json(root/'jobs.json', jobs)
@@ -119,7 +139,9 @@ def execute(repo, root):
         write_json(root/'cost.json', dict(attempts=receipts, wall_seconds=elapsed,
                    allocated_cpu_core_seconds=sum(len(r['cpus'])*r['elapsed_seconds'] for r in receipts)+elapsed,
                    physical_gpu_seconds=sum(r['elapsed_seconds'] for r in receipts),
-                   includes='preflight, failed attempts, training, evaluation, checkpoint and cleanup'))
+                   includes='preflight, failed attempts, training, evaluation, checkpoint and cleanup',
+                   previous_campaign=config.get('continuation_run'),
+                   deadline_unix=deadline))
         lock.close()
 
 
@@ -127,9 +149,22 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--repo', required=True); p.add_argument('--out', required=True)
     p.add_argument('--config'); p.add_argument('--execute', action='store_true')
+    p.add_argument('--continue-from', help='gracefully stopped V140 run; preserves its absolute deadline')
     args = p.parse_args(); repo, root = Path(args.repo).resolve(), Path(args.out).resolve()
     if args.execute: return execute(repo, root)
     config = read_json(args.config)
+    if args.continue_from:
+        previous = Path(args.continue_from).resolve()
+        status = read_json(previous/'status.json'); old = read_json(previous/'config.json')
+        if status['phase'] not in ('completed', 'interrupted') or not (previous/'cost.json').exists():
+            raise ValueError('parent controller must have exited before replacement')
+        for key in ('host', 'gpu_uuids', 'workers', 'batch_matches', 'training', 'parent_sha256',
+                    'development_environments', 'confirmation_environments'):
+            if config[key] != old[key]: raise ValueError('continuation changes campaign configuration: '+key)
+        deadline = status['deadline_unix']
+        if deadline-time.time() < config['training']['finish_reserve_seconds']+600:
+            raise ValueError('insufficient original budget for verified continuation')
+        config.update(continuation_run=str(previous), deadline_unix=deadline, wall_seconds=deadline-time.time())
     if os.uname().nodename != config['host']: raise ValueError('authorized a226 host only')
     physical = physical_cpus()
     if len(physical)//2 < 57 or len(config['gpu_uuids']) != 4 or config['workers'] != 13:
