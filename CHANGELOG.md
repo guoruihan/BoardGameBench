@@ -2,6 +2,12 @@
 
 ## 0.4.22 / research V1.3.7 — 2026-10-22
 
+- Close out the completed campaign: paired confirmation512 means112.0967
+  (continued PPO),111.3633 (frozen worker),112.0000 (joint),111.7529 (refresh).
+  No new goal-selection method reliably beats continued PPO. Retain negative
+  results and all checkpoints; model-only GPU evaluation is not3-second CPU
+  deployment acceptance or proof of a human/optimality ceiling.
+
 - Test whether V136 goal-execution skills improve complete games through learned
   goal selection. Compare continued PPO, frozen-worker selector PPO, joint PPO,
   and joint PPO with refreshed own-state goal labels, two replicas each.

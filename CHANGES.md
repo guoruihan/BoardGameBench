@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-22 — 0.4.22 / V1.3.7 closeout and publication
+
+- Publish the accumulated trajectory, own-policy learning and goal-selection
+  work through V137; preserve original sources, checkpoints and results locally.
+- Update the stale README and implementation status with final paired results,
+  incremental costs and explicit portable-export/deployment acceptance gaps.
+  No runtime, rule, policy or experiment configuration changes in this closeout.
+- Record the user's standing repository instruction to push every completed,
+  verified update and check the remote branch SHA. Generated weights and run
+  directories are not included in the source publication.
+
 ## 2026-10-20 — 0.4.16 trajectory preservation
 
 - Preserve existing actual-game logs in a resumable content-addressed gzip archive
