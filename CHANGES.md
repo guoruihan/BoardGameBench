@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-22 — 0.4.24 / V1.4.0 two-player environment and baseline
+
+- Implement separate official duo-A/base32 rules: shared five-slot markets,
+  equal-turn final round, animal-count ties; preserve all solo mechanics.
+- Reuse bitset geometry, native batch features and shared-memory workers.
+  Explicit244-action/4865-feature layout represents both boards and all markets.
+- Add solo skill transfer, per-seat public planning, on-policy competitive PPO,
+  lagged/frozen opponents, paired-seat evaluation, portable duo inference and
+  replayable complete trajectories. Add actual CUDA/resume gates and bounded
+  four-job a226 campaign;57 physical CPUs and only the authorized first4 GPUs.
+
 ## 2026-10-22 — 0.4.23 / V1.3.8 portable solo delivery
 
 - Export the development-selected V137 control_a into inference-only FP64

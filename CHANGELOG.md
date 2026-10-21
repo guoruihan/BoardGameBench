@@ -1,5 +1,17 @@
 # Research milestones
 
+## 0.4.24 / research V1.4.0 — 2026-10-22
+
+- Move from solo score maximization to official two-player shared-market play.
+  Preserve solo results; multiplayer scores are a different distribution.
+- Initialize from frozen V138 skills and compare own-score versus competitive
+  margin PPO, two replicas each, with identical fixed opponents and both seats.
+- Observe all public opponent/market information; no future supply leakage.
+  True-score differences telescope on each learner's own decision sequence.
+- Select only on development64 paired seats; independent confirmation512.
+  Four-hour guarded first campaign includes preflight/evaluation/checkpointing;
+  improvement is a measured outcome, not an implementation claim.
+
 ## 0.4.23 / delivery V1.3.8 — 2026-10-22
 
 - Freeze V137 control_a by development score, without further training.

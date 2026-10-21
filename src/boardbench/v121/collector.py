@@ -23,8 +23,8 @@ REWARD, SCORE, ANIMAL, COMPLETED, NATURAL, STOPPED, PLACEMENT = range(7)
 
 def _views(buffers, count):
     return {
-        'features': np.frombuffer(buffers['features'], np.float32).reshape(count, FEATURES),
-        'masks': np.frombuffer(buffers['masks'], np.bool_).reshape(count, ACTIONS),
+        'features': np.frombuffer(buffers['features'], np.float32).reshape(count, -1),
+        'masks': np.frombuffer(buffers['masks'], np.bool_).reshape(count, -1),
         'actions': np.frombuffer(buffers['actions'], np.int64),
         'done': np.frombuffer(buffers['done'], np.bool_),
         'stats': np.frombuffer(buffers['stats'], np.float64).reshape(count, 7),
@@ -106,7 +106,7 @@ def _worker(connection, buffers, count, slots, core, shard_class=_Shard):
 
 
 class EnvironmentPool:
-    def __init__(self, count=16, workers=0, timeout=60., shard_class=_Shard):
+    def __init__(self, count=16, workers=0, timeout=60., shard_class=_Shard, *, features=FEATURES, actions=ACTIONS):
         if type(count) is not int or count < 1 or type(workers) is not int or not 0 <= workers <= count:
             raise ValueError('positive cohort size and workers in [0, count] required')
         cores = sorted(os.sched_getaffinity(0))
@@ -117,8 +117,8 @@ class EnvironmentPool:
         self.closed = False
         ctx = mp.get_context('spawn')
         self.buffers = {
-            'features': ctx.RawArray(ctypes.c_float, count * FEATURES),
-            'masks': ctx.RawArray(ctypes.c_bool, count * ACTIONS),
+            'features': ctx.RawArray(ctypes.c_float, count * features),
+            'masks': ctx.RawArray(ctypes.c_bool, count * actions),
             'actions': ctx.RawArray(ctypes.c_int64, count),
             'done': ctx.RawArray(ctypes.c_bool, count),
             'stats': ctx.RawArray(ctypes.c_double, count * 7),
@@ -180,7 +180,7 @@ class EnvironmentPool:
         if any(isinstance(a, (bool, np.bool_)) or not isinstance(a, (int, np.integer)) for a in actions):
             raise ValueError('integer actions required')
         actions = np.asarray(actions, dtype=np.int64)
-        if (actions < 0).any() or (actions >= ACTIONS).any() or not self.arrays['masks'][slots, actions].all():
+        if (actions < 0).any() or (actions >= self.arrays['masks'].shape[1]).any() or not self.arrays['masks'][slots, actions].all():
             raise ValueError('action outside recorded legal mask')
         self.arrays['actions'][slots] = actions
         self._command('step')

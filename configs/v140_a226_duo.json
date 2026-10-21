@@ -1,0 +1,28 @@
+{
+  "host": "a226.cluster.helixon.com",
+  "gpu_uuids": [
+    "GPU-19c4a068-0c21-98fe-a3c5-8600922b80bb",
+    "GPU-814b0686-8e37-4008-b841-0f48bf443ec7",
+    "GPU-829be823-80a5-bc50-bee4-27422b19e0c8",
+    "GPU-ff9f7b99-6859-0e9e-cdb7-06f61f675308"
+  ],
+  "parent": "outputs/v138/solo_baseline/weights.pt",
+  "parent_sha256": "9799f3e8bbff77b01e4b2eec18debf4cd8f9c73358ff7e014dcc9e0b5cd1fc8b",
+  "native_manifest": "outputs/v129/native_build_20261020_a/artifact.json",
+  "wall_seconds": 14400,
+  "workers": 13,
+  "batch_matches": 128,
+  "development_environments": 64,
+  "confirmation_environments": 512,
+  "training": {
+    "learning_rate": 0.00001,
+    "gae_lambda": 0.95,
+    "minibatch": 1024,
+    "epochs": 3,
+    "target_kl": 0.015,
+    "entropy": 0.005,
+    "snapshot_interval": 10,
+    "evaluate_interval": 10,
+    "finish_reserve_seconds": 1800
+  }
+}
