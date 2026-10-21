@@ -1,5 +1,13 @@
 # Research milestones
 
+## 0.4.23 / delivery V1.3.8 — 2026-10-22
+
+- Freeze V137 control_a by development score, without further training.
+- Fresh512 validation mean112.1797; first32 CPU3-second attempts mean113.8438,
+  all natural, mean online0.454seconds. Different panels are not a gain claim.
+- Keep the original formal test sealed and separate model-only, startup and
+  strict online costs. Next authorized scope is two-player Harmonies withinV1.
+
 ## 0.4.22 / research V1.3.7 — 2026-10-22
 
 - Close out the completed campaign: paired confirmation512 means112.0967

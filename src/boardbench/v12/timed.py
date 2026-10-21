@@ -91,7 +91,7 @@ def worker(sock, spec, task):
     os.setsid()
     sock.setblocking(False)
     try:
-        if spec['solver']['id'] in ('ppo', 'compact', 'harmonies_research'):
+        if spec['solver']['id'] in ('ppo', 'compact', 'harmonies_research', 'harmonies_baseline'):
             import torch
             torch.set_num_threads(1)
         solver = build_policy(spec)

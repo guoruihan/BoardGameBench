@@ -7,6 +7,9 @@ SOLVERS = {"random": RandomSolver, "reference_search": ReferenceSearch,
 
 
 def make_solver(config, seed):
+    if config['id'] == 'harmonies_baseline':
+        from boardbench.v138.baseline import BaselineSolver
+        return BaselineSolver(seed=seed, **config.get('params', {}))
     if config['id'] == 'harmonies_research':
         from boardbench.v121.neural import ResearchSolver
         return ResearchSolver(seed=seed, **config.get('params', {}))

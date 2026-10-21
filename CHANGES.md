@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-10-22 — 0.4.23 / V1.3.8 portable solo delivery
+
+- Export the development-selected V137 control_a into inference-only FP64
+  weights; strict artifact validation, no ancestral data/checkpoint loading.
+- Add standard Solver and single-thread timed-runner integration, exact public
+  planner/native feature parity tests, committed-source+weight packaging.
+- Validate fresh512 games and32 paired single-thread3-second attempts; all32
+  finish naturally, zero failures. Preserve old UI pointers and sealed tests.
+
 ## 2026-10-22 — 0.4.22 / V1.3.7 closeout and publication
 
 - Publish the accumulated trajectory, own-policy learning and goal-selection
