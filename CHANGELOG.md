@@ -1,5 +1,19 @@
 # Research milestones
 
+## 0.4.31 / research V1.4.6 — 2026-10-23
+
+- Switch from own-replay/plan-credit PPO variants to an official-duo teacher
+  strength diagnostic before generating additional expert data.
+- Fixed retained V145 learner and V144 opponent, own absolute score, both seats;
+  compare direct model/habitat and900-second mixed-root terminal search with
+  habitat versus student continuation. No solo transitions or hidden futures.
+- Screen4 development environments, expand promising search on16 NEW environments;
+  require paired score improvement plus animal gain before48 fresh training games.
+- Preserve candidate Q separately from actual MC returns and coherent trajectories
+  for subsequent imitation/RL. This release does not claim a newly trained model.
+- Old V145 stopped by user-approved task switch, not completed confirmation;
+  remaining experiments retain its original absolute09:16 deadline.
+
 ## 0.4.30 / research V1.4.5 — 2026-10-23
 
 - Test nonstationary opponents, animal-plan credit and reuse of good own

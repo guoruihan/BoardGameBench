@@ -105,16 +105,16 @@ def extension_count(cell):
     return sum(current + (color,) in STACK_INDEX for color in COLORS)
 
 
-def rank_actions(obs, policy, *, goal_function=None):
+def rank_actions(obs, policy, *, goal_function=None, base_ranking=None, future_turns=None):
     goal_function = card_goals if goal_function is None else goal_function
     if policy not in POLICIES:
         raise ValueError('unknown diagnostic continuation')
-    ranked = ranked_actions(obs)
+    ranked = ranked_actions(obs) if base_ranking is None else base_ranking
     if policy == 'original':
         return ranked
     board = obs['board']
     empty = sum(c['stack_id'] == 0 for c in board)
-    future_turns = sum(obs['remaining_tokens'].values()) // 9
+    future_turns = sum(obs['remaining_tokens'].values()) // 9 if future_turns is None else future_turns
     space_price = min(2.5, 3 * future_turns / max(1, empty - 2)) if future_turns else 0.
     by_card, goals = {}, []
     if policy == 'habitat':

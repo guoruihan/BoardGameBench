@@ -1,5 +1,24 @@
 # Engineering changes
 
+## 2026-10-23 — 0.4.31 / V1.4.6 official-duo search teacher
+
+- Safely stop V145 through its verified controller; retain and hash-check all
+  interrupted round2 latest/final/best checkpoints and the completed first round.
+- Adapt terrain/habitat ranking to five-slot official duo; branch only through
+  the real duo simulator, with public future resampling and isolated planner state.
+- Batch CPU model continuations, compare habitat/model terminal rollouts under
+  cumulative900-second focal budgets, and archive/replay all real actions/returns.
+- Add frozen-source paired4/new16 gating, conditional48 train-only demonstrations,
+  half-node CPU/shared-lock checks, per-game/global watchdogs and complete-game resume.
+- Preserve original09:16 deadline; b35 CPU only, no new GPU allocation. Strong
+  teacher and new learned-model gains remain empirical questions, not release claims.
+- Initial related regression109 passed/one CUDA-only skip; mature b35 preflight
+  verifies126-action policy parity and a six-candidate730-step terminal round.
+- Final targeted49 passed, including actual child games, shared-lock exclusion,
+  no-new-work resume and rejection of corrupt public observations/result metadata.
+- Synchronize public package version with the research release; old frozen runs
+  remain self-contained and unchanged.
+
 ## 2026-10-23 — V145 actual CUDA, replay and autonomous launch verification
 
 - All four logical slots pass real-A100 gates on authorized GPU3: exact warm
