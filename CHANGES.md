@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-10-22 — 0.4.26 / V1.4.2 own-score random-market curriculum
+
+- Add separate five-slot,13-own-turn random-market environment with no opponent
+  board/score; retain original solo/duo rules and reuse terrain/animal transitions.
+- Reuse bitsets, native features, shared-memory collection and optimized PPO;
+  preserve weight compatibility under explicit zero-opponent/new-layout encoding.
+- Compare solo/duo warm starts, two replicas each, with fresh Adam and own-score
+  development selection. Archive full replayable trajectories and exact resumes.
+- Add rule/codec/pool/update/replay tests and four actual-CUDA gates, paired
+  initial comparison, fresh confirmation512 and bounded57-core/four-GPU campaign.
+
+
 ## 2026-10-22 — V141 measured speedup and verified continuation
 
 - Four A100 PPO/exact-resume gates passed. Equal-resource128-match/13-worker

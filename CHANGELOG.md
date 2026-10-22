@@ -1,5 +1,17 @@
 # Research milestones
 
+## 0.4.26 / research V1.4.2 — 2026-10-22
+
+- Separate own-layout learning from competition: stationary random public-market
+  depletion, no opponent board/score/end condition,13 own turns maximum.
+- Compare mature solo versus own-score duo initialization, two paired replicas,
+  complete-game PPO with true own-score reward AND own-score checkpoint selection.
+- Fresh development128/confirmation512; retain initial checkpoints and compare
+  each selected model with its own initializer on paired confirmation seeds.
+- This is a labeled curriculum, not official solo/duo or a cross-protocol gain.
+  Follow with frozen official-duo transfer assessment before adversarial learning.
+
+
 ## 0.4.24 / research V1.4.0 — 2026-10-22
 
 - Move from solo score maximization to official two-player shared-market play.
