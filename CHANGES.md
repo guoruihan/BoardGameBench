@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-22 — V142 actual-device launch verification
+
+- Four A100 actor/context-update and exact-next-update gates passed; behavior
+  ratios match within7.11e-15. Replay512 archived games/36,746 actions exactly.
+- Record common initial128 score/animal/turn/token comparison before formal PPO;
+  four independent jobs each exceed23 real batches with ratio errors below4e-14.
+- Audit57 physical CPU cores and GPU0–3 only; frozen source and new absolute
+  12:16:44 Beijing deadline preserved. Publish recovery/status pointers and
+  distinguish initial/early development observations from pending confirmation.
+
+
 ## 2026-10-22 — 0.4.26 / V1.4.2 own-score random-market curriculum
 
 - Add separate five-slot,13-own-turn random-market environment with no opponent
