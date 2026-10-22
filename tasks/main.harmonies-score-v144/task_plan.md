@@ -18,8 +18,8 @@
 ## Phases
 1. Inspect active run and preserve handoff: complete.
 2. Implement reusable own-score collector, multi-opponent evaluation and bounded adaptive campaign: complete.
-3. CPU regression and four real-CUDA reward/update/resume gates: in_progress (56 CPU checks pass, one old CUDA-only test skipped; actual four-device gates pending).
-4. Publish, launch three rounds, verify actual progress and adaptive transitions: pending.
+3. CPU regression and four real-CUDA reward/update/resume gates: complete (56 CPU checks pass, one old CUDA-only skipped; actual four-device gates all pass).
+4. Publish, launch three rounds, verify actual progress and adaptive transitions: complete for launch (four arms21+ batches; controller choices and real round handoff tested; long-run transitions remain scheduled).
 5. Independent confirmation and final summary: pending (background campaign).
 
 ## Active Parallel Tracks
@@ -34,4 +34,4 @@
 - Hard original deadline, scoped graceful stop, bounded resources, failure artifacts and recoverable state.
 
 ## Next Action
-Publish coherent implementation; launch frozen-source four-GPU gates and verify real PPO progress before handoff.
+Background controller executes remaining rounds and final confirmation before22:59. On next user status request read outputs/v144/own_score_a226_20261022_a/status.json and decisions/; after summary.json exists, analyze paired confirmation without retuning on it.

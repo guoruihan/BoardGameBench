@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-22 — V144 real-CUDA and background iteration launch evidence
+
+- Four actual A100 gates pass: score/margin rewards, full-return and diverse-role
+  collection, actor/context updates, portable policies and exact next-update restore.
+- Verify common initial score80.25/animals9.6406 against two fixed opponents;
+  replay512 matches/62,036 actions with1,024 learner trajectories and aligned seeds.
+- Audit actual57-core and first-four-GPU ownership; all four formal trials exceed
+  21 PPO batches. Record frozen source and unchanged22:59 Beijing absolute deadline.
+- Preserve outcome boundaries: three-round adaptive selection and independent512
+  confirmation remain background work, not an already achieved score improvement.
+
 ## 2026-10-22 — 0.4.28 / V1.4.4 own-score autonomous duo exploration
 
 - Version score rewards AND score checkpoint selection together; retain V143
