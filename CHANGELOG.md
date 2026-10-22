@@ -1,5 +1,17 @@
 # Research milestones
 
+## 0.4.27 / research V1.4.3 — 2026-10-22
+
+- Move development-selected V142 own-layout skills back to official duo;
+  preserve inherited actor behavior and learn public-opponent residuals.
+- Compare both-seat current-policy self-play versus75%current/25%self-history,
+  two replicas each. Optimize true score margin; no old weak training opponent.
+- Select on development128 paired seats versus frozen transfer; confirm on
+  fresh512 paired seats and crossplay selected current/league policies.
+- Self-play's own50% symmetry is not a progress metric; require independent
+  opponent comparisons and distinguish course scores from official-duo scores.
+
+
 ## 0.4.26 / research V1.4.2 — 2026-10-22
 
 - Separate own-layout learning from competition: stationary random public-market

@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-10-22 — 0.4.27 / V1.4.3 official-duo transfer and self-play
+
+- Preserve V142 own-view logits at initialization; add zero-output trainable
+  public-opponent residual without changing official duo rules or information.
+- Reuse accelerated official-duo pool and PPO; train both current-policy seats
+  on separate complete-game trajectories and exclude historical-policy actions.
+- Add current/current and current/history replicas, exact recovery, replayable
+  full traces, paired-seat evaluation and post-selection cross-method battles.
+- Add CPU/real-CUDA gates and bounded four-GPU/57-core campaign with original
+  absolute-deadline resume. Old environments, models and sealed tests unchanged.
+
+
 ## 2026-10-22 — V142 actual-device launch verification
 
 - Four A100 actor/context-update and exact-next-update gates passed; behavior

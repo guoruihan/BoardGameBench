@@ -1,0 +1,30 @@
+{
+  "host": "a226.cluster.helixon.com",
+  "gpu_uuids": [
+    "GPU-19c4a068-0c21-98fe-a3c5-8600922b80bb",
+    "GPU-814b0686-8e37-4008-b841-0f48bf443ec7",
+    "GPU-829be823-80a5-bc50-bee4-27422b19e0c8",
+    "GPU-ff9f7b99-6859-0e9e-cdb7-06f61f675308"
+  ],
+  "parent": "outputs/v142/market_a226_20261022_a/trials/duo_a/best_policy.pt",
+  "parent_sha256": "b1510da0bfda83c2c137b36c85fe0e079fb30adee47c3629d36c03d7e9f947b8",
+  "parent_selection": "highest V142 development mean116.9765625; checkpoint batch2520",
+  "native_manifest": "outputs/v129/native_build_20261020_a/artifact.json",
+  "wall_seconds": 14400,
+  "workers": 13,
+  "batch_matches": 128,
+  "development_environments": 128,
+  "confirmation_environments": 512,
+  "training": {
+    "learning_rate": 0.00001,
+    "gae_lambda": 0.95,
+    "minibatch": 1024,
+    "epochs": 3,
+    "target_kl": 0.015,
+    "entropy": 0.005,
+    "snapshot_interval": 50,
+    "history_size": 4,
+    "evaluate_interval": 20,
+    "finish_reserve_seconds": 900
+  }
+}
