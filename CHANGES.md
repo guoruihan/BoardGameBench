@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-10-22 — V143 real-CUDA self-battle and launch evidence
+
+- All four mature-weight A100 gates pass: full-game transfer error0, both-seat
+  learning, historical-role exclusion, frozen-opponent integrity and exact resume.
+- Record official initial self-battle256 matches:79.4883 score/8.7461 animals;
+  explicitly retain the curriculum-to-duo gap instead of claiming116.70 transfers.
+- Replay512 real archived matches/62,202 actions with1,024 learner trajectories;
+  audit57-core/first-four-GPU bounds and actual updates beyond21 batches each.
+- Record immutable source, original18:45:23 Beijing deadline and recovery paths;
+  independent confirmation and cross-method battles remain pending in background.
+
+
 ## 2026-10-22 — 0.4.27 / V1.4.3 official-duo transfer and self-play
 
 - Preserve V142 own-view logits at initialization; add zero-output trainable

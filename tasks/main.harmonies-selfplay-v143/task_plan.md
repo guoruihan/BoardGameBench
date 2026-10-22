@@ -14,10 +14,10 @@
 - Fallback: fail closed if transfer parity, masks/rewards, real CUDA updates, or exact resume fail.
 
 ## Success Criteria
-- [ ] Transfer parity, official-game traces, two-seat reward accounting and history exclusion verified.
-- [ ] Four real-CUDA update/exact-resume gates pass; initial self-battle saved before formal training.
-- [ ] Four bounded jobs genuinely update; version/source/config/checkpoints/data preserved.
-- [ ] Scoped code/docs committed and pushed; remote SHA and live launch verified.
+- [x] Transfer parity, official-game traces, two-seat reward accounting and history exclusion verified.
+- [x] Four real-CUDA update/exact-resume gates pass; initial self-battle saved before formal training.
+- [x] Four bounded jobs genuinely update; version/source/config/checkpoints/data preserved.
+- [x] Implementation6765a30 committed/pushed, remote SHA verified; live launch documented.
 
 ## Parallel Tracks
 - Primary only; no delegated agents. Four GPU experiment processes are independent replicas, not distributed training.
@@ -27,11 +27,11 @@
 - **Status:** complete
 - **Evidence:** separate V143 policy/collector semantics/checkpoints/runner; all official engines and accelerated pool reused unchanged.
 ### Phase 2: Tests and actual-device gates
-- **Status:** in_progress
-- **Evidence:**46 local passes/1 old CUDA skip, including both-seat reward/history/replay/resume and crossplay. Actual-device gate pending frozen launch.
+- **Status:** complete
+- **Evidence:**46 local passes/1 old CUDA skip, four actual A100 transfer/update/exact-resume gates.512 formal matches replay with62,202 actions and1,024 learner trajectories.
 ### Phase 3: Initial battle, bounded launch and publication
-- **Status:** pending
-- **Evidence:** none
+- **Status:** complete
+- **Evidence:** initial256 official matches79.4883/animals8.7461; four jobs>=21 batches, both seats updating,57-core audit;6765a30 published. Launch scope complete; background training and final evaluation ongoing until18:45:23 Beijing.
 
 ## Verification Contract
 - Shared weights remain fixed for each complete collection. Separate learner trajectories per seat, no turn-switch terminals, no historical actions in loss.
@@ -40,4 +40,4 @@
 - Exact within-version recovery includes snapshots, optimizer, all RNGs, counters and unchanged deadline. Every actual action archived.
 
 ## Next Action
-Publish frozen implementation, run actual four-device gates and initial official self-battle, verify formal learning progress.
+none - ready to archive
