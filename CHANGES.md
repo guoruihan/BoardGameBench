@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-23 — V146 frozen launch and CPU ownership audit
+
+- Publish implementation019d547 and verify GitHub branch SHA, then start the
+  b35 frozen campaign with the exact mature-model preflight source/config.
+- Verify16 complete/replayed model/habitat controls and16 progressing900-second
+  search games, no failed games at the snapshot; do not report partial scores.
+- Add a read-only live-worker/thread-affinity audit, using the controller CPU;
+  verify17 currently active physical cores within the33-core allocation/half-node cap.
+- Record run/session/source/deadline and remaining teacher/data gates. No new
+  GPU training or teacher improvement is claimed at launch.
+
 ## 2026-10-23 — 0.4.31 / V1.4.6 official-duo search teacher
 
 - Safely stop V145 through its verified controller; retain and hash-check all
