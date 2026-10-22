@@ -3,12 +3,13 @@ from boardbench.environments.harmonies_duo import HarmoniesDuo
 from boardbench.v140.encoding import action_map
 
 
-def replay(game):
+def replay(game,objective='margin'):
+    if objective not in ('score','margin'):raise ValueError('unknown reward objective')
     env=HarmoniesDuo();obs,_=env.reset(game['seed']);pending={};count=0
     for row in game['decisions']:
         seat=row['seat']
         if obs['terminated'] or seat!=obs['active_player']: raise ValueError('seat/terminal mismatch')
-        score=obs['score_breakdown'];potential=score[seat]['total']-score[1-seat]['total']
+        score=obs['score_breakdown'];potential=score[seat]['total']-(score[1-seat]['total'] if objective=='margin' else 0)
         trainable=row['trainable']
         if trainable!=(seat in game['learner_seats']):raise ValueError('wrong learner seat')
         if trainable:
@@ -24,7 +25,7 @@ def replay(game):
         obs=next_obs
     if not count or not obs['terminated']:raise ValueError('incomplete match')
     for seat,(old,reward) in pending.items():
-        final=obs['scores'][seat]-obs['scores'][1-seat]
+        final=obs['scores'][seat]-(obs['scores'][1-seat] if objective=='margin' else 0)
         if abs((final-old)/150-reward)>1e-10:raise ValueError('terminal reward mismatch')
     if (obs['scores'][game['seat']]!=game['score'] or obs['scores'][1-game['seat']]!=game['opponent_score']):
         raise ValueError('recorded score mismatch')

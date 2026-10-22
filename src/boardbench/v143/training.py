@@ -19,16 +19,23 @@ from .policy import LAYOUT,initialize,export_policy
 class Trainer(DuoTrainer):
     # Reuse verified native official-duo pool, PPO update, paired-seat evaluator,
     # and close(). New collection is the only changed on-policy semantics.
+    VERSION=143
+    LAYOUT=LAYOUT
+    OBJECTIVES=('margin',)
+    MODES=('current','league')
+    DEVELOPMENT_BASE=243000000
+    CONFIRMATION_BASE=343000000
+
     def __init__(self,config,device='cpu'):
         self.config=deepcopy(config);self.device=str(device)
-        if (config['layout']!=LAYOUT or config['rules_version']!=HarmoniesDuo.rules_version
-                or config['objective']!='margin' or config['mode'] not in ('current','league')):
+        if (config['layout']!=self.LAYOUT or config['rules_version']!=HarmoniesDuo.rules_version
+                or config['objective'] not in self.OBJECTIVES or config['mode'] not in self.MODES):
             raise ValueError('explicit official-duo self-play schema required')
         if digest(config['parent'])!=config['parent_sha256']: raise ValueError('curriculum parent digest mismatch')
         if config.get('source_id') and config['source_id']!=source_id(): raise ValueError('frozen source mismatch')
         if (not config['development_seeds'] or not config['confirmation_seeds']
-                or any(not 243000000<=s<244000000 for s in config['development_seeds'])
-                or any(not 343000000<=s<344000000 for s in config['confirmation_seeds'])):
+                or any(not self.DEVELOPMENT_BASE<=s<self.DEVELOPMENT_BASE+1000000 for s in config['development_seeds'])
+                or any(not self.CONFIRMATION_BASE<=s<self.CONFIRMATION_BASE+1000000 for s in config['confirmation_seeds'])):
             raise ValueError('fresh self-play split namespaces required')
         torch.set_num_threads(1);torch.use_deterministic_algorithms(True);torch.manual_seed(config['seed'])
         self.model=initialize(config['parent'],device).train()
@@ -39,6 +46,9 @@ class Trainer(DuoTrainer):
         self.seed_rng=np.random.default_rng(config['seed'])
         self.batches=self.matches=self.actions=0
         self.elapsed_seconds=0.;self.best_metric=-float('inf');self.pool=None
+
+    def potential(self,stats,seat):
+        return float(stats[seat]-(stats[1-seat] if self.config['objective']=='margin' else 0))
 
     def collect(self,pool,seeds,learner_seats,opponents,greedy=False,keep_rows=True):
         if not len(seeds)==len(learner_seats)==len(opponents)==pool.count:
@@ -64,7 +74,7 @@ class Trainer(DuoTrainer):
                     traces[slot].append(dict(seat=seat,action=action,logp=float(inferred[j,1]),
                         value=float(inferred[j,2]),role=role,trainable=trainable))
                     if trainable:
-                        s=arrays['stats'][slot];potential=float(s[seat]-s[1-seat])
+                        s=arrays['stats'][slot];potential=self.potential(s,seat)
                         trajectories[slot][seat].append((xs[j],masks[j],action,float(inferred[j,1]),
                             float(inferred[j,2]),potential,len(traces[slot])-1))
             tick=time.monotonic();pool.step(slots,actions);env_seconds+=time.monotonic()-tick
@@ -81,7 +91,7 @@ class Trainer(DuoTrainer):
                 for seat,trajectory in enumerate(trajectories[slot]):
                     if not trajectory: continue
                     learners+=1;learned_seats.append(seat);seat_counts[seat]+=len(trajectory)
-                    final=float(s[seat]-s[1-seat]);potentials=[r[5] for r in trajectory]+[final]
+                    final=self.potential(s,seat);potentials=[r[5] for r in trajectory]+[final]
                     rewards=[(b-a)/150 for a,b in zip(potentials,potentials[1:])]
                     if abs(sum(rewards)*150+potentials[0]-final)>1e-7: raise RuntimeError('seat reward mismatch')
                     for row,reward in zip(trajectory,rewards):
@@ -114,7 +124,7 @@ class Trainer(DuoTrainer):
 
     def save(self,path):
         path=Path(path);tmp=path.with_suffix('.partial.pt')
-        torch.save(dict(version=143,config=self.config,model=self.model.state_dict(),frozen=self.frozen.state_dict(),
+        torch.save(dict(version=self.VERSION,config=self.config,model=self.model.state_dict(),frozen=self.frozen.state_dict(),
             snapshots=[m.state_dict() for m in self.snapshots],snapshot_batches=self.snapshot_batches,
             optimizer=self.optimizer.state_dict(),rng=self.rng.get_state(),seed_rng=self.seed_rng.bit_generator.state,
             cpu_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all() if self.device.startswith('cuda') else [],
@@ -125,7 +135,7 @@ class Trainer(DuoTrainer):
     def load(self,path):
         if digest(path)!=read_json(Path(path).with_suffix('.json'))['sha256']: raise ValueError('checkpoint digest mismatch')
         s=torch.load(path,map_location=self.device,weights_only=False)
-        if s['version']!=143 or s['config']!=self.config: raise ValueError('exact version/config required')
+        if s['version']!=self.VERSION or s['config']!=self.config: raise ValueError('exact version/config required')
         self.model.load_state_dict(s['model']);self.frozen.load_state_dict(s['frozen']);self.snapshots=[]
         for state in s['snapshots']:
             m=deepcopy(self.frozen);m.load_state_dict(state);self.snapshots.append(m)

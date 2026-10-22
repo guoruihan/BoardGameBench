@@ -1,0 +1,6 @@
+# Progress
+- 2026-10-22 14:59: user authorized eight-hour own-score main line plus autonomous variants. Read planning skill/server rules; checked repo identity and active V143. Unrelated untracked docs/BoardBench_V1_2_Design.md will be preserved.
+- New absolute stop is 2026-10-22 22:59 Asia/Shanghai, including implementation and verification. V143 remains unchanged until replacement gates are ready; its final checkpoints will be preserved before freeing GPUs.
+- 15:14: after initial14-test pass, verified exact V143 controller PID4737 then sent SIGTERM; controller/4 learners exited gracefully with final/latest and best preserved. Frozen reference exported without changing old artifacts.
+- Implemented first-round score/current, score/history, score/full-return and margin control; later rounds branch on fresh development results. Final common development256 selects before confirmation512. Hard original deadline, one bounded retry and source/config digest gates.
+- CPU regression38 passed/1 old CUDA-only skipped plus18 additional round-handoff/controller/rule checks passed. Corrected test affinity after two multiworker tests correctly rejected the initial one-core allocation; no engine changes needed.

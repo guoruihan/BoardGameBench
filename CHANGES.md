@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-22 — 0.4.28 / V1.4.4 own-score autonomous duo exploration
+
+- Version score rewards AND score checkpoint selection together; retain V143
+  margin-only defaults and reuse its accelerated both-seat collection/PPO.
+- Add immutable two-opponent, paired-seat development/confirmation evaluation,
+  own-score/history/full-return variants and result-driven three-round choices.
+- Keep all policies/traces, exact same-trial resume, weight-only warm starts,
+  fixed eight-hour deadline, bounded retry and four-GPU/57-core ownership.
+- Preserve stopped V143 checkpoints and export its development-selected frozen
+  reference; no game rules, raw scoring, information permissions or sealed tests changed.
+
 ## 2026-10-22 — V143 real-CUDA self-battle and launch evidence
 
 - All four mature-weight A100 gates pass: full-game transfer error0, both-seat

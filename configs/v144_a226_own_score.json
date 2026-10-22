@@ -1,0 +1,42 @@
+{
+  "host": "a226.cluster.helixon.com",
+  "gpu_uuids": [
+    "GPU-19c4a068-0c21-98fe-a3c5-8600922b80bb",
+    "GPU-814b0686-8e37-4008-b841-0f48bf443ec7",
+    "GPU-829be823-80a5-bc50-bee4-27422b19e0c8",
+    "GPU-ff9f7b99-6859-0e9e-cdb7-06f61f675308"
+  ],
+  "started_unix": 1792652340,
+  "deadline_unix": 1792681140,
+  "parent": "outputs/v142/market_a226_20261022_a/trials/duo_a/best_policy.pt",
+  "parent_sha256": "b1510da0bfda83c2c137b36c85fe0e079fb30adee47c3629d36c03d7e9f947b8",
+  "native_manifest": "outputs/v129/native_build_20261020_a/artifact.json",
+  "handoff_cost": "outputs/v143/selfplay_a226_20261022_a/cost.json",
+  "evaluation_opponents": [
+    {
+      "name": "v143_margin_snapshot",
+      "path": "outputs/v144/handoff_v143_20261022_a/league_a.pt",
+      "sha256": "c2e1743eac9e359741e00b957278189509de136c96e8ae3d7e6fcc2186b50198",
+      "format": "v143"
+    }
+  ],
+  "workers": 13,
+  "batch_matches": 128,
+  "development_environments": 64,
+  "decision_environments": 128,
+  "selection_environments": 256,
+  "confirmation_environments": 512,
+  "final_reserve_seconds": 1800,
+  "training": {
+    "learning_rate": 0.00001,
+    "gae_lambda": 0.95,
+    "minibatch": 1024,
+    "epochs": 3,
+    "target_kl": 0.015,
+    "entropy": 0.005,
+    "snapshot_interval": 50,
+    "history_size": 4,
+    "evaluate_interval": 40,
+    "finish_reserve_seconds": 180
+  }
+}

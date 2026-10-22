@@ -1,5 +1,15 @@
 # Research milestones
 
+## 0.4.28 / research V1.4.4 — 2026-10-22
+
+- Prioritize own absolute score in official duo self-play; keep margin control.
+- Contrast current/current, own-history and full-return credit assignment from
+  identical curriculum weights; subsequent parents/variants follow development results.
+- Fix transfer and archived V143 opponents across all rounds, use environment-
+  clustered paired comparisons, then select on common development256 and confirm512.
+- Eight hours includes setup and final evaluation; no confirmation-driven iteration,
+  no claim that a moving self-play mean proves general competitive improvement.
+
 ## 0.4.27 / research V1.4.3 — 2026-10-22
 
 - Move development-selected V142 own-layout skills back to official duo;
