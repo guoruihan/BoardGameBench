@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-10-23 — V145 actual CUDA, replay and autonomous launch verification
+
+- All four logical slots pass real-A100 gates on authorized GPU3: exact warm
+  start, both-seat/current-only roles, raw/shaped reward replay, stationary
+  opponent integrity, portable export and exact next-update SIL restoration.
+- Verify four formal jobs beyond30 batches and identical new development
+  baseline86.5586/animals14.0547; early fixed-opponent signal is not confirmation.
+- Independently replay512 archived matches/63,050 actions/640 learning paths;
+  audit57-core affinity and actual GPU3 ownership with a reusable read-only script.
+- Record frozen source, stage deadlines and original09:16 stop. Three-round
+  adaptive learning and final512 confirmation remain ongoing background work.
+
 ## 2026-10-23 — V145 safe shared-GPU resource adaptation
 
 - Original four-device startup safely refused newly busy GPUs0–2; no other
