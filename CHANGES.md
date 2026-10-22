@@ -1,5 +1,20 @@
 # Engineering changes
 
+## 2026-10-23 — 0.4.29 / V1.4.4.1 evaluation and recovery repair
+
+- Reuse completed environment pools for greedy evaluation; preserve reference
+  trajectories/RNG, add typed worker diagnostics and bounded group cleanup.
+- Checkpoint complete PPO updates before evaluation, resume pending evaluation
+  without duplicate updates/curve rows, and promptly export best portable policies.
+- Retry failed jobs immediately on their original resource slots while healthy
+  peers continue, retaining attempt limits and original absolute deadlines.
+- Add worker/controller/checkpoint failure injection, bounded real-A100 checks
+  and same-parent per-turn/card-visibility diagnostics; preserve old failed runs.
+- Verify87 relevant tests, one legacy CUDA skip, plus real-A10020-panel pool
+  reuse/parity, injected timeout recovery and exact next-update restoration.
+- Close the stale V144 launch status honestly: r2 incomplete, no r3/final512,
+  no silent budget renewal or new best-model claim.
+
 ## 2026-10-22 — V144 real-CUDA and background iteration launch evidence
 
 - Four actual A100 gates pass: score/margin rewards, full-return and diverse-role

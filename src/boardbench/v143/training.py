@@ -122,13 +122,19 @@ class Trainer(DuoTrainer):
         return dict(**result,batches=self.batches,matches=self.matches,actions=self.actions,
                     snapshot_batches=list(self.snapshot_batches))
 
+    def checkpoint_extra_state(self):return {}
+
+    def restore_extra_state(self,state):
+        if state:raise ValueError('unexpected checkpoint extension')
+
     def save(self,path):
         path=Path(path);tmp=path.with_suffix('.partial.pt')
         torch.save(dict(version=self.VERSION,config=self.config,model=self.model.state_dict(),frozen=self.frozen.state_dict(),
             snapshots=[m.state_dict() for m in self.snapshots],snapshot_batches=self.snapshot_batches,
             optimizer=self.optimizer.state_dict(),rng=self.rng.get_state(),seed_rng=self.seed_rng.bit_generator.state,
             cpu_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all() if self.device.startswith('cuda') else [],
-            batches=self.batches,matches=self.matches,actions=self.actions,elapsed_seconds=self.elapsed_seconds,best_metric=self.best_metric),tmp)
+            batches=self.batches,matches=self.matches,actions=self.actions,elapsed_seconds=self.elapsed_seconds,best_metric=self.best_metric,
+            extra_state=self.checkpoint_extra_state()),tmp)
         tmp.replace(path);write_json(path.with_suffix('.json'),dict(sha256=digest(path),batches=self.batches,
             actions=self.actions,source_id=self.config.get('source_id')))
 
@@ -143,6 +149,7 @@ class Trainer(DuoTrainer):
         self.rng.set_state(s['rng'].cpu());self.seed_rng.bit_generator.state=s['seed_rng'];torch.set_rng_state(s['cpu_rng'].cpu())
         if s['cuda_rng']: torch.cuda.set_rng_state_all([r.cpu() for r in s['cuda_rng']])
         for k in ('batches','matches','actions','elapsed_seconds','best_metric'): setattr(self,k,s[k])
+        self.restore_extra_state(s.get('extra_state',{}))
 
 
 def run(config,out,device='cuda',resume=False):

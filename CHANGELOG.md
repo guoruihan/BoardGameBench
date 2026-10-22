@@ -1,5 +1,17 @@
 # Research milestones
 
+## 0.4.29 / diagnostic V1.4.4.1 — 2026-10-23
+
+- Retain own-score as the official-duo objective: common development128 yields
+  84.34 versus76.01 for the margin control; final512 confirmation was not reached.
+- Same-parent16-environment audit exposes different animal-card availability
+  between forced-refresh curriculum and real two-player market transitions.
+- On15 common environments reaching own-turn11, curriculum94.73/animals22.80
+  versus official self-play79.67/animals8.07. Prefix observations, not altered
+  rules, a causal decomposition, an independent confirmation or an optimality bound.
+- Prioritize testing slow-market and early animal-plan execution transfer;
+  no new algorithm result, long campaign or expired-budget renewal in this repair.
+
 ## 0.4.28 / research V1.4.4 — 2026-10-22
 
 - Prioritize own absolute score in official duo self-play; keep margin control.

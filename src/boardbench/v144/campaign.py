@@ -76,7 +76,7 @@ class Runner:
         log=(self.root/'logs'/(spec['name']+'.log')).open('a')
         p=subprocess.Popen(['taskset','-c',','.join(map(str,cpus)),sys.executable,'-u',*args],
             stdout=log,stderr=subprocess.STDOUT,start_new_session=True,env={**self.env,'CUDA_VISIBLE_DEVICES':gpu})
-        r=dict(stage=spec['name'],pid=p.pid,gpu=gpu,cpus=cpus,started_unix=time.time())
+        r=dict(stage=spec['name'],pid=p.pid,gpu=gpu,cpus=cpus,slot=slot,started_unix=time.time())
         self.receipts.append(r);self.active.append((p,log,r,spec));self.report()
 
     def run(self,specs,until,phase):
@@ -86,10 +86,27 @@ class Runner:
             if until-time.time()<10:raise TimeoutError('insufficient original stage allowance')
             for slot,spec in enumerate(wave):self.start(spec,slot)
             signaled=False;grace=until
-            while any(p.poll() is None for p,_,_,_ in self.active):
-                for p,_,r,_ in self.active:
-                    if p.poll() is not None and 'elapsed_seconds' not in r:
-                        r.update(returncode=p.returncode,elapsed_seconds=time.time()-r['started_unix'])
+            failures=[]
+            while self.active:
+                # Reap/retry each failed slot immediately, while its peers may
+                # continue training for hours. Never move retries to GPU0.
+                for item in list(self.active):
+                    p,stream,r,spec=item
+                    if p.poll() is None:continue
+                    p.wait(timeout=20);stream.close();self.active.remove(item)
+                    r.update(returncode=p.returncode,elapsed_seconds=time.time()-r['started_unix'])
+                    if p.returncode==0 and Path(spec['complete']).exists():continue
+                    failed_attempts=sum(q['stage']==spec['name'] and q.get('returncode') is not None
+                        and (q['returncode']!=0 or q.get('missing_completion',False)) for q in self.receipts)
+                    if p.returncode==0:r['missing_completion']=True;failed_attempts+=1
+                    retry_floor=self.c.get('retry_min_remaining_seconds',180)
+                    if (not self.stopping and failed_attempts<=1
+                            and min(until,self.deadline)-time.time()>retry_floor):
+                        write_json(self.root/'decisions'/f'retry_{time.time_ns()}.json',dict(jobs=[spec['name']],
+                            slot=r['slot'],gpu=r['gpu'],cpus=r['cpus'],reason='immediate same-slot bounded retry',
+                            failed_attempts=failed_attempts,until=until))
+                        self.start(spec,r['slot'])
+                    else:failures.append(spec['name'])
                 if self.stopping and not signaled:
                     for p,_,_,_ in self.active:
                         if p.poll() is None:p.send_signal(signal.SIGTERM)
@@ -98,20 +115,17 @@ class Runner:
                     for p,_,_,_ in self.active:
                         if p.poll() is None:kill_tree(p.pid)
                     break
-                self.report();time.sleep(2)
-            failures=[]
+                self.report()
+                if self.active:time.sleep(2)
+            # Only hard-stopped processes remain here; completed processes were
+            # already reaped individually above. No deferred wave-level retry.
             for p,stream,r,spec in self.active:
                 p.wait(timeout=20);stream.close()
                 if 'elapsed_seconds' not in r:r.update(returncode=p.returncode,elapsed_seconds=time.time()-r['started_unix'])
                 if p.returncode or not Path(spec['complete']).exists():failures.append(spec['name'])
             self.active.clear();self.report()
             if self.stopping:raise InterruptedError('graceful stop with original deadline retained')
-            if failures:
-                retry=[{**s,'retried':True} for s in wave if s['name'] in failures and not s.get('retried')]
-                if len(retry)==len(failures) and until-time.time()>180:
-                    write_json(self.root/'decisions'/f'retry_{time.time_ns()}.json',dict(jobs=failures,reason='one bounded retry; resume checkpoint if available',until=until))
-                    self.run(retry,until,phase)
-                else:raise RuntimeError('incomplete jobs: '+','.join(failures))
+            if failures:raise RuntimeError('incomplete jobs after bounded recovery: '+','.join(failures))
         self.report()
 
     def close(self):
@@ -127,10 +141,11 @@ def training_spec(root,config_path,target):
         args=['-m','boardbench.v144.training','--config',str(config_path),'--out',str(target)])
 
 
-def evaluation_spec(root,record,seeds,stage):
+def evaluation_spec(root,record,seeds,stage,deadline=None):
     name=record['name'];target=root/stage/name;path=root/'configs'/(stage+'_'+name+'.json')
     spec=dict(config=record['config_path'],model=record['policy'],model_sha256=record['sha256'],seeds=seeds,
         stage='confirmation' if stage=='confirmation' else 'development')
+    if deadline is not None:spec['deadline_unix']=deadline
     if path.exists() and read_json(path)!=spec:raise ValueError('evaluation spec changed on resume')
     write_json(path,spec)
     marker='summary.json' if stage=='confirmation' else 'result.json'
@@ -196,7 +211,7 @@ def execute(repo,root):
         records.append(dict(name='initial_transfer',config_path=first['config_path'],policy=str(initial),sha256=digest(initial)))
         # All retained variants face the SAME final DEVELOPMENT panel before selection.
         selection_seeds=list(range(244100000,244100000+c['selection_environments']))
-        specs=[evaluation_spec(root,r,selection_seeds,'selection') for r in records]
+        specs=[evaluation_spec(root,r,selection_seeds,'selection',c['deadline_unix']-600) for r in records]
         runner.run(specs,min(c['deadline_unix']-600,time.time()+1200),'final_development_selection')
         selected_path=root/'selection.json'
         if selected_path.exists():selected=read_json(selected_path)['models']
@@ -213,7 +228,7 @@ def execute(repo,root):
             write_json(selected_path,dict(models=selected,uses_confirmation=False,
                 ranking=[dict(name=r['name'],score=read_json(root/'selection'/r['name']/'result.json')['score_mean']) for r in ranked]))
         seeds=list(range(344000000,344000000+c['confirmation_environments']))
-        runner.run([evaluation_spec(root,r,seeds,'confirmation') for r in selected],c['deadline_unix']-15,'independent_confirmation')
+        runner.run([evaluation_spec(root,r,seeds,'confirmation',c['deadline_unix']-15) for r in selected],c['deadline_unix']-15,'independent_confirmation')
         summary=dict(status='completed',selection_uses_confirmation=False,started_unix=c['started_unix'],deadline_unix=c['deadline_unix'],
             completed_unix=time.time(),selected=[dict(name=r['name'],**read_json(root/'confirmation'/r['name']/'summary.json')) for r in selected],
             rounds=[read_json(root/'decisions'/f'round_{i+1}.json') for i in range(3)])

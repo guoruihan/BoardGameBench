@@ -7,6 +7,7 @@ finished slots never auto-reset or contribute samples to the next policy version
 import ctypes
 import multiprocessing as mp
 import os
+from pathlib import Path
 import time
 import traceback
 
@@ -19,6 +20,18 @@ FEATURES, ACTIONS = 1346, 241
 # Last transition: reward, total score, animal score, completed cards, natural,
 # STOP, animal placement. Only live-at-start slots are consumed by the collector.
 REWARD, SCORE, ANIMAL, COMPLETED, NATURAL, STOPPED, PLACEMENT = range(7)
+
+
+class WorkerTimeoutError(TimeoutError):
+    def __init__(self, diagnostic):
+        self.diagnostic = diagnostic
+        super().__init__(f'environment worker did not respond: {diagnostic}')
+
+
+class WorkerExitedError(RuntimeError):
+    def __init__(self, diagnostic):
+        self.diagnostic = diagnostic
+        super().__init__(f'environment worker exited unexpectedly: {diagnostic}')
 
 
 def _views(buffers, count):
@@ -115,6 +128,7 @@ class EnvironmentPool:
         self.count, self.timeout = count, timeout
         self.connections, self.processes = [], []
         self.closed = False
+        self.last_command = 'startup'
         ctx = mp.get_context('spawn')
         self.buffers = {
             'features': ctx.RawArray(ctypes.c_float, count * features),
@@ -141,21 +155,36 @@ class EnvironmentPool:
             self.close()
             raise
 
+    def worker_diagnostic(self, index, expected):
+        process = self.processes[index]
+        result = dict(worker_index=index, pid=process.pid, exitcode=process.exitcode,
+                      command=self.last_command, expected=expected, timeout_seconds=self.timeout)
+        try:
+            status = Path(f'/proc/{process.pid}/status').read_text()
+            result['process_status'] = {line.split(':', 1)[0]: line.split(':', 1)[1].strip()
+                for line in status.splitlines() if line.split(':', 1)[0] in
+                ('State', 'VmRSS', 'Threads', 'Cpus_allowed_list')}
+            result['wait_channel'] = Path(f'/proc/{process.pid}/wchan').read_text().strip()
+        except OSError:
+            pass
+        return result
+
     def _receive(self, expected):
         deadline = time.monotonic() + self.timeout
-        for pipe in self.connections:
+        for index, pipe in enumerate(self.connections):
             if not pipe.poll(max(0., deadline - time.monotonic())):
-                raise TimeoutError('environment worker did not respond')
+                raise WorkerTimeoutError(self.worker_diagnostic(index, expected))
             try:
                 tag, value = pipe.recv()
             except EOFError as exc:
-                raise RuntimeError('environment worker exited unexpectedly') from exc
+                raise WorkerExitedError(self.worker_diagnostic(index, expected)) from exc
             if tag != expected:
                 raise RuntimeError(f'environment worker failed: {value}')
 
     def _command(self, name, value=None):
         if self.closed:
             raise RuntimeError('environment pool is closed')
+        self.last_command = name
         if self.local is not None:
             self.local.reset(value) if name == 'reset' else self.local.step()
         else:
@@ -195,14 +224,17 @@ class EnvironmentPool:
                 pipe.send(('close', None))
             except (BrokenPipeError, OSError):
                 pass
-        for process in self.processes:
-            process.join(timeout=2.)
-            if process.is_alive():
-                process.terminate()
-                process.join(timeout=2.)
-            if process.is_alive():
-                process.kill()
-                process.join(timeout=2.)
+        # Each cleanup phase has ONE group deadline, not 2 seconds per worker.
+        for method in (None, 'terminate', 'kill'):
+            if method:
+                for process in self.processes:
+                    if process.is_alive():
+                        getattr(process, method)()
+            deadline = time.monotonic() + 2.
+            for process in self.processes:
+                process.join(timeout=max(0., deadline-time.monotonic()))
+            if not any(process.is_alive() for process in self.processes):
+                break
         for pipe in self.connections:
             pipe.close()
 

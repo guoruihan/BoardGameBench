@@ -13,7 +13,11 @@ def run(spec,out,device='cuda'):
     if base is None or not spec['seeds'] or any(not base<=s<base+1000000 for s in spec['seeds']):
         raise ValueError('evaluation stage namespace mismatch')
     if digest(spec['model'])!=spec['model_sha256']:raise ValueError('evaluation policy digest mismatch')
-    config=read_json(spec['config']);t=Trainer(config,device)
+    config=read_json(spec['config'])
+    # Final panels have their own authorized window, not the expired training
+    # round's deadline. The outer controller still enforces the stage hard cap.
+    if 'deadline_unix' in spec:config['evaluation_deadline_unix']=spec['deadline_unix']
+    t=Trainer(config,device)
     try:
         model=load_policy(spec['model'],device);t.model.load_state_dict(model.state_dict())
         result=t.evaluate_panel(spec['seeds'])
