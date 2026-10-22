@@ -1,5 +1,15 @@
 # Engineering changes
 
+## 2026-10-23 — V145 safe shared-GPU resource adaptation
+
+- Original four-device startup safely refused newly busy GPUs0–2; no other
+  process was stopped and no V145 CUDA/training work ran in that attempt.
+- Explicitly map four independent experiment slots onto idle authorized GPU3,
+  retain57 CPU cores and the same09:16 deadline in a new preserved run directory.
+- Account physical GPU time by union of occupied intervals per UUID, report
+  logical slot time separately, and validate shared-slot authorization explicitly.
+- Re-run all14 V145 tests including shared-device accounting: passed in55.47s.
+
 ## 2026-10-23 — 0.4.30 / V1.4.5 official-duo animal-skill learning
 
 - Reuse V144.1 persistent evaluation/recovery lifecycle through explicit trainer

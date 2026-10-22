@@ -20,7 +20,7 @@ V144.1同权重诊断显示：在共同到达第11回合的小面板中，课程
 V142父模型仍只作为结构初始化与固定评测参考；正式学习从V144保留权重接续。
 轮间继承权重但使用新的Adam/RNG/回放池，不称作优化器精确续训。
 
-## 第一轮四个独立单卡实验
+## 第一轮四个独立实验
 
 | 名称 | 对手 | 学习变化 |
 | --- | --- | --- |
@@ -100,22 +100,23 @@ Phi来自有记忆的原规划器，不能把它解释为只依赖棋盘的精�
 ## 运行、资源与恢复
 
 配置：`configs/v145_a226_animal.json`。
-运行目录：`outputs/v145/animal_a226_20261023_a`。
-a226只用GPU0–3；四任务各13worker+1主核，控制器1核，共57物理核，不超过128核机器的一半。
+运行目录：`outputs/v145/animal_a226_20261023_b`。
+a226只可使用GPU0–3；当前四任务共享空闲GPU3，四任务各13worker+1主核，
+控制器1核，共57物理核，不超过128核机器的一半。
 GPU4–7其他人的任务不触碰。启动前检查GPU内存/利用率及节点负载，并取得项目节点锁。
 源码冻结到运行目录；截止时间和来源摘要不可变。小版本源码/配置/测试入Git，权重/轨迹不入Git。
 
 ```bash
-tmux new-session -d -s boardbench_v145_animal_a226_20261023_a \
+tmux new-session -d -s boardbench_v145_animal_a226_20261023_b \
   -c /datapool/data3/storage/ruihan/code/boardgame 'bash scripts/run_v145_animal.sh'
 ```
 
 只有原进程已退出、资源可用且仍在原截止时间内才能恢复：
 
 ```bash
-PYTHONPATH=outputs/v145/animal_a226_20261023_a/source/src \
+PYTHONPATH=outputs/v145/animal_a226_20261023_b/source/src \
   .venv-train/bin/python -u -m boardbench.v145.campaign \
-  --repo "$PWD" --out outputs/v145/animal_a226_20261023_a --execute
+  --repo "$PWD" --out outputs/v145/animal_a226_20261023_b --execute
 ```
 
 沿用V144.1的常驻评测池、更新先落盘、待评测恢复和原槽即时重试。
@@ -128,4 +129,14 @@ PYTHONPATH=outputs/v145/animal_a226_20261023_a/source/src \
 本地相关回归100通过、1项旧CUDA专用跳过，202.99秒。覆盖V140–145、原双人/课程规则、
 原生池和恢复路径；新增正反向奖励核算、原评测行为一致、三种对手角色、势函数/SIL及
 组合、回放摘要和RNG精确恢复、多进程、故意损坏奖励拒绝、真实小轮次到独立确认流程。
-未把CPU通过当作CUDA证明；控制器必须先通过四张实际A100门控才启动正式任务。
+未把CPU通过当作CUDA证明；四个逻辑槽必须各自通过实际A100门控才启动正式任务。
+
+## 启动资源调整
+
+01:37启动前复查，GPU0–2已被其他AF2任务占用，原四卡运行`_a`被空闲资源检查拒绝，
+没有执行CUDA门控或正式训练，也没有抢占这些任务。保留`_a`冻结源码/配置/日志。
+新运行`_b`保持原01:16–09:16截止时间，四个独立实验共享仍空闲的GPU3，不是DDP。
+`gpu_uuids`四个逻辑槽显式重复GPU3，`authorized_gpu_uuids`保留获准0–3清单；
+占用统计将同一UUID的时间区间取并集，另报逻辑GPU槽时，不能把一张共享卡记成四张。
+不自动迁移或干预其他任务；共享吞吐在实际门控和训练推进中检查。
+资源调整后V145全部14项测试复跑通过（55.47秒），含新增物理GPU占用并集核算。

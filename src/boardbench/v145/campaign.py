@@ -9,9 +9,33 @@ import time
 from boardbench.artifacts.store import digest,read_json,write_json,source_files,source_id
 from boardbench.v122.campaign import physical_cpus
 from boardbench.v127.preflight import reserve
-from boardbench.v144.campaign import Runner,retained_records
+from boardbench.v144.campaign import Runner as BaseRunner,retained_records
 from .preflight import trial_config
 from .decisions import first_round,next_round
+
+
+def device_occupancy(receipts,now):
+    """Union occupied intervals per physical GPU; shared slots are not 4 GPUs."""
+    by_device={}
+    for r in receipts:
+        begin=r['started_unix'];end=begin+r.get('elapsed_seconds',max(0,now-begin))
+        by_device.setdefault(r['gpu'],[]).append((begin,end))
+    total=0.
+    for intervals in by_device.values():
+        end=None
+        for a,b in sorted(intervals):
+            total+=max(0,b-max(a,end if end is not None else a));end=max(b,end if end is not None else b)
+    return total
+
+
+class Runner(BaseRunner):
+    def report(self):
+        super().report();cost=read_json(self.root/'cost.json')
+        cost.update(logical_gpu_slot_seconds=cost['physical_gpu_seconds'],
+            physical_gpu_seconds=device_occupancy(self.receipts,time.time()),
+            physical_gpu_count=len(set(self.c['gpu_uuids'])),logical_gpu_slots=len(self.c['gpu_uuids']),
+            note='Physical GPU occupancy is union of slot intervals per UUID, not utilization. CPU includes allocated slots; setup editor/test CPU is not precisely measured. Original deadline includes setup and retries.')
+        write_json(self.root/'cost.json',cost)
 
 
 def training_spec(root,path,target):
@@ -41,13 +65,13 @@ def execute(repo,root):
         for i,arm in enumerate(first_round()):
             gate_arm={**arm,'progress_scale':1.,'mode':'mixed'} if i==3 else arm
             cfg=trial_config(root/'source',c,gate_arm)
-            cfg.update(deadline_unix=c['deadline_unix'],replay_directory=str(root/f'preflight_gpu{i}/replay'))
-            path=root/'configs'/f'gate{i}.json';write_json(path,cfg);target=root/f'preflight_gpu{i}'
-            gates.append(dict(name=f'preflight_gpu{i}',out=str(target),complete=str(target/'result.json'),
+            cfg.update(deadline_unix=c['deadline_unix'],replay_directory=str(root/f'preflight_slot{i}/replay'))
+            path=root/'configs'/f'gate{i}.json';write_json(path,cfg);target=root/f'preflight_slot{i}'
+            gates.append(dict(name=f'preflight_slot{i}',out=str(target),complete=str(target/'result.json'),
                 args=['-m','boardbench.v145.preflight','--config',str(path),'--out',str(target)]))
         runner.run(gates,min(c['deadline_unix'],time.time()+900),'cuda_preflight')
         for i in range(4):
-            gate=read_json(root/f'preflight_gpu{i}/result.json')
+            gate=read_json(root/f'preflight_slot{i}/result.json')
             if not gate['passed'] or gate['source_id']!=launch['source_id']:raise ValueError('actual CUDA gate mismatch')
         schedule_path=root/'schedule.json'
         if schedule_path.exists():schedule=read_json(schedule_path)
@@ -128,8 +152,10 @@ def main():
     if a.execute:return execute(repo,root)
     c=read_json(a.config);physical=physical_cpus()
     if (os.uname().nodename!=c['host'] or len(physical)//2<57 or len(c['gpu_uuids'])!=4 or c['workers']!=13
+            or not set(c['gpu_uuids'])<=set(c.get('authorized_gpu_uuids',c['gpu_uuids']))
+            or (len(set(c['gpu_uuids']))<4 and not c.get('shared_device_slots'))
             or c['deadline_unix']-c['started_unix']!=28800 or time.time()>=c['deadline_unix']):
-        raise ValueError('a226 four GPUs,57 cores<=half, new absolute eight-hour window required')
+        raise ValueError('a226 four authorized GPU slots,57 cores<=half, immutable eight-hour window required')
     root.mkdir(parents=True,exist_ok=False)
     for name in ('logs','configs','rounds','decisions','selection','confirmation'):(root/name).mkdir()
     for relative in source_files(repo):

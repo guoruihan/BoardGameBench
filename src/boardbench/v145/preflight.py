@@ -1,5 +1,6 @@
 """Mature-policy real-CUDA and independent reward/replay gates."""
 import argparse
+import os
 from copy import deepcopy
 from pathlib import Path
 import time
@@ -30,7 +31,7 @@ def trial_config(repo,campaign,arm,round_index=0):
 
 def run(config,out,device='cuda'):
     out=Path(out);out.mkdir(parents=True,exist_ok=False);start=time.monotonic()
-    if device=='cuda' and not torch.cuda.is_available():raise RuntimeError('real CUDA required')
+    if device=='cuda' and (not torch.cuda.is_available() or torch.cuda.device_count()!=1):raise RuntimeError('one visible real CUDA device required')
     c={**config,'workers':3 if device=='cuda' else 0,'batch_matches':8,'epochs':1,'minibatch':256,
         'replay_directory':str(out/'replay'),'deadline_unix':config['deadline_unix']}
     t=Trainer(c,device);restored=None
@@ -56,6 +57,7 @@ def run(config,out,device='cuda'):
         if any(not torch.equal(v,loaded.state_dict()[k]) for k,v in weights.items()):raise RuntimeError('portable mismatch')
         write_json(out/'traces.json',traces)
         result=dict(passed=True,source_id=source_id(),gpu=torch.cuda.get_device_name() if device=='cuda' else 'cpu',
+            gpu_uuid=os.environ.get('CUDA_VISIBLE_DEVICES'),
             initial_weight_parity=True,exact_resume=True,raw_and_shaped_reward_replay=True,stationary_opponent_unchanged=True,
             first=compact(first),second=compact(actual),evaluation=compact(evaluation),wall_seconds=time.monotonic()-start)
         write_json(out/'result.json',result);print(result,flush=True)

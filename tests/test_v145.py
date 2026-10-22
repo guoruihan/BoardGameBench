@@ -148,3 +148,10 @@ def test_resolved_trial_config_with_round_warm_start(animal_config,tmp_path):
     c=trial_config('.',campaign,dict(warm_start='round2.pt',warm_start_sha256='round2'),1)
     assert c['warm_start']=='round2.pt' and c['training_anchor']==animal_config['warm_start']
     assert c['development_seeds']==[245000000,245000001] and c['decision_seeds']==[245011000,245011001]
+
+
+def test_shared_device_cost_counts_union_not_slots():
+    from boardbench.v145.campaign import device_occupancy
+    receipts=[dict(gpu='a',started_unix=0,elapsed_seconds=10),dict(gpu='a',started_unix=5,elapsed_seconds=10),
+        dict(gpu='b',started_unix=3,elapsed_seconds=6),dict(gpu='a',started_unix=20)]
+    assert device_occupancy(receipts,24)==25
