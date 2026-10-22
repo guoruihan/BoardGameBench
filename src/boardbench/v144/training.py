@@ -24,18 +24,20 @@ class Trainer(PreviousTrainer):
     MODES=('current','league','diverse')
     DEVELOPMENT_BASE=244000000
     CONFIRMATION_BASE=344000000
+    load_warm_policy=staticmethod(load_policy)
+    export_policy=staticmethod(export_policy)
 
     def __init__(self,config,device='cpu'):
         super().__init__(config,device)
         self.pending_curve=None
         self.pool_recovery_events=[]
         if not 0<=config['gae_lambda']<=1:raise ValueError('invalid GAE lambda')
-        if not config['decision_seeds'] or any(not 244000000<=s<245000000 for s in config['decision_seeds']):
+        if not config['decision_seeds'] or any(not self.DEVELOPMENT_BASE<=s<self.DEVELOPMENT_BASE+1000000 for s in config['decision_seeds']):
             raise ValueError('decision panel must be development only')
         if set(config['decision_seeds']) & set(config['development_seeds']):raise ValueError('decision/curve panels overlap')
         if config.get('warm_start'):
             if digest(config['warm_start'])!=config['warm_start_sha256']:raise ValueError('warm-start digest mismatch')
-            self.model.load_state_dict(load_policy(config['warm_start'],device).state_dict())
+            self.model.load_state_dict(self.load_warm_policy(config['warm_start'],device).state_dict())
         # self.frozen ALWAYS remains the common V142 transfer, not this round's parent.
         self.references={'transfer':self.frozen}
         for reference in config.get('evaluation_opponents',[]):
@@ -105,7 +107,8 @@ class Trainer(PreviousTrainer):
                 if attempt or remaining<130:raise
 
     def evaluate_panel(self,seeds):
-        if not seeds or len(seeds)!=len(set(seeds)) or any(not 244000000<=s<245000000 and not 344000000<=s<345000000 for s in seeds):
+        if not seeds or len(seeds)!=len(set(seeds)) or any(not self.DEVELOPMENT_BASE<=s<self.DEVELOPMENT_BASE+1000000
+                and not self.CONFIRMATION_BASE<=s<self.CONFIRMATION_BASE+1000000 for s in seeds):
             raise ValueError('only fresh development/confirmation panels allowed')
         games=[];opponents={};anchor=self.frozen
         try:
@@ -133,7 +136,7 @@ def finish_pending(t,out,elapsed):
         write_json(out/f'dev_{t.batches:06d}.json',evaluation);result['development']=compact(evaluation)
         if t.metric(evaluation)>t.best_metric:
             t.best_metric=t.metric(evaluation);t.elapsed_seconds=elapsed();t.save(out/'best.pt')
-            export_policy(t.model,out/'best_policy.pt',t.config)
+            t.export_policy(t.model,out/'best_policy.pt',t.config)
     t.elapsed_seconds=elapsed()
     result.update(best_development_metric=t.best_metric,selection_metric='margin' if t.config['objective']=='margin' else 'score',
         elapsed_seconds=t.elapsed_seconds,pool_recovery_events=t.pool_recovery_events)
@@ -151,12 +154,12 @@ def finish_pending(t,out,elapsed):
     t.pending_curve=None;t.save(out/'latest.pt')
 
 
-def run(config,out,device='cuda',resume=False):
+def run(config,out,device='cuda',resume=False,*,trainer_class=None):
     out=Path(out);out.mkdir(parents=True,exist_ok=resume)
     if resume and (out/'done.json').exists():raise ValueError('completed trial cannot be extended')
     if config['deadline_unix']<=time.time():raise ValueError('original budget expired')
     if resume and read_json(out/'config.json')!=config:raise ValueError('exact config required')
-    write_json(out/'config.json',config);start=time.monotonic();t=Trainer(config,device)
+    write_json(out/'config.json',config);start=time.monotonic();t=(trainer_class or Trainer)(config,device)
     stopping=[False]
     for sig in (signal.SIGTERM,signal.SIGINT):signal.signal(sig,lambda *_:stopping.__setitem__(0,True))
     try:
@@ -169,8 +172,8 @@ def run(config,out,device='cuda',resume=False):
         if not resume:
             initial=t.evaluate_panel(config['development_seeds']);write_json(out/'initial.json',initial)
             t.best_metric=t.metric(initial);t.elapsed_seconds=time.monotonic()-start
-            t.save(out/'best.pt');t.save(out/'latest.pt');export_policy(t.model,out/'initial_policy.pt',config)
-            export_policy(t.model,out/'best_policy.pt',config)
+            t.save(out/'best.pt');t.save(out/'latest.pt');t.export_policy(t.model,out/'initial_policy.pt',config)
+            t.export_policy(t.model,out/'best_policy.pt',config)
             print(json.dumps(dict(event='initial',objective=config['objective'],**compact(initial))),flush=True)
         elapsed=lambda:prior+time.monotonic()-start
         finish_pending(t,out,elapsed)
@@ -180,7 +183,7 @@ def run(config,out,device='cuda',resume=False):
             directory=out/'trajectories';directory.mkdir(exist_ok=True)
             path=directory/f'batch_{t.batches:06d}.json.gz';tmp=path.with_suffix('.partial.gz')
             with gzip.open(tmp,'wt') as f:
-                json.dump(dict(layout=LAYOUT,rules_version=config['rules_version'],source_id=config.get('source_id'),
+                json.dump(dict(layout=t.LAYOUT,rules_version=config['rules_version'],source_id=config.get('source_id'),
                     objective=config['objective'],mode=config['mode'],batch=t.batches,behavior_checkpoint_sha256=behavior,
                     parent_sha256=config['parent_sha256'],warm_start_sha256=config.get('warm_start_sha256'),games=t.last_traces),f,separators=(',',':'))
             tmp.replace(path)
@@ -192,11 +195,11 @@ def run(config,out,device='cuda',resume=False):
             t.save(out/'latest.pt')
             finish_pending(t,out,elapsed)
         t.elapsed_seconds=prior+time.monotonic()-start;t.save(out/'latest.pt');t.save(out/'final.pt')
-        export_policy(t.model,out/'final_policy.pt',config)
+        t.export_policy(t.model,out/'final_policy.pt',config)
         if stopping[0]:
             write_json(out/'interrupted.json',dict(batches=t.batches,actions=t.actions,deadline_unix=config['deadline_unix']));return
         t.close();selected=torch.load(out/'best.pt',map_location=device,weights_only=False)
-        t.model.load_state_dict(selected['model']);export_policy(t.model,out/'best_policy.pt',config)
+        t.model.load_state_dict(selected['model']);t.export_policy(t.model,out/'best_policy.pt',config)
         decision=t.evaluate_panel(config['decision_seeds']);write_json(out/'decision.json',decision)
         # No confirmation is read here. Later rounds only consume DEVELOPMENT.
         write_json(out/'done.json',dict(status='completed',batches=t.batches,actions=t.actions,

@@ -1,5 +1,20 @@
 # Engineering changes
 
+## 2026-10-23 — 0.4.30 / V1.4.5 official-duo animal-skill learning
+
+- Reuse V144.1 persistent evaluation/recovery lifecycle through explicit trainer
+  hooks, keeping old schemas/default behavior and portable models intact.
+- Add stationary official-duo opponent variants, public owned-animal potential
+  differences with exact raw-return conservation, and bounded own-replay SIL.
+- Archive raw/shaped rewards and MC targets, independently reconstruct plans
+  during replay, and retain replay chunks/RNG for exact same-trial restoration.
+- Add development-driven combine/ablate/credit/exploration rounds, prefix/card
+  diagnostics, fixed-parent paired confirmation and bounded four-GPU campaign.
+- Preserve all previous sources/artifacts; no rule change or improvement claim
+  before actual evaluation. New01:16–09:16 Beijing window includes verification.
+- Relevant CPU regression100 passed/one legacy CUDA skip, including backward
+  V144 behavior, potential/replay recovery and small real round-to-confirmation.
+
 ## 2026-10-23 — 0.4.29 / V1.4.4.1 evaluation and recovery repair
 
 - Reuse completed environment pools for greedy evaluation; preserve reference

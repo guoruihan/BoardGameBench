@@ -1,5 +1,19 @@
 # Research milestones
 
+## 0.4.30 / research V1.4.5 — 2026-10-23
+
+- Test nonstationary opponents, animal-plan credit and reuse of good own
+  experience separately, starting from the same retained V144 own-score policy.
+- Keep all training/evaluation official duo; no forced-refresh curriculum score
+  is used for selection. Potential differences conserve each true total return;
+  positive-advantage replay is a separate off-policy auxiliary, not stale PPO.
+- Three adaptive rounds retain control/winner and test combinations, opponent
+  mix, return horizon or exploration based on development score/animal evidence.
+- Fresh common development256 selection, then independent512 with both seats
+  and two fixed opponents, paired against V144 parent and V142 transfer.
+- New eight-hour allocation includes setup and final evaluation; no outcome or
+  animal-skill improvement claimed before the corresponding evidence exists.
+
 ## 0.4.29 / diagnostic V1.4.4.1 — 2026-10-23
 
 - Retain own-score as the official-duo objective: common development128 yields
