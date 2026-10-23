@@ -21,7 +21,7 @@ from boardbench.v147.training import Trainer,LAYOUT,run
 from boardbench.v147.imitation import run as imitate
 from boardbench.v147.evaluate import run as evaluate
 from boardbench.v147.search_campaign import refine
-from boardbench.v147.campaign import choose_arms,trial_config
+from boardbench.v147.campaign import choose_arms,trial_config,initial_arms
 from test_v129 import artifact
 from test_v140 import duo_config
 from test_v142 import config
@@ -150,3 +150,31 @@ def test_candidate_loss_and_raw_return_guards(learning_config):
     t.close()
     for patch in ({'expert_temperature':0.},{'expert_value_weight':-1.},{'progress_scale':1.}):
         with pytest.raises(ValueError):Trainer({**learning_config,**patch})
+
+
+def test_keep_complementary_bc_skill_and_avoid_duplicate_fallback():
+    old=dict(name='old',policy='old.pt',sha256='old',evaluation=dict(score_mean=85,animal_mean=13))
+    animal=dict(name='skill',policy='skill.pt',sha256='skill',evaluation=dict(score_mean=73,animal_mean=27))
+    arms,decision=initial_arms([old],[animal])
+    assert arms[1]['warm_start']=='skill.pt' and arms[2]['warm_start']=='old.pt'
+    assert decision['selected_skill']=='skill' and not decision['uses_confirmation']
+    arms,decision=initial_arms([old],[])
+    assert arms[1]['name']=='explore' and arms[1]['entropy']==.015
+    assert decision['selected_skill'] is None
+
+
+def test_skill_checkpoint_is_separate_from_total_champion(learning_config,tmp_path,monkeypatch):
+    original=Trainer.evaluate_panel
+    def measured(self,seeds):
+        result=original(self,seeds)
+        # Synthetic summaries force the complementary-selection branch while
+        # using real BC updates, serialization and legal complete-game evaluation.
+        result.update(score_mean=80 if self.bc_steps==0 else 75,animal_mean=10 if self.bc_steps==0 else 20+self.bc_steps)
+        return result
+    monkeypatch.setattr(Trainer,'evaluate_panel',measured)
+    out=tmp_path/'skill_init';imitate(learning_config,out,'cpu')
+    done=read_json(out/'done.json')
+    assert done['selected_bc_steps']==0 and done['complementary_skill']['bc_steps']==2
+    assert (out/'skill_decision.json').exists() and (out/'skill_policy.pt').exists()
+    best=torch.load(out/'best.pt',weights_only=False);skill=torch.load(out/'skill.pt',weights_only=False)
+    assert best['extra_state']['bc_steps']==0 and skill['extra_state']['bc_steps']==2

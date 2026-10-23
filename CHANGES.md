@@ -1,5 +1,21 @@
 # Engineering changes
 
+## 2026-10-23 — 0.4.33 / V147.1 retain complementary imitation skills
+
+- Actual first-run four-A100 gates passed: expert gradients, whole-game PPO,
+  exact next-update restoration, frozen-opponent and portable weight parity.
+- First four BC initializations all selected the original parent on total-score
+  development, creating a duplicate pure-PPO start. Preserve this negative result.
+- Retain an animal-skill checkpoint under a bounded total-score deficit for PPO
+  recovery, separately from the overall champion; use a distinct exploration arm
+  if no complementary skill exists. Never call the weaker BC skill an improvement.
+- Safely stop only the verified learning controller, preserve all checkpoints,
+  and prepare learning_b inside the SAME19:08 deadline. Frozen b35 search continues.
+- Combined learning cost references the stopped first attempt; no old data or
+  weights deleted, no other GPU jobs touched, no new budget window.
+- Targeted16 tests passed in30.03s; two focused complementary-checkpoint/choice
+  tests passed in13.86s (overlapping coverage, not an additional18-test claim).
+
 ## 2026-10-23 — 0.4.32 / V147 search-to-RL exploration
 
 - Add public-only space/stack/terrain/horizon search continuations, paired

@@ -1,5 +1,6 @@
 {
   "role": "learning",
+  "previous_learning_run": "/datapool/data3/storage/ruihan/code/boardgame/outputs/v147/explore_20261023_a/learning",
   "host": "a226.cluster.helixon.com",
   "cpu_cores": 57,
   "gpu_uuids": ["GPU-19c4a068-0c21-98fe-a3c5-8600922b80bb", "GPU-814b0686-8e37-4008-b841-0f48bf443ec7", "GPU-829be823-80a5-bc50-bee4-27422b19e0c8", "GPU-ff9f7b99-6859-0e9e-cdb7-06f61f675308"],

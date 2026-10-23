@@ -7,9 +7,22 @@ from boardbench.artifacts.store import digest,read_json,write_json,source_id
 from boardbench.v127.preflight import reserve
 from boardbench.v122.campaign import physical_cpus
 from boardbench.v144.campaign import retained_records
-from boardbench.v145.campaign import Runner
+from boardbench.v145.campaign import Runner as PreviousRunner
 from boardbench.v144.evaluation import paired_delta
 from .training import LAYOUT
+
+
+class Runner(PreviousRunner):
+    def report(self):
+        super().report()
+        previous=self.c.get('previous_learning_run')
+        if previous:
+            old=read_json(Path(previous)/'cost.json');current=read_json(self.root/'cost.json')
+            current.update(previous_learning_run=previous,prior_learning_cost_sha256=digest(Path(previous)/'cost.json'),
+                combined_physical_gpu_seconds=current['physical_gpu_seconds']+old['physical_gpu_seconds'],
+                combined_allocated_cpu_core_seconds=current['allocated_cpu_core_seconds']+old['allocated_cpu_core_seconds'],
+                accounting_note='Combined fields add the preserved, stopped first attempt; per-attempt fields remain separate. Same original wall deadline.')
+            write_json(self.root/'cost.json',current)
 
 
 def trial_config(c,root,arm,index=0):
@@ -37,6 +50,33 @@ def record(target):
     target=Path(target);path=target/'best_policy.pt'
     return dict(name=target.parent.name+'_'+target.name,policy=str(path),sha256=digest(path),
         config_path=str(target/'config.json'),config=read_json(target/'config.json'),evaluation=read_json(target/'decision.json'))
+
+
+def complementary_records(targets):
+    records=[]
+    for target in map(Path,targets):
+        if not (target/'skill_decision.json').exists():continue
+        row=record(target);row.update(name=row['name']+'_skill',policy=str(target/'skill_policy.pt'),
+            sha256=digest(target/'skill_policy.pt'),evaluation=read_json(target/'skill_decision.json'))
+        records.append(row)
+    return records
+
+
+def initial_arms(initial,skills):
+    best=max(initial,key=lambda row:row['evaluation']['score_mean'])
+    eligible=[row for row in skills if row['evaluation']['score_mean']>=best['evaluation']['score_mean']-20
+              and row['evaluation']['animal_mean']>best['evaluation']['animal_mean']+3]
+    skilled=max(eligible,key=lambda row:row['evaluation']['animal_mean']) if eligible else best
+    warm=lambda row:dict(warm_start=row['policy'],warm_start_sha256=row['sha256'])
+    arms=[dict(name='control',expert_weight=0.),dict(name='skill_recover',**warm(skilled),expert_weight=0.),
+          dict(name='bc_retain',**warm(best),expert_weight=.1),
+          dict(name='skill_long_credit',**warm(skilled),expert_weight=.03,gae_lambda=1.)]
+    if not eligible:
+        # If every BC branch collapses to the same initial weights, make the
+        # second arm a distinct exploration/step-size test instead of an exact duplicate.
+        arms[1].update(name='explore',entropy=.015,learning_rate=.00002)
+    return arms,dict(selected_bc=best['name'],selected_skill=skilled['name'] if eligible else None,
+        uses_confirmation=False,rationale='retain total-score champion and complementary animal skill; PPO repairs full-game deficits; no duplicate fallback arm')
 
 
 def choose_arms(records,index):
@@ -129,16 +169,13 @@ def execute(root):
             init.append(spec('boardbench.v147.imitation',path,target,True))
         r.run(init,timeline['initialization_until'],'imitation_initialization')
         initial=[record(Path(s['out'])) for s in init]
-        best=max(initial,key=lambda row:row['evaluation']['score_mean'])
+        skills=complementary_records([s['out'] for s in init])
         for index,until in enumerate(timeline['round_deadlines']):
             decision_path=root/'decisions'/f'round{index+1}.json'
             if decision_path.exists():decision=read_json(decision_path);arms=decision['arms'];data=decision['data']
             else:
                 if index==0:
-                    warm=dict(warm_start=best['policy'],warm_start_sha256=best['sha256'])
-                    arms=[dict(name='control',expert_weight=0.),dict(name='bc_ppo',**warm,expert_weight=0.),
-                        dict(name='bc_retain',**warm,expert_weight=.1),dict(name='bc_long_credit',**warm,expert_weight=.03,gae_lambda=1.)]
-                    reason=dict(selected_bc=best['name'],uses_confirmation=False,rationale='full-game selected BC vs old-model PPO, decaying expert retention and full-return credit')
+                    arms,reason=initial_arms(initial,skills)
                 else:
                     previous=[row for row in retained_records(root) if row['name'].startswith(f'r{index}_')]
                     arms,reason=choose_arms(previous,index);data=dataset(r,root,c,index)
@@ -170,7 +207,7 @@ def execute(root):
                 write_json(root/'decisions'/f'partial_round{index+1}.json',dict(error=repr(exc),
                     retained=[row['name'] for row in completed],note='Failed arms excluded, not assigned scores; complete control retained.'))
             write_json(root/'retained.json',[{k:v for k,v in row.items() if k not in ('evaluation','config')} for row in retained_records(root)])
-        records=retained_records(root)+initial+[record(path.parent) for path in sorted((root/'refresh').glob('*/done.json'))]
+        records=retained_records(root)+initial+skills+[record(path.parent) for path in sorted((root/'refresh').glob('*/done.json'))]
         records.append(dict(name='initial_parent',config_path=initial[0]['config_path'],policy=c['student'],sha256=c['student_sha256']))
         select_until=c['deadline_unix']-c['confirmation_reserve_seconds']
         r.run(evaluate_specs(root,records,list(range(247200000,247200000+c['selection_environments'])),

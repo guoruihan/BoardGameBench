@@ -1,5 +1,15 @@
 # Research milestones
 
+## 0.4.33 / research V1.4.7.1 — 2026-10-23
+
+- First24-environment expert corpus does not yield a stronger free-playing BC
+  policy: all four initializations revert to the total-score parent on development.
+- Preserve a complementary animal-rich checkpoint for complete-game PPO repair
+  instead of discarding every non-champion initialization; retain independent
+  total-score control and explicit non-duplicate fallback exploration.
+- This is a result-driven change within the original ten-hour experiment, not
+  a positive RL result, a new rule setting, or a renewed resource budget.
+
 ## 0.4.32 / research V1.4.7 — 2026-10-23
 
 - V146 fresh16 paired development: search98.75 versus model82.875, animal44.906
