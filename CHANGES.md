@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-23 — V147.1 verified independent PPO and continuing search
+
+- Publish4f9fac3 and verify upstream SHA; launch learning_b with frozen source
+  3dba189b and the original19:08 deadline, while original b35 source726d6f76 continues.
+- Re-pass all four actualA100 expert/PPO/exact-resume gates, then retain the
+  cautious600-step animal-skill checkpoint separately from the total-score parent.
+- Observe four distinct PPO arms beyond4 complete batches with nonzero updates;
+  audit all-thread57-core ownership and actual authorizedGPU0–3 assignment.
+- Independently replay32 first-batch matches/3636 actions. Both active campaigns
+  have no failed jobs at09:47; no partial search panel or final-model gain claimed.
+- Preserve first attempt15-batch checkpoints and costs; publish repeatable launch,
+  recovery, source and deadline evidence without committing generated artifacts.
+
 ## 2026-10-23 — 0.4.33 / V147.1 retain complementary imitation skills
 
 - Actual first-run four-A100 gates passed: expert gradients, whole-game PPO,
