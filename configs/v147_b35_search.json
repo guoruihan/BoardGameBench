@@ -1,0 +1,21 @@
+{
+  "role": "search",
+  "host": "b35.cluster.helixon.com",
+  "cpu_cores": 49,
+  "started_unix": 1792717680,
+  "deadline_unix": 1792753680,
+  "seconds": 900,
+  "job_timeout_seconds": 1080,
+  "search_seed": 14720261023,
+  "previous_run": "outputs/v146/duo_teacher_b35_20261023_a",
+  "student": "/datapool/data3/storage/ruihan/code/boardgame/outputs/v145/animal_a226_20261023_b/rounds/r1/plan_credit/best_policy.pt",
+  "student_sha256": "4a2129bb019c4de2d0c31702d77aa073642d2e579fb05e9f1b4c1168e462a750",
+  "opponent": "/datapool/data3/storage/ruihan/code/boardgame/outputs/v144/own_score_a226_20261022_a/rounds/r2/score_credit/best_policy.pt",
+  "opponent_sha256": "9e04354342de2db419748ccdcf7ac0434813f6e559a635281c1829fa59d09aad",
+  "native_artifact": {
+    "path": "/datapool/data3/storage/ruihan/code/boardgame/outputs/v129/native_build_20261020_a/harmonies_encode.so",
+    "sha256": "a42c4b6337f6ebd8fb86880ef4ea28fd72c50113445cb94b7920525882cb2aee",
+    "cpp_sha256": "01bc18a1b29bdc1c945c34a15c4b44e4a56e09893382bf220bc672d4fbe80fc7",
+    "layout": "public161_cards1346_v1"
+  }
+}

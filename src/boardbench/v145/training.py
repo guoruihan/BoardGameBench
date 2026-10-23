@@ -19,6 +19,7 @@ class Trainer(PreviousTrainer):
     MODES=('current','fixed','mixed')
     DEVELOPMENT_BASE=245000000
     CONFIRMATION_BASE=345000000
+    TRAINING_BASE=145000000
     load_warm_policy=staticmethod(load_policy)
     export_policy=staticmethod(export_policy)
 
@@ -40,12 +41,12 @@ class Trainer(PreviousTrainer):
         if (state.get('replay') is None)!=(self.replay is None):raise ValueError('replay configuration changed')
         if self.replay:
             seeds={s for r in state['replay']['receipts'] for s in r['environment_seeds']}
-            if any(not 145000000<=s<146000000 for s in seeds):raise ValueError('replay split leakage')
+            if any(not self.TRAINING_BASE<=s<self.TRAINING_BASE+1000000 for s in seeds):raise ValueError('replay split leakage')
             self.replay.restore(state['replay'],seeds)
 
     def collect(self,pool,seeds,learner_seats,opponents,greedy=False,keep_rows=True):
         if not len(seeds)==len(learner_seats)==len(opponents)==pool.count:raise ValueError('one role per match')
-        if keep_rows and any(not 145000000<=s<146000000 for s in seeds):raise ValueError('training-only rows/replay')
+        if keep_rows and any(not self.TRAINING_BASE<=s<self.TRAINING_BASE+1000000 for s in seeds):raise ValueError('training-only rows/replay')
         tick=time.monotonic();arrays=pool.reset(seeds);env_seconds=time.monotonic()-tick;model_seconds=0.
         calls=total_actions=0;trajectories=[[[],[]] for _ in seeds];traces=[[] for _ in seeds]
         tokens=np.zeros((len(seeds),2),int);animals=np.zeros_like(tokens);cards=np.zeros_like(tokens)
@@ -131,7 +132,7 @@ class Trainer(PreviousTrainer):
             replay_rows=sum(len(b['action']) for b in self.replay.blocks) if self.replay else 0)
 
     def batch(self):
-        self.get_pool(self.config['batch_matches']);seeds=self.seed_rng.integers(145000000,146000000,self.pool.count).tolist()
+        self.get_pool(self.config['batch_matches']);seeds=self.seed_rng.integers(self.TRAINING_BASE,self.TRAINING_BASE+1000000,self.pool.count).tolist()
         seats=[(i//4+self.batches)%2 for i in range(self.pool.count)]
         opponents=['current' if self.config['mode']=='current' or (self.config['mode']=='mixed' and i%2==0)
             else 'frozen' for i in range(self.pool.count)]

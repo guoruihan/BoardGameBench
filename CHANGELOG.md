@@ -1,5 +1,18 @@
 # Research milestones
 
+## 0.4.32 / research V1.4.7 — 2026-10-23
+
+- V146 fresh16 paired development: search98.75 versus model82.875, animal44.906
+  versus12.188;48 actual training demonstrations ready. These are teacher, not new RL results.
+- Diagnose low duo search terrain and own early board fill; explore space,
+  stacking, terrain balance and opponent-horizon continuations at900s/game.
+- Bridge audited expert actions/relative candidate Q/MC returns to initialization,
+  then own-score complete-game PPO with decaying off-policy auxiliary supervision.
+- Three development-driven learning rounds, immutable train/dev/confirmation
+  namespaces, retained controls and independent512-environment pure-model confirmation.
+- New user-authorized ten-hour window; rules, scoring, information permissions
+  and historical artifacts unchanged. No promise of reaching solo score or optimality.
+
 ## 0.4.31 / research V1.4.6 — 2026-10-23
 
 - Switch from own-replay/plan-credit PPO variants to an official-duo teacher

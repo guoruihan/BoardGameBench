@@ -1,5 +1,22 @@
 # Engineering changes
 
+## 2026-10-23 — 0.4.32 / V147 search-to-RL exploration
+
+- Add public-only space/stack/terrain/horizon search continuations, paired
+  result-driven panels, retained-teacher fallback and train-only trajectory generation.
+- Reconstruct real V146/V147 expert games with independent replay, two planners,
+  native feature/mask alignment and explicit candidate-Q versus actual-MC targets.
+- Add full-game-selected BC initialization and separate expert auxiliary updates
+  after complete-game PPO; reuse existing native sampler and safe resume lifecycle.
+- Parameterize the old trainer's training-seed namespace and worker/search hooks
+  without changing defaults; keep V145 portable inference ABI and old frozen runs.
+- Add a new immutable09:08–19:08 window, separate CPU/GPU campaigns, half-node
+  CPU limits, four authorized independent GPUs, deadline guardians and512 confirmation.
+- Implementation and protocol only at this entry; actual validation/launch evidence
+  is recorded separately after checks, without predicting research gains.
+- Related CPU regression111 passed/one old CUDA-only skip in169.74s; explicit
+  on-device expert-gradient/PPO/exact-resume gates remain mandatory at launch.
+
 ## 2026-10-23 — V146 frozen launch and CPU ownership audit
 
 - Publish implementation019d547 and verify GitHub branch SHA, then start the

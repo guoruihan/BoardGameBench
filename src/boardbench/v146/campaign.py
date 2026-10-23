@@ -27,6 +27,7 @@ def valid_result(data,job):
 
 
 class Runner:
+    WORKER_MODULE='boardbench.v146.worker'
     def __init__(self,root):
         self.root=Path(root);self.config=read_json(self.root/'config.json');self.launch=read_json(self.root/'launch.json')
         c=self.config
@@ -91,7 +92,7 @@ class Runner:
                     log=(self.root/'logs'/(j['id']+'.log')).open('a')
                     env={**os.environ,'PYTHONPATH':str(self.root/'source/src'),'PYTHONNOUSERSITE':'1','PYTHONDONTWRITEBYTECODE':'1',
                          'CUDA_VISIBLE_DEVICES':'','OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MKL_NUM_THREADS':'1','NUMEXPR_NUM_THREADS':'1'}
-                    p=subprocess.Popen(['taskset','-c',str(cpu),sys.executable,'-u','-m','boardbench.v146.worker',
+                    p=subprocess.Popen(['taskset','-c',str(cpu),sys.executable,'-u','-m',self.WORKER_MODULE,
                         '--job',str(path),'--out',str(target)],stdout=log,stderr=subprocess.STDOUT,start_new_session=True,env=env)
                     r=dict(id=j['id'],cpu=cpu,pid=p.pid,started_unix=time.time(),timeout_seconds=needed)
                     self.receipts.append(r);self.active.append((p,log,r,j))

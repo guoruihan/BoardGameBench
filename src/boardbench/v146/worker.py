@@ -69,15 +69,15 @@ def audit_trace(trace):
     return dict(actions=len(rows),scores=obs['scores'],natural_terminal=True)
 
 
-def play(job, progress=None):
-    validate_job(job); started=time.monotonic(); cpu=time.process_time()
+def play(job, progress=None, *, validator=validate_job, search_factory=TerminalSearch):
+    validator(job); started=time.monotonic(); cpu=time.process_time()
     torch.set_num_threads(1)
     native=NativeEncoder.from_artifact(job['native_artifact']) if job.get('native_artifact') else None
     focal=ModelPlayer(load_policy(job['student']),native)
     opposing=ModelPlayer(load_policy(job['opponent']),native)
     game=FastHarmoniesDuo(); obs,_=game.reset(job['environment_seed'])
     planners=[Planner(),Planner()]; habitat=Habitat(); focus=job['seat']
-    search=TerminalSearch(focal,opposing,focus,job['method'].removeprefix('search_'),job['seconds'],
+    search=search_factory(focal,opposing,focus,job['method'].removeprefix('search_'),job['seconds'],
                           job['search_seed'],max_rounds=job.get('max_rounds')) if job['method'].startswith('search_') else None
     decisions=[]; decision_seconds=0.; opponent_seconds=0.
     for _ in range(768):
@@ -129,7 +129,7 @@ def play(job, progress=None):
     return stats,trace
 
 
-def run(job,out):
+def run(job,out,*,play_function=play):
     out=Path(out);out.mkdir(parents=True,exist_ok=False)
     if job['source_id']!=source_id():raise ValueError('worker must use frozen source')
     stopping=[False]
@@ -139,7 +139,7 @@ def run(job,out):
         write_json(out/'progress.json',value)
         if stopping[0]:raise InterruptedError('requested stop; incomplete game is not training data')
     try:
-        result,trace=play(job,progress)
+        result,trace=play_function(job,progress)
         path=out/'trajectory.json.gz';tmp=out/'trajectory.partial.gz'
         with gzip.open(tmp,'wt') as stream:json.dump(trace,stream,separators=(',',':'),allow_nan=False)
         tmp.replace(path);result.update(id=job['id'],source_id=source_id(),trajectory=str(path),trajectory_sha256=digest(path),
