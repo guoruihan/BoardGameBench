@@ -1,5 +1,19 @@
 # Research milestones
 
+## 0.4.34 / research V1.4.8 — 2026-10-24
+
+- V147 final512x2 best model86.17285 versus plainPPO86.12012: no reliable extra
+  expert-method advantage. Fresh16x2 search98.6875 versus stack98.78125: no reliable
+  replacement teacher. Preserve both negative findings and prior artifacts.
+- Move from fixed continuation at six roots to multi-decision public stochastic
+  MCTS with growing candidate sets, then learn root visits and real terminal returns.
+- Separate pure terminal-rollout MCTS from prediction-gated value leaves; preserve
+  raw own-score objective, frozen opponent, exact rules and hidden-future boundary.
+- Adopt search-policy/value iteration with full-game parent fallback instead of
+  assuming more BC-plus-PPO must preserve animal skill. Learned priors return to search.
+- This release establishes implementation and execution gates only. New900s paired
+  comparisons and512-environment confirmation require the next authorized run window.
+
 ## 0.4.33 / research V1.4.7.1 — 2026-10-23
 
 - First24-environment expert corpus does not yield a stronger free-playing BC

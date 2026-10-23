@@ -12,14 +12,14 @@ from boardbench.v122.campaign import physical_cpus
 from boardbench.v12.budget import kill_tree
 
 
-def guard(root,role):
+def guard(root,role,*,module='boardbench.v147.launch'):
     root=Path(root);c=read_json(root/'resolved_config.json');launch=read_json(root/'launch.json')
     if c['role']!=role or digest(root/'resolved_config.json')!=launch['resolved_config_sha256']:
         raise ValueError('immutable role/config/deadline required')
     if (root/'summary.json').exists() or time.time()>=c['deadline_unix']:raise ValueError('completed/expired; cannot renew')
     env={**os.environ,'PYTHONPATH':str(root/'source/src'),'PYTHONNOUSERSITE':'1','PYTHONDONTWRITEBYTECODE':'1',
         'OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MKL_NUM_THREADS':'1','NUMEXPR_NUM_THREADS':'1','CUBLAS_WORKSPACE_CONFIG':':4096:8'}
-    child=subprocess.Popen([sys.executable,'-u','-m','boardbench.v147.launch','--out',str(root),
+    child=subprocess.Popen([sys.executable,'-u','-m',module,'--out',str(root),
         '--role',role,'--execute'],env=env,start_new_session=True)
     # Child must discover the full host physical topology BEFORE its own pin;
     # inheriting the guardian's one-core mask would invalidate half-host checks.

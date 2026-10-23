@@ -1,5 +1,23 @@
 # Engineering changes
 
+## 2026-10-24 — 0.4.34 / V148 public MCTS and search-policy learning
+
+- Add exact-duo public-outcome MCTS, progressively widened legal candidates,
+  fixed-policy opponent handling, cumulative900s decision accounting and complete-only backups.
+- Archive real root visits separately from legacy expert actions and unsearched
+  fallbacks; replay masks, public planners and true remaining own-score returns.
+- Add standalone policy/value learning, parent-KL variants, exact optimizer/RNG
+  recovery, portable policies and separately gated score-value leaf artifacts.
+- Reuse existing CPU/GPU schedulers for paired search, train-data handoff, learned
+  priors returning to search and separate512-environment pure-model confirmation.
+- New windows require explicit start/duration; no expired V147 budget renewal.
+  Restrict mixed jobs to a226GPU0–3 and <=half physical CPUs on every host.
+- Related53 CPU checks pass; actualA100 gradient/restore/export/full-game and
+  four-update fit gates pass. Fix the small-gate inherited13-worker configuration.
+  Six bounded b35 calibration games pass; no900s strength result or long launch claimed.
+- Final13 V148 checks additionally cover value-leaf backup and resuming with
+  retained old failure records; preserve cumulative controller costs on recovery.
+
 ## 2026-10-23 — V147.1 verified independent PPO and continuing search
 
 - Publish4f9fac3 and verify upstream SHA; launch learning_b with frozen source
