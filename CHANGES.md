@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-24 — V148 authorized ten-hour launch
+
+- Start new immutable02:03:40–12:03:40CST window on b35/a226, frozen at published
+  f9ea6d2/sourcea072bfcb; preserve prior windows and all earlier artifacts.
+- Recheck half-node CPU limits and authorized a226GPU0–3; all four realA100
+  gradient/exact-resume/portable/full-game gates pass on the launch snapshot.
+- Complete two1200-step value initializations and hand off the eligible leaf
+  evaluator to the first40 paired matches, including32 bounded900s searches.
+- Add read-only live process/all-thread/device/provenance audit and publish
+  repeatable run/session/log/deadline pointers. No completed search gain claimed.
+
 ## 2026-10-24 — 0.4.34 / V148 public MCTS and search-policy learning
 
 - Add exact-duo public-outcome MCTS, progressively widened legal candidates,
