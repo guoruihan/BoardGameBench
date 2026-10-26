@@ -53,19 +53,23 @@ class Campaign:
         out=Path(out);out.parent.mkdir(parents=True,exist_ok=True)
         if out.exists() and '--resume' not in args:
             out.rename(out.with_name(out.name+f'.incomplete_{time.time_ns()}'))
+        gpu_device=None
         if gpu:
             # Data collection may take minutes after launch. Recheck immediately
             # before every GPU subprocess, never assume launch-time availability.
             for attempt in range(10):
-                state=subprocess.check_output(['nvidia-smi','--id='+str(self.c['gpu']),
-                    '--query-gpu=memory.used,utilization.gpu','--format=csv,noheader,nounits'],text=True)
-                memory,util=map(int,state.strip().split(','))
-                if memory<=100 and util<=10:break
+                state=subprocess.check_output(['nvidia-smi',
+                    '--query-gpu=index,memory.used,utilization.gpu','--format=csv,noheader,nounits'],text=True)
+                idle=[index for index,memory,util in (map(int,line.split(',')) for line in state.splitlines())
+                      if memory<=100 and util<=10]
+                if idle:
+                    gpu_device=self.c['gpu'] if self.c['gpu'] in idle else idle[0]
+                    break
                 if self.stop or time.time()>=self.c['deadline_unix']-30:raise InterruptedError('GPU wait deadline')
                 time.sleep(1)
-            else:raise RuntimeError('GPU became occupied; no sharing or preemption')
+            else:raise RuntimeError('no idle GPU on authorized host; no sharing or preemption')
         env={**os.environ,'OMP_NUM_THREADS':'1','MKL_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1',
-             'CUDA_VISIBLE_DEVICES':str(self.c['gpu']) if gpu else ''}
+             'CUDA_VISIBLE_DEVICES':str(gpu_device) if gpu else ''}
         # For evaluation each worker, including library threads, gets one CPU.
         command=['taskset','-c',str(cpu),sys.executable,*args]
         started=time.time()
@@ -79,7 +83,7 @@ class Campaign:
                     break
                 time.sleep(.2)
         self.costs.append(dict(command=command,out=str(out),exit_code=process.returncode,
-            started_unix=started,wall_seconds=time.time()-started,cpu_slots=1,gpu_slots=int(gpu)))
+            started_unix=started,wall_seconds=time.time()-started,cpu_slots=1,gpu_slots=int(gpu),gpu=gpu_device))
         # Written by the coordinator after concurrent stages; avoid temp-file races.
         if process.returncode or not complete.exists():raise RuntimeError(f'job failed: {out}; see {out}.log')
         return read_json(complete)

@@ -7,7 +7,9 @@
 - Replay/audit real remaining returns, encode value-only rows without fabricated
   action targets, hold out whole environments, and compare updates against parents.
 - Recheck idle GPU capacity before each fitting subprocess, including after CPU
-  collection. Preserve old models and never automatically promote an update.
+  collection. Use another idle GPU on the same authorized host when the preferred
+  card becomes occupied, recording its ID per job. Never share/preempt occupied GPUs.
+-25 focused V149/V148 checks pass. Preserve old models; no automatic promotion.
 
 ## 2026-10-26 — 0.4.36 / V149 value-guided per-decision planning
 

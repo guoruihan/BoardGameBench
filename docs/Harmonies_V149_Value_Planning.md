@@ -118,8 +118,11 @@ PYTHONPATH=outputs/v149/value_a227_20261026_a/source/src \
 ```bash
 .venv-train/bin/python -u -m boardbench.v149.launch \
   --parent outputs/v149/value_a227_20261026_a \
-  --root outputs/v149/feedback_a227_20261026_a --workers 24 --gpu 1
+  --root outputs/v149/feedback_a227_20261026_a --workers 24 --gpu 7
 ```
 
 结果入口为`feedback_train_summary.json`、`feedback_pilot_summary.json`、
 `feedback_expanded_summary.json`和`summary.json`；`fit/`保留完整训练恢复点。
+GPU1在首批结束后被其他任务使用，反馈阶段启动选择空闲GPU7。各拟合子任务
+优先使用指定卡；若它已被占用，只在a227选择另一张空闲卡，并将实际卡号写入
+`costs.json`。始终最多一个GPU训练任务，不共享或停止其他人的进程。
