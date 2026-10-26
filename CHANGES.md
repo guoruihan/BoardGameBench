@@ -1,5 +1,12 @@
 # Engineering changes
 
+## 2026-10-26 — V149 bounded trial results
+
+- Publish both paired evaluations and one completed feedback cycle:736games,
+  audited trajectories, frozen sources, saved value checkpoints and resource receipts.
+- Report one observed0.1s rollout timing failure (0.1365s); preserve it in the
+  results and do not promote an unverified planner. All own experiment processes exited.
+
 ## 2026-10-26 — 0.4.37 / V149 planner feedback cycle
 
 - Add one recoverable planner-data/value-refit/evaluation cycle under the original
@@ -9,7 +16,7 @@
 - Recheck idle GPU capacity before each fitting subprocess, including after CPU
   collection. Use another idle GPU on the same authorized host when the preferred
   card becomes occupied, recording its ID per job. Never share/preempt occupied GPUs.
--25 focused V149/V148 checks pass. Preserve old models; no automatic promotion.
+- 25 focused V149/V148 checks pass. Preserve old models; no automatic promotion.
 
 ## 2026-10-26 — 0.4.36 / V149 value-guided per-decision planning
 

@@ -7,6 +7,11 @@
 - Fit realized returns for that planner only, avoiding pooled continuation-policy
   targets. New paired development games test whether the resulting planner improves.
 - This is one measured feedback iteration, not an unbounded self-improvement claim.
+- Complete736games and new128-game feedback training. On new16environment pairs,
+  feedback turn-value84.44 vs parent79.66 (deltaCI includes zero), RL86.22 and
+  matched1s rollout88.63. Animal28.41 is offset by terrain56.03; no baseline promotion.
+- Held feedback-return RMSE drops34.79→10.14, demonstrating that prediction
+  improvement alone is insufficient evidence of a stronger decision policy.
 
 ## 0.4.36 / research V1.4.9 — 2026-10-26
 
