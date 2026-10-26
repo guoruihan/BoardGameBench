@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-10-26 — V150 completed primary evaluation and partial failure report
+
+- Publish 23-round results and the complete frozen128-environment/both-seat
+  confirmation:1280 audited games. Verify paired keys, natural terminals and timing.
+- Record the0.1s secondary-panel signal/IPC failure and top-level report omission;
+  preserve original artifacts and use the intact primary summary for conclusions.
+- Report69 fits, GPU0/CPU execution split and resource accounting; no budget renewal,
+  baseline promotion or claim of a pure-RL actor improvement.
+
 ## 2026-10-26 — V150 a226 GPU0 launch verified
 
 - Freeze973e7a2 and launch the authorized window at15:18:52CST on a226; retain

@@ -2,6 +2,14 @@
 
 ## 0.4.38 / research V1.5.0 — 2026-10-26
 
+- Complete23 adaptive rounds. Frozen128-environment/both-seat confirmation gives
+  retained V15081.61 (animal27.63, terrain53.98), V14982.37, pureRL85.64,
+  matched1s rollout87.05. Animal gain+3.57 over V149 is offset by terrain-4.33;
+  total delta-0.76 has95% paired interval[-2.58,1.06]. No baseline promotion.
+- The main1280-game panel is complete; secondary0.1s panel stops at380/384 games
+  after a deadline-signal/IPC failure. The exception drops main results from the
+  top-level auto-report; docs/Harmonies_V150_Results.md records the intact evidence.
+
 - Investigate the V149 animal/terrain tradeoff with scalar-control, component-value
   and separately labeled candidate-ranking heads. Keep original total-score objective.
 - Use one behavior policy per MC dataset; distinguish habitat-continuation sibling
