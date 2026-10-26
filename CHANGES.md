@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-26 — 0.4.35 / human versus learned duo policy
+
+- Add a minimal two-player browser page with both boards, shared markets,
+  legal token/animal placement and human first/second-seat selection.
+- Load the retained V147 `r2_continue` actor on one CPU thread, verify its SHA256,
+  and automatically play only the computer's turns using the existing duo engine.
+- Reuse the `serve` command; keep solo pages unchanged. No search, training,
+  game saves or trajectory exports are added to the duo page.
+- Document the launch command and VS Code port forwarding. Verify both seats
+  through complete games with the real weights and reference-engine parity tests.
+
 ## 2026-10-24 — V148 authorized ten-hour launch
 
 - Start new immutable02:03:40–12:03:40CST window on b35/a226, frozen at published

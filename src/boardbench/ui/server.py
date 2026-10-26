@@ -251,8 +251,14 @@ class Replay:
 
 
 def make_server(*, config=None, trajectory=None, port=8765):
-    session = Replay(trajectory) if trajectory is not None else PlaySession(config or {})
-    page = Path(__file__).with_name("index.html" if session.task["id"] == "risk_collect" else "board.html").read_bytes()
+    duo = trajectory is None and (config or {}).get("task", {}).get("id") == "harmonies_duo"
+    if duo:
+        from .duo import DuoPlaySession
+        session = DuoPlaySession(config)
+    else:
+        session = Replay(trajectory) if trajectory is not None else PlaySession(config or {})
+    page_name = "duo.html" if duo else "index.html" if session.task["id"] == "risk_collect" else "board.html"
+    page = Path(__file__).with_name(page_name).read_bytes()
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -294,8 +300,21 @@ def make_server(*, config=None, trajectory=None, port=8765):
                 if not 0 <= length <= 65536:
                     raise ValueError("invalid request size")
                 body = json.loads(self.rfile.read(length) or b"{}")
+                if not isinstance(body, dict):
+                    raise ValueError("request must be an object")
                 extra = {}
-                if self.path == "/api/new":
+                if duo:
+                    if self.path == "/api/new":
+                        seed = body.get("seed")
+                        if isinstance(seed, str) and seed.isdecimal():
+                            seed = int(seed)
+                        session.new_game(seed=seed, human_seat=body.get("human_seat"))
+                    elif self.path == "/api/action":
+                        session.step(body["action"])
+                    else:
+                        self.respond(404, {"error": "not found"})
+                        return
+                elif self.path == "/api/new":
                     seed = body.get("seed")
                     if isinstance(seed, str) and seed.isdecimal():
                         seed = int(seed)

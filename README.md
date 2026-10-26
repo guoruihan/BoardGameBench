@@ -105,6 +105,23 @@ V1.2 新增压缩动作编码、可恢复 PPO/搜索蒸馏、父进程限时计�
 
 ## 安装与直接游玩
 
+**和双人学习策略对战**（当前工作区已保留 V147 `r2_continue` 权重）：
+
+```bash
+cd /datapool/data3/storage/ruihan/code/boardgame
+.venv-train/bin/python -m boardbench serve --config configs/harmonies_duo_play.json --port 8765
+```
+
+VS Code 连接这台启动网页的服务器，在 **Ports / 端口** 中转发 `8765`，
+然后在本地浏览器打开 http://127.0.0.1:8765。
+端口占用时把命令中的 `--port` 改为 `8766` 并转发对应端口。
+页面显示双方棋盘和共享市场，可选先后手；电脑自动完成自己的回合。
+选资源组 → 选颜色 → 点高亮格放置；动物牌可在回合中穿插拿取和放置，
+操作完成后点“结束回合，让电脑走”。不保存对局，无需 GPU，也不运行搜索。
+
+此配置固定使用 `outputs/v147/explore_20261023_a/learning_b/rounds/r2/continue/best_policy.pt`，
+启动时检查 SHA256。权重不在 Git 中；只有源码的新克隆还需要该文件及下述训练环境依赖。
+
 Python 3.10+、Linux。引擎、随机、启发式、搜索及基础网页只用标准库：
 
     python3 -m venv .venv

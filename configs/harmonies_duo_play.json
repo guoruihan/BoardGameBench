@@ -1,0 +1,7 @@
+{
+  "task": {"id": "harmonies_duo", "version": "harmonies_duo_a_base32_v1"},
+  "model_path": "outputs/v147/explore_20261023_a/learning_b/rounds/r2/continue/best_policy.pt",
+  "model_sha256": "f6c0909e667065ca6048fe0af08f0af2fe3a83b8caacdb72f3c5865d2e59165b",
+  "model_label": "V147 · r2_continue",
+  "human_seat": 0
+}

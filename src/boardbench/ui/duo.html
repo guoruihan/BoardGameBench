@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Harmonies · 双人对战</title>
+<style>
+:root{--ink:#243f37;--muted:#708075;--line:#d8ded2;--green:#2f6450}
+*{box-sizing:border-box}body{margin:0;background:#f5f2e9;color:var(--ink);font:15px/1.55 system-ui,sans-serif}
+main{max-width:1280px;margin:auto;padding:24px}h1{margin:0;font-size:30px}h2{margin:0 0 10px;font-size:18px}h3{font-size:14px;margin:16px 0 8px}
+.sub,footer{color:var(--muted);font-size:13px}.toolbar,.offers,.pending,.scores{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.toolbar{margin:18px 0}
+button,select,input{font:inherit;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:#fffdf7;max-width:100%}
+button{cursor:pointer}button:hover:not(:disabled){background:#edf2e7;border-color:var(--green)}button.primary{background:var(--green);color:white}button:disabled{opacity:.4;cursor:default}
+button.selected{outline:2px solid var(--green)}button:focus-visible,select:focus-visible,input:focus-visible,.cell:focus-visible{outline:3px solid #6c9b78;outline-offset:2px}
+#seed{width:210px}#notice{background:#e6edde;padding:12px 16px;border-radius:10px;margin:12px 0}#error{color:#ac453b;min-height:24px;overflow-wrap:anywhere}
+.panel{background:#fffdf7;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;min-width:0}.boards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.score{font-size:28px;font-weight:700;margin-left:10px}.scores span{background:#edf1e6;border-radius:7px;padding:4px 8px;font-size:12px}
+.board{display:block;width:100%;height:340px;margin:12px auto}.cell.legal{cursor:pointer}.cell.legal>polygon{stroke:var(--green);stroke-width:3}.cell.legal:hover>polygon,.cell.legal:focus>polygon{stroke:#163d2c;stroke-width:5}svg text{pointer-events:none}
+.chip{display:inline-block;width:17px;height:17px;border-radius:50%;vertical-align:middle;border:1px solid #0002;margin:0 3px}
+.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.owned{grid-template-columns:repeat(2,minmax(0,1fr))}
+.animal-card{border:1px solid var(--line);border-radius:10px;padding:10px;background:white;font-size:12px;min-width:0;overflow-wrap:anywhere}.animal-card.selected{border:2px solid var(--green)}
+.animal-card button{width:100%;font-size:12px;padding:6px;margin-top:6px}.pattern{width:100%;height:70px;display:block}.empty{color:var(--muted);font-size:13px}.pending{min-height:42px}details{margin-top:12px}summary{cursor:pointer}footer{margin:10px 0}
+@media(max-width:750px){main{padding:14px}.boards{grid-template-columns:1fr;gap:0}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.board{height:300px}.panel{padding:14px}h1{font-size:25px}}
+</style>
+</head>
+<body><main>
+<h1>Harmonies · 双人对战</h1>
+<div class="sub">A 面 · 32 张基础动物 · 你和电脑共享资源市场，各自建设棋盘。</div>
+<div class="toolbar">
+  <select id="seat" aria-label="选择先后手"><option value="0">我先手</option><option value="1">电脑先手</option></select>
+  <input id="seed" aria-label="随机种子" placeholder="种子（留空随机）" inputmode="numeric">
+  <button id="new" class="primary">重新开局</button>
+</div>
+<div id="notice" role="status" aria-live="polite">正在载入策略…</div>
+<div id="error" role="alert"></div>
+<section class="panel">
+  <h2>共享资源 · 每回合选一组</h2><div id="offers" class="offers"></div>
+  <h3>共享动物牌 · 每回合最多取一张，拿牌和放动物可穿插在资源放置之间</h3>
+  <div id="market" class="cards"></div>
+</section>
+<div class="boards">
+  <section class="panel">
+    <h2>你的棋盘 <span id="human-score" class="score">0</span></h2>
+    <div id="human-turn" class="sub"></div><div id="human-scores" class="scores"></div>
+    <div id="pending" class="pending"></div><div id="human-board"></div>
+    <button id="end-turn" class="primary">结束回合，让电脑走</button>
+    <h3>你的动物牌 · 最多 4 张进行中</h3><div id="human-cards" class="cards owned"></div>
+    <details><summary id="human-completed-title">已完成</summary><div id="human-completed" class="cards owned"></div></details>
+  </section>
+  <section class="panel">
+    <h2>电脑棋盘 <span id="ai-score" class="score">0</span></h2>
+    <div id="ai-turn" class="sub"></div><div id="ai-scores" class="scores"></div>
+    <div id="ai-board"></div><div id="model" class="sub"></div>
+    <h3>电脑的动物牌</h3><div id="ai-cards" class="cards owned"></div>
+    <details><summary id="ai-completed-title">已完成</summary><div id="ai-completed" class="cards owned"></div></details>
+  </section>
+</div>
+<footer>先选资源组，再选颜色，点击高亮格放置。拿到动物牌后，点“放置动物”查看合法落点。格内数字是高度，● 是动物；悬停查看每层地形。动物图案可旋转、镜像，卡面 ● 是放置锚点。双方回合数相同后结算；同分比较动物数量。</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const colors={gray:'#969eaa',blue:'#6cb4ce',brown:'#b38b62',green:'#88ad7e',yellow:'#e7c66a',red:'#d88574'};
+const names={gray:'山',blue:'水',brown:'树干',green:'树冠',yellow:'田',red:'建筑'};
+const labels={trees:'树',mountains:'山',fields:'田',buildings:'建筑',river:'河',animals:'动物'};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const chip=c=>`<span class="chip" style="background:${colors[c]}" title="${names[c]}"></span>`;
+const hex=(x,y,r)=>Array.from({length:6},(_,i)=>`${x+r*Math.cos(i*Math.PI/3)},${y+r*Math.sin(i*Math.PI/3)}`).join(' ');
+let state=null,busy=false,token=null,animal=null;
+function live(){return state&&!state.observation.terminated&&state.observation.active_player===state.human_seat;}
+function legal(){return live()?state.observation.legal_actions:[];}
+function button(parent,text,fn,enabled=true,selected=false){
+  const b=document.createElement('button');b.innerHTML=text;b.disabled=busy||!live()||!enabled;
+  if(selected)b.className='selected';b.onclick=fn;parent.append(b);return b;
+}
+function pattern(card){
+  const pts=card.pattern_cells.map(p=>[p,30*p.cell[0],34.64*(p.cell[1]+p.cell[0]/2)]);
+  const xs=pts.map(p=>p[1]),ys=pts.map(p=>p[2]),x0=Math.min(...xs)-21,y0=Math.min(...ys)-21;
+  return `<svg class="pattern" viewBox="${x0} ${y0} ${Math.max(...xs)-x0+21} ${Math.max(...ys)-y0+21}">`+pts.map(([p,x,y])=>{
+    const c=p.top_color||(p.stack_bottom_to_top||[]).slice(-1)[0];
+    const detail=p.stack_bottom_to_top?p.stack_bottom_to_top.map(c=>names[c]).join(' → '):`顶部${names[c]}，高度 ${p.height}`;
+    return `<g><title>${esc(detail)}</title><polygon points="${hex(x,y,19)}" fill="${colors[c]}" stroke="white"/><text x="${x}" y="${y+5}" text-anchor="middle" font-size="12">${p.height}${p.cell[0]===0&&p.cell[1]===0?' ●':''}</text></g>`;
+  }).join('')+'</svg>';
+}
+function cardBox(id,entry,where,slot){
+  const card=state.task_spec.cards.find(c=>c.card_id===id),progress=entry?entry.placed_count:0;
+  const box=document.createElement('div');box.className='animal-card'+(where==='human'&&animal===id?' selected':'');
+  box.innerHTML=`<strong>${esc(card.name_en)} · ${esc(id)}</strong>${pattern(card)}<div>${card.score_by_placed_count.join(' → ')} 分</div><div>已放 ${progress} / ${card.cube_count} 个动物</div>`;
+  if(where==='market')button(box,'取这张牌',()=>act({type:'take_card',market_slot:slot}),legal().some(a=>a.type==='take_card'&&a.market_slot===slot));
+  if(where==='human')button(box,'放置动物',()=>{animal=id;token=null;render();},legal().some(a=>a.type==='place_animal'&&a.instance_id===id));
+  return box;
+}
+function selectedAction(cell){return legal().find(a=>animal!==null?a.type==='place_animal'&&a.instance_id===animal&&a.anchor_cell_id===cell:a.type==='place_token'&&a.color===token&&a.cell_id===cell);}
+function board(target,player,interactive){
+  const spec=state.task_spec,pts=spec.cells.map(([q,r])=>[72*q,83.14*(r+q/2)]);
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),x0=Math.min(...xs)-52,y0=Math.min(...ys)-52;
+  const cells=player.board.map((cell,i)=>{
+    const [x,y]=pts[i],stack=spec.stacks[cell.stack_id],ok=interactive&&!busy&&selectedAction(i);
+    const description=`格 ${i}：${stack.length?stack.map(c=>names[c]).join(' → '):'空地'}${cell.animal!==null?' · 动物卡 '+cell.animal:''}`;
+    return `<g class="cell ${ok?'legal':''}" data-cell="${i}" ${ok?'role="button" tabindex="0"':''} aria-label="${esc(description)}"><title>${esc(description)}</title><polygon points="${hex(x,y,45)}" fill="${stack.length?colors[stack[stack.length-1]]:'#eeeee4'}" stroke="#d5dccf"/><text x="${x}" y="${y+7}" text-anchor="middle" font-size="21">${stack.length||''}${cell.animal!==null?' ●':''}</text><text x="${x-23}" y="${y+27}" font-size="10">${i}</text></g>`;
+  }).join('');
+  $(target).innerHTML=`<svg class="board" viewBox="${x0} ${y0} ${Math.max(...xs)-x0+52} ${Math.max(...ys)-y0+52}" aria-label="${interactive?'你的':'电脑'}棋盘">${cells}</svg>`;
+  if(interactive)$(target).querySelectorAll('.legal').forEach(node=>{
+    const click=()=>{const a=selectedAction(Number(node.dataset.cell));if(a)act(a);};
+    node.onclick=click;node.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();click();}};
+  });
+}
+function render(){
+  if(!state)return;
+  const o=state.observation,me=o.players[state.human_seat],finished=o.terminated;
+  if(token&&!me.pending_tokens[token])token=null;
+  if(animal!==null&&!legal().some(a=>a.type==='place_animal'&&a.instance_id===animal))animal=null;
+  if(!token&&animal===null)token=Object.keys(me.pending_tokens).find(c=>me.pending_tokens[c]>0)||null;
+  $('new').disabled=busy;$('seat').disabled=busy;$('seed').disabled=busy;
+  $('model').textContent=`学习策略：${state.model_label} · CPU 推理`;
+  if(finished){
+    const result=o.winners.length===2?'平局':o.winners.includes(state.human_seat)?'你赢了！':'电脑获胜';
+    $('notice').textContent=`对局结束 · ${result} 你 ${o.scores[state.human_seat]} : ${o.scores[1-state.human_seat]} 电脑。`;
+  }else if(busy)$('notice').textContent='正在处理，轮到电脑时会自动完成回合…';
+  else $('notice').textContent=`轮到你 · 第 ${me.turn_index} 回合${o.final_round?' · 最后一轮':''}。${animal!==null?'点击高亮格放动物。':token?'选择颜色并点击高亮格放资源。':me.bundle_taken?'可以放动物或结束回合。':'从共享市场选择一组资源；也可以先拿动物牌。'}`;
+  $('offers').replaceChildren();
+  o.token_market.forEach((group,i)=>button($('offers'),`第 ${i+1} 组 ${(group||[]).map(chip).join('')}`,()=>act({type:'choose_bundle',bundle_id:i}),legal().some(a=>a.type==='choose_bundle'&&a.bundle_id===i)));
+  $('market').replaceChildren();o.animal_market.forEach((id,i)=>{if(id!==null)$('market').append(cardBox(id,null,'market',i));else{const e=document.createElement('div');e.className='empty';e.textContent='等待回合末补牌';$('market').append(e);}});
+  $('pending').replaceChildren();Object.entries(me.pending_tokens).forEach(([c,n])=>{if(n)button($('pending'),`${chip(c)}${names[c]} × ${n}`,()=>{token=c;animal=null;render();},true,token===c);});
+  $('end-turn').disabled=busy||!legal().some(a=>a.type==='end_turn');
+  for(const [prefix,seat] of [['human',state.human_seat],['ai',1-state.human_seat]]){
+    const p=o.players[seat],scores=o.score_breakdown[seat];
+    $(prefix+'-score').textContent=scores.total;
+    $(prefix+'-turn').textContent=`${seat===o.first_player?'先手':'后手'} · 已完成 ${p.completed_turns} 回合`;
+    $(prefix+'-scores').innerHTML=Object.entries(labels).map(([k,label])=>`<span>${label} ${scores[k]}</span>`).join('');
+    board(prefix+'-board',p,prefix==='human');
+    $(prefix+'-cards').replaceChildren(...p.active_cards.map(c=>cardBox(c.card_id,c,prefix)));
+    if(!p.active_cards.length)$(prefix+'-cards').innerHTML='<span class="empty">尚无进行中的动物牌</span>';
+    $(prefix+'-completed-title').textContent=`已完成动物牌 · ${p.completed_cards.length} 张`;
+    $(prefix+'-completed').replaceChildren(...p.completed_cards.map(c=>cardBox(c.card_id,c,'completed')));
+  }
+}
+async function request(path,body){
+  if(busy)return;busy=true;$('error').textContent='';render();
+  try{
+    const r=await fetch(path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await r.json();if(!r.ok)throw Error(data.error||'请求失败');state=data;
+    if(path==='/api/new'){token=animal=null;}
+    $('seat').value=String(state.human_seat);
+  }catch(e){$('error').textContent=e.message;}
+  finally{busy=false;render();}
+}
+function act(action){if(live()&&!busy)request('/api/action',{action});}
+$('new').onclick=()=>request('/api/new',{human_seat:Number($('seat').value),...($('seed').value.trim()?{seed:$('seed').value.trim()}:{})});
+$('end-turn').onclick=()=>act({type:'end_turn'});
+request('/api/state');
+</script>
+</body></html>
