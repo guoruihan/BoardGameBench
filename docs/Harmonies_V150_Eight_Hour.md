@@ -86,3 +86,15 @@ PYTHONPATH=outputs/v150/explore_a226_20261026_a/source/src \
 逐轮结果在`rounds/rXX/`。冻结候选在`finalists.json`，最终结果为`summary.json`
 与`REPORT.md`。失败恢复不会清除旧日志或权重，不延长截止时间。守卫到期仅终止
 本任务进程树。生成数据和模型留在outputs，不写入Git。
+
+## 已启动记录
+
+- a226正式启动15:18:52CST，原截止仍为22:34:23；源提交`973e7a2`，
+  冻结source_id为`5e8f103e69d7b72a804c9b2fa32821c6368720d92ceb4404b9022df01edecc53`。
+- tmux：`boardbench_v150_explore_a`；日志：`logs/v150/explore_a226_20261026_a.log`。
+- 资源配置CPU32–81，共50物理核；GPU白名单仅`[0]`。实时全线程检查均在分配
+  CPU范围内。a227的预检已经结束，没有遗留BoardBench任务。
+- 本地30项检查和GPU白名单检查通过；a226实际A100梯度、精确同设备恢复、导出
+  预检通过。两座位完整游戏计时/重放预检通过，成绩不作为强度证据。
+- 首轮已生成370组配对分支；scalar/split/rank均实际使用a226GPU0完成拟合，
+  单任务墙钟14.42/13.82/22.03秒，随后进入配对评测。尚无正式强度结论。

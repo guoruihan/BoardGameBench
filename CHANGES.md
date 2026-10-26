@@ -1,5 +1,13 @@
 # Engineering changes
 
+## 2026-10-26 — V150 a226 GPU0 launch verified
+
+- Freeze973e7a2 and launch the authorized window at15:18:52CST on a226; retain
+  original22:34:23 deadline. GPU whitelist is[0], CPU allocation32–81.
+- Verify continued progress through audited data,370sibling groups, three actual
+  GPU0 fits and paired game screening. All sampled process threads stay pinned.
+- Publish session/log/source/resume pointers; no claim of final gameplay gain.
+
 ## 2026-10-26 — 0.4.38 / V150 eight-hour component and ranking loop
 
 - Add audited terrain/animal MC targets, separate public-sibling habitat ranking
