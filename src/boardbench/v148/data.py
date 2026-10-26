@@ -21,7 +21,7 @@ from boardbench.v146.worker import audit_trace
 
 
 def training_seed(seed):
-    return any(base <= seed < base+900000 for base in (146000000,147000000,148000000))
+    return any(base <= seed < base+900000 for base in (146000000,147000000,148000000,149000000))
 
 
 def reconstruct(trace, native=None):

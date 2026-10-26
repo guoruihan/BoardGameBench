@@ -53,6 +53,17 @@ class Campaign:
         out=Path(out);out.parent.mkdir(parents=True,exist_ok=True)
         if out.exists() and '--resume' not in args:
             out.rename(out.with_name(out.name+f'.incomplete_{time.time_ns()}'))
+        if gpu:
+            # Data collection may take minutes after launch. Recheck immediately
+            # before every GPU subprocess, never assume launch-time availability.
+            for attempt in range(10):
+                state=subprocess.check_output(['nvidia-smi','--id='+str(self.c['gpu']),
+                    '--query-gpu=memory.used,utilization.gpu','--format=csv,noheader,nounits'],text=True)
+                memory,util=map(int,state.strip().split(','))
+                if memory<=100 and util<=10:break
+                if self.stop or time.time()>=self.c['deadline_unix']-30:raise InterruptedError('GPU wait deadline')
+                time.sleep(1)
+            else:raise RuntimeError('GPU became occupied; no sharing or preemption')
         env={**os.environ,'OMP_NUM_THREADS':'1','MKL_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1',
              'CUDA_VISIBLE_DEVICES':str(self.c['gpu']) if gpu else ''}
         # For evaluation each worker, including library threads, gets one CPU.
@@ -73,7 +84,7 @@ class Campaign:
         if process.returncode or not complete.exists():raise RuntimeError(f'job failed: {out}; see {out}.log')
         return read_json(complete)
 
-    def panel(self,name,specs,seeds):
+    def panel(self,name,specs,seeds,split='development'):
         self.phase=name;self.status()
         slots=self.c['worker_cpus'];jobs=[(spec,seed,seat) for spec in specs for seed in seeds for seat in (0,1)]
         # One queue per CPU, rather than assigning two concurrent jobs to a core.
@@ -83,7 +94,7 @@ class Campaign:
             for spec,seed,seat in queues[index]:
                 label=spec['label'];target=self.root/name/f'{label}_e{seed}_s{seat}'
                 job={**self.c['job'],**spec,'source_id':self.c['source_id'],'id':target.name,
-                     'environment_seed':seed,'seat':seat,'search_seed':149,'split':'development',
+                     'environment_seed':seed,'seat':seat,'search_seed':149,'split':split,
                      'deadline_unix':self.c['deadline_unix']}
                 path=self.root/'jobs'/(target.name+'_'+name+'.json');write_json(path,job)
                 rows.append(self.execute(['-m','boardbench.v149.worker','--job',str(path),'--out',str(target)],
@@ -110,7 +121,7 @@ class Campaign:
                     metrics['animal_vs_rollout']=paired(selected,baseline,'animal')
             summary[spec['label']]=metrics
         write_json(self.root/(name+'_summary.json'),dict(results=summary,rows=rows,
-            note='Development only; intervals are descriptive environment clusters, not selection-corrected.'))
+            split=split,note='Intervals are descriptive environment clusters, not selection-corrected.'))
         return summary
 
     def run(self):
@@ -196,7 +207,12 @@ class Campaign:
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--root',required=True);a=p.parse_args();r=Campaign(a.root)
+    p=argparse.ArgumentParser();p.add_argument('--root',required=True);a=p.parse_args()
+    cls=Campaign
+    if read_json(Path(a.root)/'config.json').get('feedback_parent'):
+        from .feedback import Feedback
+        cls=Feedback
+    r=cls(a.root)
     try:r.run()
     except BaseException as e:
         r.phase='interrupted' if r.stop or time.time()>=r.c['deadline_unix']-30 else 'failed'

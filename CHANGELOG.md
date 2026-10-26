@@ -1,5 +1,13 @@
 # Research milestones
 
+## 0.4.37 / V149 feedback experiment — 2026-10-26
+
+- First pilot exposes weak successor ranking and high short-budget fallback;
+  add a policy-evaluation loop using fresh games from one value-guided planner.
+- Fit realized returns for that planner only, avoiding pooled continuation-policy
+  targets. New paired development games test whether the resulting planner improves.
+- This is one measured feedback iteration, not an unbounded self-improvement claim.
+
 ## 0.4.36 / research V1.4.9 — 2026-10-26
 
 - Test learned remaining-score values as substitutes for long continuation rollouts

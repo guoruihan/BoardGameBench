@@ -15,6 +15,8 @@ from boardbench.v143.policy import SelfplayPolicy
 from boardbench.v146.policy import ModelPlayer
 from boardbench.v149.search import Search
 from boardbench.v149.value import Value, remaining_value
+from test_v146 import job
+from test_v129 import artifact
 
 
 @pytest.fixture
@@ -152,3 +154,21 @@ def test_ipc_keeps_partial_frames_across_deadlines():
         assert right.receive(time.monotonic()+5)=={'id':2}
         thread.join(timeout=5);assert not thread.is_alive()
     finally:a.close();b.close()
+
+
+def test_feedback_real_returns_masks_and_no_invented_policy_labels(job):
+    from boardbench.v149.data import value_rows
+    from boardbench.v149.worker import play
+    from boardbench.v148.data import training_seed
+    # Real full-game states/returns; only the behavior name is a synthetic data
+    # schema fixture. Production accepts hashed search-worker receipts only.
+    _,trace=play({**job,'environment_seed':149001001,'split':'train'})
+    trace['method']='search_value_one'
+    rows=value_rows(trace)
+    assert rows and all(r['mask'][r['action']] and r['label']==0 and not r['pi'].any() for r in rows)
+    assert rows[0]['mc']==trace['scores'][trace['seat']]/150
+    broken=deepcopy(trace);broken['decisions'][0]['mc_return']+=1
+    with pytest.raises(ValueError,match='remaining'):value_rows(broken)
+    trace['split']='development'
+    with pytest.raises(ValueError,match='never evaluation'):value_rows(trace)
+    assert training_seed(149001001) and not training_seed(249001001)

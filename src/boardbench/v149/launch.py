@@ -36,8 +36,14 @@ def guard(root):
     if process.returncode:raise SystemExit(process.returncode)
 
 
-def launch(config,root,hours=2,workers=24,gpu=0):
-    repo=Path.cwd().resolve();root=Path(root).resolve();c=read_json(config);cpus=physical_cpus()
+def launch(config,root,hours=2,workers=24,gpu=0,parent=None):
+    repo=Path.cwd().resolve();root=Path(root).resolve();cpus=physical_cpus()
+    if parent:
+        parent=Path(parent).resolve();c=read_json(parent/'config.json')
+        if (not (parent/'summary.json').exists() or time.time()>c['deadline_unix']-900):
+            raise ValueError('completed parent and at least15min of original window required')
+        c.update(feedback_parent=str(parent),parent_config_sha256=digest(parent/'config.json'))
+    else:c=read_json(config)
     if (os.uname().nodename!=c['host'] or not 0<hours<=2 or workers+2>len(cpus)//2
             or workers<1 or os.getloadavg()[0]>len(cpus)*.5):
         raise ValueError('authorized host, bounded initial window, idle CPU and half-node cap required')
@@ -55,10 +61,11 @@ def launch(config,root,hours=2,workers=24,gpu=0):
     for key in ('student','opponent'):
         c['job'][key]=str((repo/c['job'][key]).resolve())
         if digest(c['job'][key])!=c['job'][key+'_sha256']:raise ValueError('input model hash mismatch')
-    c['job']['native_artifact']=read_json(repo/c.pop('native_manifest'))
+    if 'native_manifest' in c:c['job']['native_artifact']=read_json(repo/c.pop('native_manifest'))
     # Leave low-numbered CPUs available; no other task's affinity is changed.
     selected=cpus[32:32+workers+2] if len(cpus)>=32+workers+2 else cpus[:workers+2]
-    now=time.time();c.update(repo=str(repo),source_id=source_id(repo),started_unix=now,deadline_unix=now+3600*hours,
+    now=time.time();deadline=c['deadline_unix'] if parent else now+3600*hours
+    c.update(repo=str(repo),source_id=source_id(repo),started_unix=now,deadline_unix=deadline,
         worker_cpus=selected[:workers],trainer_cpu=selected[-2],controller_cpu=selected[-1],gpu=gpu)
     write_json(root/'config.json',c)
     write_json(root/'launch.json',dict(config_sha256=digest(root/'config.json'),source_id=c['source_id'],
@@ -70,6 +77,7 @@ def launch(config,root,hours=2,workers=24,gpu=0):
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--config');p.add_argument('--root',required=True)
     p.add_argument('--hours',type=float,default=2);p.add_argument('--workers',type=int,default=24)
-    p.add_argument('--gpu',type=int,default=0);p.add_argument('--resume',action='store_true');a=p.parse_args()
+    p.add_argument('--gpu',type=int,default=0);p.add_argument('--resume',action='store_true')
+    p.add_argument('--parent',help='one feedback cycle within the completed parent original deadline');a=p.parse_args()
     if a.resume:guard(a.root)
-    else:launch(a.config,a.root,a.hours,a.workers,a.gpu)
+    else:launch(a.config,a.root,a.hours,a.workers,a.gpu,a.parent)

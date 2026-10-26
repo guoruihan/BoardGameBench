@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-10-26 — 0.4.37 / V149 planner feedback cycle
+
+- Add one recoverable planner-data/value-refit/evaluation cycle under the original
+  parent deadline. Collect new training seeds and preserve every evaluation panel.
+- Replay/audit real remaining returns, encode value-only rows without fabricated
+  action targets, hold out whole environments, and compare updates against parents.
+- Recheck idle GPU capacity before each fitting subprocess, including after CPU
+  collection. Preserve old models and never automatically promote an update.
+
 ## 2026-10-26 — 0.4.36 / V149 value-guided per-decision planning
 
 - Reuse exact duo games and V148 value fitting; add a value-only forward matching
