@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-27 — 0.4.39 / V151 direct assistant play
+
+- Add a recoverable public-observation CLI for explicit assistant moves against
+  the frozen UI RL opponent. Preserve accepted action prefixes, rejected commands,
+  per-game opponent planner state and revision checks; reject cross-turn batches.
+- Complete all 16 predeclared games. Replay 1,486 legal actions, reproduce all
+  473 opponent decisions from the frozen weights, and verify exact final states.
+- Publish per-game results, score components, tie-break handling and replay commands.
+  Keep generated sessions and weights outside Git. Five focused checks pass.
+- Align package metadata and runtime version at 0.4.39; no new training run.
+
 ## 2026-10-26 — V150 completed primary evaluation and partial failure report
 
 - Publish 23-round results and the complete frozen128-environment/both-seat

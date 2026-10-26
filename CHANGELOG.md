@@ -1,5 +1,17 @@
 # Research milestones
 
+## 0.4.39 / research V1.5.1 — 2026-10-27
+
+- Current conversational assistant explicitly plays 8 solo and 8 official duo
+  games with public rule/matching tools. Solo mean88.625, best101; duo mean84.75
+  versus frozen V147r2_continue86.00, with3wins/5losses including an animal-cube
+  tie-break victory at83:83. All fixed seeds and bad decisions remain included.
+- Duo animal mean34.50 versus17.125, terrain50.25 versus68.875: stronger animal
+  execution in this sample does not establish a stronger complete-game policy.
+- This is sequential, tool-assisted interactive play with cross-game learning,
+  not an independent frozen-policy estimate or a time-matched search/RL benchmark.
+  Preserve audited trajectories for future analysis; do not promote a baseline.
+
 ## 0.4.38 / research V1.5.0 — 2026-10-26
 
 - Complete23 adaptive rounds. Frozen128-environment/both-seat confirmation gives
