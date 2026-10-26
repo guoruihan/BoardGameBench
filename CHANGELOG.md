@@ -1,5 +1,16 @@
 # Research milestones
 
+## 0.4.36 / research V1.4.9 — 2026-10-26
+
+- Test learned remaining-score values as substitutes for long continuation rollouts
+  under0.1/1s per-atomic-call budgets, separately from the old900s/game reference.
+- Keep fixed-opponent own-score semantics; compare identical candidate generation
+  with one-step, two-step, turn-boundary and terminal cutoffs. No pure-policy replacement claim.
+- Separate raw-return prediction from noisy candidate-Q ranking and paired full-game
+  strength. Reinitialize new value models before grouped validation; preserve old values.
+- Use CPU inference and independent single-GPU fitting on authorized a227; the first
+  bounded campaign does not renew old training budgets or automatically promote a model.
+
 ## 0.4.34 / research V1.4.8 — 2026-10-24
 
 - V147 final512x2 best model86.17285 versus plainPPO86.12012: no reliable extra

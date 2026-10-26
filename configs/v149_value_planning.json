@@ -1,0 +1,14 @@
+{
+  "host": "a227.cluster.helixon.com",
+  "dataset": "outputs/v148/mcts_20261024_a/learning/datasets/bootstrap/manifest.json",
+  "old_value": {"path": "outputs/v148/mcts_20261024_a/learning/bootstrap/value0/value_manifest.json"},
+  "native_manifest": "outputs/v129/native_build_20261020_a/artifact.json",
+  "fit_steps": 1800,
+  "job": {
+    "student": "outputs/v147/explore_20261023_a/learning_b/rounds/r2/continue/best_policy.pt",
+    "student_sha256": "f6c0909e667065ca6048fe0af08f0af2fe3a83b8caacdb72f3c5865d2e59165b",
+    "opponent": "outputs/v144/own_score_a226_20261022_a/rounds/r2/score_credit/best_policy.pt",
+    "opponent_sha256": "9e04354342de2db419748ccdcf7ac0434813f6e559a635281c1829fa59d09aad",
+    "width": 6
+  }
+}

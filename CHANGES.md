@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-26 — 0.4.36 / V149 value-guided per-decision planning
+
+- Reuse exact duo games and V148 value fitting; add a value-only forward matching
+  the original FP64 critic, single-teacher data selection and archived-Q diagnostics.
+- Compare matched roots with one-step, two-step, turn-cutoff and terminal evaluations
+  at0.1/1s per actual decision; retain original own-score target and public futures.
+- Add parent-owned deadlines with resident CPU workers, buffered timeout-safe IPC,
+  legal fallback and suspension between calls. Include child CPU time and all latency excess.
+- Add frozen-source, recoverable a227 single-GPU pilot with half-host CPU checks,
+  paired4/fresh16 development panels, original-deadline guard and scoped cleanup.
+- All24 focused V149/V148 checks pass; full-game0.1s resident checks return within
+  budget. Formal launch/results are recorded separately.
+
 ## 2026-10-26 — 0.4.35 / human versus learned duo policy
 
 - Add a minimal two-player browser page with both boards, shared markets,
