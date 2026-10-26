@@ -26,17 +26,18 @@ def validate_job(job):
             raise ValueError('policy hash mismatch')
 
 
-def play(job, progress=None):
+def play(job, progress=None, *, validator=validate_job, value_factory=Value,
+         search_factory=Search, resident_factory=TimedSearch):
     residents=[]
     children_before=resource.getrusage(resource.RUSAGE_CHILDREN)
     def factory(focal, opponent, seat, continuation, seconds, seed, **kwargs):
-        value = (Value(job['value_manifest'],job['value_manifest_sha256'],focal.native,job['opponent_sha256'])
+        value = (value_factory(job['value_manifest'],job['value_manifest_sha256'],focal.native,job['opponent_sha256'])
                  if continuation.startswith('value') else None)
-        search=Search(focal,opponent,seat,continuation,seconds,seed,value=value,
+        search=search_factory(focal,opponent,seat,continuation,seconds,seed,value=value,
                       width=job.get('width',6),**kwargs)
-        resident=TimedSearch(search);residents.append(resident);return resident
+        resident=resident_factory(search);residents.append(resident);return resident
     try:
-        result,trace = base_play(job,progress,validator=validate_job,search_factory=factory)
+        result,trace = base_play(job,progress,validator=validator,search_factory=factory)
     finally:
         for resident in residents:resident.close()
     children_after=resource.getrusage(resource.RUSAGE_CHILDREN)

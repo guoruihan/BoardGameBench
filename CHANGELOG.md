@@ -1,5 +1,14 @@
 # Research milestones
 
+## 0.4.38 / research V1.5.0 — 2026-10-26
+
+- Investigate the V149 animal/terrain tradeoff with scalar-control, component-value
+  and separately labeled candidate-ranking heads. Keep original total-score objective.
+- Use one behavior policy per MC dataset; distinguish habitat-continuation sibling
+  targets from on-policy returns. Evaluate prediction quality and actual play separately.
+- New authorized8h a226GPU0 window includes implementation and preflights, reserves
+  final confirmation time and adapts subsequent data/search settings to observed results.
+
 ## 0.4.37 / V149 feedback experiment — 2026-10-26
 
 - First pilot exposes weak successor ranking and high short-budget fallback;

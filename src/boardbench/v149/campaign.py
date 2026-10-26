@@ -61,7 +61,7 @@ class Campaign:
                 state=subprocess.check_output(['nvidia-smi',
                     '--query-gpu=index,memory.used,utilization.gpu','--format=csv,noheader,nounits'],text=True)
                 idle=[index for index,memory,util in (map(int,line.split(',')) for line in state.splitlines())
-                      if memory<=100 and util<=10]
+                      if memory<=100 and util<=10 and index in self.c.get('allowed_gpus',range(8))]
                 if idle:
                     gpu_device=self.c['gpu'] if self.c['gpu'] in idle else idle[0]
                     break

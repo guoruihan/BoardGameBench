@@ -1,5 +1,19 @@
 # Engineering changes
 
+## 2026-10-26 — 0.4.38 / V150 eight-hour component and ranking loop
+
+- Add audited terrain/animal MC targets, separate public-sibling habitat ranking
+  labels, frozen-prior residual heads, exact optimizer/RNG recovery and device gates.
+- Reuse existing game audit and bounded planner through explicit injectable value
+  factories; increase V150 return reserve and record child/parent timing separately.
+- Add result-driven paired screening/expansion, preserved score/animal candidates,
+  fresh training feedback and frozen final confirmation under one8h deadline.
+- Limit a226 to50physical CPU slots; use authorized idle GPU0 per fit or train on
+  CPU when all cards are occupied. Save original source/config/resources for resume.
+- Pass30V150/V149/V148 checks plus the GPU-allowlist check; real a226A100 gradients,
+  exact same-device recovery and portable weights pass. Both-seat full-game CPU
+  preflights pass replay/timing audits before the overnight launch.
+
 ## 2026-10-26 — V149 bounded trial results
 
 - Publish both paired evaluations and one completed feedback cycle:736games,

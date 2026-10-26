@@ -77,8 +77,10 @@ def worker(sock,search):
 
 
 class TimedSearch:
-    def __init__(self,search):
+    def __init__(self,search,reserve_seconds=.006):
         self.seconds=search.seconds;self.spent=0.;self.counter=0;self.last={}
+        if not 0<reserve_seconds<self.seconds:raise ValueError('reserve inside per-call budget')
+        self.reserve_seconds=reserve_seconds
         parent,child=socket.socketpair();self.channel=Channel(parent)
         self.process=mp.get_context('fork').Process(target=worker,args=(child,search),daemon=True)
         self.process.start();child.close()
@@ -86,7 +88,7 @@ class TimedSearch:
         os.kill(self.process.pid,signal.SIGSTOP)
 
     def decide(self,obs,plans):
-        begin=time.monotonic();deadline=begin+max(.001,self.seconds-.006);self.counter+=1
+        begin=time.monotonic();deadline=begin+max(.001,self.seconds-self.reserve_seconds);self.counter+=1
         action=dict(obs['legal_actions'][0]);info={};finished=False
         if not self.process.is_alive():raise RuntimeError('resident search exited')
         try:
@@ -105,6 +107,7 @@ class TimedSearch:
             if self.process.is_alive():os.kill(self.process.pid,signal.SIGSTOP)
         elapsed=time.monotonic()-begin;self.spent+=elapsed
         self.last={**dict(completed_rounds=0,simulation_steps=0,candidates=[],fallback=True),**info,
+            'child_reported_seconds':info.get('decision_seconds'),
             'budget_scope':'per_actual_atomic_decision','budget_seconds':self.seconds,
             'decision_seconds':elapsed,'cumulative_decision_seconds':self.spent,
             'budget_excess_seconds':max(0.,elapsed-self.seconds),'resident_timeout':not finished,
