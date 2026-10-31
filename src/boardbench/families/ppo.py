@@ -56,7 +56,8 @@ def rollout(job):
     records = []
     if result['status'] == 'complete':
         for seat in learner_seats:
-            records += finish_returns(policies[seat].records, result['rewards'][seat])
+            records += finish_returns(policies[seat].records, result['rewards'][seat],
+                                      job.get('gamma', .995), job.get('gae_lambda', .95))
     return result, records
 
 
@@ -76,7 +77,8 @@ def minibatches(records, batch_size, rng):
         yield selected
 
 
-def update(model, optimizer, records, device, rng, epochs=4, batch_size=64):
+def update(model, optimizer, records, device, rng, epochs=4, batch_size=64,
+           entropy_coef=.01, prior_kl_coef=.01):
     advantages = np.asarray([r['advantage'] for r in records])
     mean, std = advantages.mean(), max(advantages.std(), 1e-6)
     losses, norms, kls, entropies = [], [], [], []
@@ -98,7 +100,8 @@ def update(model, optimizer, records, device, rng, epochs=4, batch_size=64):
             entropy = distribution.entropy().mean()
             anchor = torch.distributions.Categorical(logits=prior.masked_fill(~mask, -torch.inf))
             prior_kl = torch.distributions.kl_divergence(anchor, distribution).mean()
-            loss = policy_loss + .5*(values-targets).square().mean() - .01*entropy + .01*prior_kl
+            loss = (policy_loss + .5*(values-targets).square().mean()
+                    - entropy_coef*entropy + prior_kl_coef*prior_kl)
             if not torch.isfinite(loss):
                 raise FloatingPointError('Nonfinite PPO objective')
             optimizer.zero_grad(set_to_none=True)
@@ -120,6 +123,7 @@ def main(argv=None):
     p.add_argument('--game', required=True)
     p.add_argument('--output', required=True, type=Path)
     p.add_argument('--prior', type=Path)
+    p.add_argument('--warm-start', type=Path)
     p.add_argument('--workers', type=int, default=7)
     p.add_argument('--games', type=int, default=32)
     p.add_argument('--updates', type=int, default=512)
@@ -129,6 +133,12 @@ def main(argv=None):
     p.add_argument('--gate-seeds', type=int, default=12)
     p.add_argument('--confirm-seeds', type=int, default=64)
     p.add_argument('--seed', type=int, default=1601)
+    p.add_argument('--gamma', type=float, default=.995)
+    p.add_argument('--gae-lambda', type=float, default=.95)
+    p.add_argument('--self-play-rate', type=float, default=.25)
+    p.add_argument('--learning-rate', type=float, default=3e-4)
+    p.add_argument('--entropy-coef', type=float, default=.01)
+    p.add_argument('--prior-kl-coef', type=float, default=.01)
     p.add_argument('--device', default='cuda')
     p.add_argument('--hours', type=float, default=3.)
     p.add_argument('--deadline-unix', type=float, default=float('inf'))
@@ -138,6 +148,9 @@ def main(argv=None):
     if min(args.workers, args.games, args.updates, args.epochs, args.batch_size,
            args.eval_every, args.gate_seeds, args.confirm_seeds) < 1:
         raise ValueError('Training and evaluation counts must be positive')
+    if not (0 <= args.gamma <= 1 and 0 <= args.gae_lambda <= 1 and 0 <= args.self_play_rate <= 1
+            and args.learning_rate > 0 and args.entropy_coef >= 0 and args.prior_kl_coef >= 0):
+        raise ValueError('Invalid learning parameters')
     if (args.output/'confirmation_summary.json').exists():
         print('Run already confirmed; use a new output directory for new training.', flush=True)
         return
@@ -155,19 +168,30 @@ def main(argv=None):
     args.output.mkdir(parents=True, exist_ok=True)
     cls = game_class(args.game)
     prior_spec = json.loads(args.prior.read_text()) if args.prior else dict(kind='heuristic', weights=cls.default_weights)
+    warm_model = None
+    if args.warm_start:
+        warm_model, saved_warm = load_model(args.warm_start, cls)
+        if args.prior and prior_spec['weights'] != saved_warm['prior_weights']:
+            raise ValueError('Warm model and explicitly supplied prior disagree')
+        prior_spec = dict(kind='linear', weights=saved_warm['prior_weights'])
     make_policy(cls, prior_spec)  # Validate artifact identity before generating any game.
     weights = prior_spec['weights']
-    model = CandidateActorCritic().to(args.device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
+    model = (warm_model or CandidateActorCritic()).to(args.device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
     began = time.time()
     deadline = min(began+args.hours*3600, args.deadline_unix)
     best_path = args.output/'initial.pt'
     start_update = 0
     checkpoint = args.output/'checkpoint.pt'
+    hyperparameters = {k: getattr(args, k) for k in (
+        'gamma', 'gae_lambda', 'self_play_rate', 'learning_rate', 'entropy_coef',
+        'prior_kl_coef', 'epochs', 'batch_size', 'games', 'seed')}
     if checkpoint.exists():
         saved = torch.load(checkpoint, map_location='cpu', weights_only=True)
         if saved['source_commit'] != args.source_commit or saved['game'] != args.game:
             raise ValueError('Resume requires matching game/source')
+        if saved.get('hyperparameters', hyperparameters) != hyperparameters:
+            raise ValueError('Resume learning parameters changed; start a new run instead')
         model.load_state_dict(saved['model'])
         optimizer.load_state_dict(saved['optimizer'])
         for state in optimizer.state.values():
@@ -185,6 +209,7 @@ def main(argv=None):
     model.eval()
     write_json(args.output/'config.json', {**vars(args), 'output':str(args.output),
                'prior':str(args.prior) if args.prior else None, 'deadline_unix':deadline,
+               'warm_start':str(args.warm_start) if args.warm_start else None,
                'prior_spec':prior_spec, 'pid':os.getpid(), 'rollout_device':'cpu', 'learner_device':args.device})
     def save(next_update, phase, metric=None):
         temporary = checkpoint.with_suffix('.part')
@@ -192,7 +217,7 @@ def main(argv=None):
                    model=model.state_dict(), optimizer=optimizer.state_dict(),
                    rng=rng.bit_generator.state, torch_rng=torch.get_rng_state(),
                    next_update=next_update, best_path=str(best_path), deadline=deadline,
-                   prior_weights=weights), temporary)
+                   prior_weights=weights, hyperparameters=hyperparameters), temporary)
         temporary.replace(checkpoint)
         write_json(args.output/'state.json', dict(game=args.game, next_update=next_update,
                    best_path=str(best_path), phase=phase, updated_unix=time.time(),
@@ -207,10 +232,11 @@ def main(argv=None):
                 break
             path = args.output/f'policy_{iteration:04d}.pt'
             save_model(path, model, cls, weights, dict(source_commit=args.source_commit, update=iteration-1))
-            jobs = [dict(game=args.game, path=str(path), self_play=i%4==0,
+            jobs = [dict(game=args.game, path=str(path), self_play=i<round(args.games*args.self_play_rate),
                          learner_seat=i%2, seed=20_000_000+iteration*1000+i,
                          opponent=prior_spec if i%3 else dict(kind='heuristic'),
-                         max_seconds=args.max_match_seconds, record=i==0) for i in range(args.games)]
+                         max_seconds=args.max_match_seconds, record=i==0,
+                         gamma=args.gamma, gae_lambda=args.gae_lambda) for i in range(args.games)]
             played = list(pool.map(rollout, jobs, chunksize=1))
             results = [result for result, _ in played]
             records = [row for _, rows in played for row in rows]
@@ -218,7 +244,8 @@ def main(argv=None):
             if not records:
                 save(iteration, 'blocked_no_complete_games')
                 raise RuntimeError('No complete games to train from; inspect rollout results')
-            metric = update(model, optimizer, records, args.device, rng, args.epochs, args.batch_size)
+            metric = update(model, optimizer, records, args.device, rng, args.epochs, args.batch_size,
+                            args.entropy_coef, args.prior_kl_coef)
             metric.update(update=iteration, games=len(results), completed=sum(r['status']=='complete' for r in results),
                           unix=time.time())
             if (iteration+1)%args.eval_every == 0:

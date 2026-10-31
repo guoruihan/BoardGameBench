@@ -74,6 +74,11 @@ use sampled actions; incomplete games never receive fabricated terminal targets.
 `best.json` points to a portable, identity-checked `.pt` model. The original
 heuristic remains separately available regardless of neural promotion. A completed
 confirmation is final for that directory; new training requires a new run.
+For continuation, use a new output directory and `--warm-start path/to/best.pt`.
+`--gamma 1 --gae-lambda 1` uses the complete terminal outcome as a Monte Carlo
+target. Entropy, prior KL, learning rate and self-play fraction are explicit CLI
+parameters; the frozen warm-start prior cannot silently be replaced by a
+different linear policy.
 
 ## Checked SSH launches
 

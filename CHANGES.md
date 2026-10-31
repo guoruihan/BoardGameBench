@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 fourth environment batch and continued learning
+
+- Add official fixed Cascadia, Targi and Century: A New World settings, original
+  catalogs and complete rule/replay/information-boundary tests. Apply verified
+  Five Tribes designer rulings in rules v2 while retaining two unresolved edges.
+- Support warm-started neural continuation, explicit return/entropy/prior/self-play
+  parameters, and balanced seat allocation in the full-game rollout batch.
+  A real warm-start/undiscounted-return smoke run verifies the new path.
+- Extend remote launch plans to these continuation parameters. Frozen per-run
+  code and previous checkpoints remain intact for reproducibility.
+
 ## 2026-10-31 — V1.6.0 third environment batch and cluster execution
 
 - Add original El Dorado first route, Gizmos complete catalog, and the documented

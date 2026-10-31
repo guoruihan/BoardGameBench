@@ -50,6 +50,9 @@ if cfg['kind']=='ppo':
     command+=['--device','cuda','--games','32','--updates',str(cfg.get('updates',512)),
               '--gate-seeds','12','--confirm-seeds','64','--seed',str(cfg.get('seed',1601))]
     if cfg.get('prior'): command+=['--prior',cfg['prior']]
+    if cfg.get('warm_start'): command+=['--warm-start',cfg['warm_start']]
+    for key in ('gamma','gae_lambda','self_play_rate','learning_rate','entropy_coef','prior_kl_coef'):
+        if key in cfg: command+=['--'+key.replace('_','-'),str(cfg[key])]
 else:
     command+=['--population','16','--generations','80','--train-seeds','3','--gate-seeds','12','--confirm-seeds','64']
 remaining=min(int(cfg.get('hours',3)*3600+120),int(cfg['deadline']-time.time()))

@@ -1,5 +1,13 @@
 # Research milestones
 
+## V1.6.0 continued opponent development — 2026-10-31
+
+- Add full-game Monte Carlo return and reduced-prior continuation variants, with
+  explicit warm starts and frozen initial policy artifacts. The original PPO/GAE
+  runs remain intact; variants use new output directories and configuration files.
+- Balance non-self-play training seats within each batch. Promote only through
+  paired development games; final cross-method comparison requires common seeds.
+
 ## V1.6.0 opponent-learning pipeline — 2026-10-31
 
 - Introduce heuristic-prior candidate PPO alongside evolutionary policy search.

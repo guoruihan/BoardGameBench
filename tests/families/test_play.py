@@ -45,3 +45,27 @@ def test_summary_preserves_seats_and_incomplete_denominator():
     assert summary['all_scheduled_win_rate'] == .5
     with pytest.raises(ValueError):
         summarize(rows, [0])
+
+
+@pytest.mark.parametrize('flag', ['unresolved', 'unresolved_rule'])
+def test_unresolved_original_rule_never_becomes_a_draw(monkeypatch, flag):
+    from boardbench.families.base import DuoGame
+    from boardbench.families import play
+    class Blocked(DuoGame):
+        game_id = 'blocked_test'
+        def _reset(self, first_player):
+            pass
+        def _observe(self, player):
+            return {}
+        def scores(self):
+            return [0, 0]
+        def outcome(self):
+            return {**super().outcome(), flag: True}
+        def _legal_actions(self):
+            raise AssertionError('An unresolved game must not ask the policy to move')
+    monkeypatch.setattr(play, 'game_class', lambda _: Blocked)
+    result = run_match('blocked_test', [{'kind': 'random'}]*2)
+    assert result['status'] == 'unresolved_rule'
+    assert result['rewards'] is None
+    assert not result['outcome']['terminated']
+    assert result['outcome']['winners'] == []
