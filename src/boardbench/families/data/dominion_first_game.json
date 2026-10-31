@@ -1,0 +1,27 @@
+{
+  "game": "dominion",
+  "edition": "base_second_edition_2021_rules",
+  "config": "official_first_game_duo",
+  "source": "https://www.riograndegames.com/wp-content/uploads/2016/09/Dominion2nd.pdf",
+  "source_pages": {"setup": [2, 3], "card_clarifications": [12, 13, 14], "first_game_kingdom": [15]},
+  "checked": "2026-10-31",
+  "cards": {
+    "copper": {"cost": 0, "types": ["treasure"], "coins": 1, "points": 0, "supply": 46},
+    "silver": {"cost": 3, "types": ["treasure"], "coins": 2, "points": 0, "supply": 40},
+    "gold": {"cost": 6, "types": ["treasure"], "coins": 3, "points": 0, "supply": 30},
+    "estate": {"cost": 2, "types": ["victory"], "coins": 0, "points": 1, "supply": 8},
+    "duchy": {"cost": 5, "types": ["victory"], "coins": 0, "points": 3, "supply": 8},
+    "province": {"cost": 8, "types": ["victory"], "coins": 0, "points": 6, "supply": 8},
+    "curse": {"cost": 0, "types": ["curse"], "coins": 0, "points": -1, "supply": 10},
+    "cellar": {"cost": 2, "types": ["action"], "supply": 10},
+    "market": {"cost": 5, "types": ["action"], "supply": 10},
+    "merchant": {"cost": 3, "types": ["action"], "supply": 10},
+    "militia": {"cost": 4, "types": ["action", "attack"], "supply": 10},
+    "mine": {"cost": 5, "types": ["action"], "supply": 10},
+    "moat": {"cost": 2, "types": ["action", "reaction"], "supply": 10},
+    "remodel": {"cost": 4, "types": ["action"], "supply": 10},
+    "smithy": {"cost": 4, "types": ["action"], "supply": 10},
+    "village": {"cost": 3, "types": ["action"], "supply": 10},
+    "workshop": {"cost": 3, "types": ["action"], "supply": 10}
+  }
+}
