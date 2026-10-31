@@ -34,7 +34,10 @@ def payments(cost, bonuses, tokens):
 
 class Splendor(DuoGame):
     game_id = 'splendor'
+    rules_version = '2'
     config_id = 'classic_2014_duo'
+    coverage_status = 'fixed_scope_with_unresolved_edge'
+    known_unresolved_edges = ('mutual_forced_pass_has_no_verified_terminal_ruling',)
 
     def _reset(self, first_player):
         decks, market = [], []
@@ -48,7 +51,7 @@ class Splendor(DuoGame):
         self.state.update(decks=decks, market=market, nobles=nobles[:3],
                           removed_nobles=nobles[3:], bank=[4, 4, 4, 4, 4, 5],
                           tokens=[[0] * 6 for _ in range(2)], bought=[[], []],
-                          reserved=[[], []], acquired_nobles=[[], []],
+                          reserved=[[], []], revealed_reserved=[[], []], acquired_nobles=[[], []],
                           phase='main', final_round=False, turns=[0, 0], history=[])
 
     def _bonuses(self, player):
@@ -78,7 +81,10 @@ class Splendor(DuoGame):
             for c in cards:
                 actions.extend(dict(type='buy', source=source, card=c, pay=pay)
                                for pay in payments(CARDS[c]['cost'], bonuses, s['tokens'][p]))
-        return actions
+        # Asmodee's attributed ruling permits passing only when every normal
+        # action is impossible, with the reserved hand revealed as proof.
+        # See the evidence grades and original article link in the game docs.
+        return actions or [dict(type='pass')]
 
     def _remove_market(self, card):
         level = CARDS[card]['level'] - 1
@@ -104,7 +110,10 @@ class Splendor(DuoGame):
             s['acquired_nobles'][p].append(n)
             self._end_turn()
         else:
-            if typ in ('take_distinct', 'take_same'):
+            if typ == 'pass':
+                s['revealed_reserved'][p] = list(s['reserved'][p])
+                event['revealed_reserved'] = list(s['reserved'][p])
+            elif typ in ('take_distinct', 'take_same'):
                 taken = [0] * 6
                 if typ == 'take_distinct':
                     for i in action['colors']:
@@ -130,6 +139,8 @@ class Splendor(DuoGame):
                     self._remove_market(c)
                 else:
                     s['reserved'][p].remove(c)
+                    if c in s['revealed_reserved'][p]:
+                        s['revealed_reserved'][p].remove(c)
                 for i, n in enumerate(action['pay']):
                     s['tokens'][p][i] -= n
                     s['bank'][i] += n
@@ -173,6 +184,7 @@ class Splendor(DuoGame):
                     tokens=deepcopy(s['tokens']), bought=deepcopy(s['bought']),
                     bonuses=[self._bonuses(p) for p in (0, 1)],
                     reserved=list(s['reserved'][player]),
+                    revealed_reserved=deepcopy(s['revealed_reserved']),
                     reserved_counts=[len(r) for r in s['reserved']],
                     acquired_nobles=deepcopy(s['acquired_nobles']), scores=self.scores(),
                     turns=list(s['turns']), final_round=s['final_round'],
@@ -190,6 +202,8 @@ class Splendor(DuoGame):
             assert all(type(v) is int and v >= 0 for v in [s['bank'][i]] + [t[i] for t in s['tokens']])
         for p in (0, 1):
             assert len(s['reserved'][p]) <= 3
+            assert len(set(s['revealed_reserved'][p])) == len(s['revealed_reserved'][p])
+            assert set(s['revealed_reserved'][p]) <= set(s['reserved'][p])
             assert sum(s['tokens'][p]) <= 10 or (s['phase'] == 'return' and self.current_player == p)
         assert s['phase'] in ('main', 'return', 'noble')
         assert all(len(row) <= 4 for row in s['market'])
