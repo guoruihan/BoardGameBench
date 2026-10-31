@@ -1,0 +1,1010 @@
+{
+  "colors": [
+    "yellow",
+    "red",
+    "green",
+    "brown"
+  ],
+  "merchants": [
+    {
+      "kind": "trade",
+      "input": [
+        1,
+        1,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "id": "merchant-00"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "output": [
+        1,
+        2,
+        0,
+        0
+      ],
+      "id": "merchant-01"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "output": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "id": "merchant-02"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "id": "merchant-03"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        5,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "id": "merchant-04"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        4,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "id": "merchant-05"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "output": [
+        2,
+        0,
+        2,
+        0
+      ],
+      "id": "merchant-06"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "output": [
+        0,
+        2,
+        0,
+        1
+      ],
+      "id": "merchant-07"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "output": [
+        2,
+        0,
+        0,
+        1
+      ],
+      "id": "merchant-08"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "output": [
+        0,
+        3,
+        2,
+        0
+      ],
+      "id": "merchant-09"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "id": "merchant-10"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "output": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "id": "merchant-11"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "output": [
+        2,
+        3,
+        0,
+        0
+      ],
+      "id": "merchant-12"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        5,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "id": "merchant-13"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "output": [
+        3,
+        0,
+        1,
+        0
+      ],
+      "id": "merchant-14"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "output": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "id": "merchant-15"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        2,
+        0,
+        1,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "id": "merchant-16"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "output": [
+        2,
+        1,
+        0,
+        1
+      ],
+      "id": "merchant-17"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "output": [
+        3,
+        0,
+        1,
+        0
+      ],
+      "id": "merchant-18"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "id": "merchant-19"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "output": [
+        2,
+        2,
+        0,
+        0
+      ],
+      "id": "merchant-20"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "id": "merchant-21"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "output": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "id": "merchant-22"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        4,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "id": "merchant-23"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        1,
+        1,
+        0
+      ],
+      "id": "merchant-24"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "id": "merchant-25"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "id": "merchant-26"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "output": [
+        1,
+        1,
+        3,
+        0
+      ],
+      "id": "merchant-27"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "id": "merchant-28"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "output": [
+        1,
+        0,
+        1,
+        1
+      ],
+      "id": "merchant-29"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "id": "merchant-30"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "output": [
+        4,
+        1,
+        0,
+        0
+      ],
+      "id": "merchant-31"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "id": "merchant-32"
+    },
+    {
+      "kind": "trade",
+      "input": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "output": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "id": "merchant-33"
+    },
+    {
+      "kind": "produce",
+      "gain": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "id": "merchant-34"
+    },
+    {
+      "kind": "produce",
+      "gain": [
+        4,
+        0,
+        0,
+        0
+      ],
+      "id": "merchant-35"
+    },
+    {
+      "kind": "produce",
+      "gain": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "id": "merchant-36"
+    },
+    {
+      "kind": "produce",
+      "gain": [
+        2,
+        1,
+        0,
+        0
+      ],
+      "id": "merchant-37"
+    },
+    {
+      "kind": "produce",
+      "gain": [
+        1,
+        1,
+        0,
+        0
+      ],
+      "id": "merchant-38"
+    },
+    {
+      "kind": "produce",
+      "gain": [
+        1,
+        0,
+        1,
+        0
+      ],
+      "id": "merchant-39"
+    },
+    {
+      "kind": "produce",
+      "gain": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "id": "merchant-40"
+    },
+    {
+      "kind": "produce",
+      "gain": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "id": "merchant-41"
+    },
+    {
+      "kind": "upgrade",
+      "steps": 3,
+      "id": "merchant-42"
+    }
+  ],
+  "orders": [
+    {
+      "id": "order-00",
+      "cost": [
+        3,
+        0,
+        2,
+        0
+      ],
+      "points": 9
+    },
+    {
+      "id": "order-01",
+      "cost": [
+        2,
+        0,
+        2,
+        2
+      ],
+      "points": 17
+    },
+    {
+      "id": "order-02",
+      "cost": [
+        2,
+        2,
+        2,
+        0
+      ],
+      "points": 13
+    },
+    {
+      "id": "order-03",
+      "cost": [
+        0,
+        2,
+        2,
+        2
+      ],
+      "points": 19
+    },
+    {
+      "id": "order-04",
+      "cost": [
+        2,
+        2,
+        0,
+        0
+      ],
+      "points": 6
+    },
+    {
+      "id": "order-05",
+      "cost": [
+        0,
+        0,
+        2,
+        2
+      ],
+      "points": 14
+    },
+    {
+      "id": "order-06",
+      "cost": [
+        0,
+        0,
+        3,
+        2
+      ],
+      "points": 17
+    },
+    {
+      "id": "order-07",
+      "cost": [
+        0,
+        0,
+        0,
+        5
+      ],
+      "points": 20
+    },
+    {
+      "id": "order-08",
+      "cost": [
+        1,
+        1,
+        1,
+        3
+      ],
+      "points": 20
+    },
+    {
+      "id": "order-09",
+      "cost": [
+        2,
+        0,
+        0,
+        2
+      ],
+      "points": 10
+    },
+    {
+      "id": "order-10",
+      "cost": [
+        0,
+        3,
+        0,
+        2
+      ],
+      "points": 14
+    },
+    {
+      "id": "order-11",
+      "cost": [
+        0,
+        2,
+        0,
+        2
+      ],
+      "points": 12
+    },
+    {
+      "id": "order-12",
+      "cost": [
+        2,
+        0,
+        3,
+        0
+      ],
+      "points": 11
+    },
+    {
+      "id": "order-13",
+      "cost": [
+        0,
+        3,
+        2,
+        0
+      ],
+      "points": 12
+    },
+    {
+      "id": "order-14",
+      "cost": [
+        0,
+        2,
+        1,
+        1
+      ],
+      "points": 12
+    },
+    {
+      "id": "order-15",
+      "cost": [
+        2,
+        3,
+        0,
+        0
+      ],
+      "points": 8
+    },
+    {
+      "id": "order-16",
+      "cost": [
+        0,
+        2,
+        3,
+        0
+      ],
+      "points": 13
+    },
+    {
+      "id": "order-17",
+      "cost": [
+        3,
+        0,
+        0,
+        2
+      ],
+      "points": 11
+    },
+    {
+      "id": "order-18",
+      "cost": [
+        2,
+        0,
+        0,
+        3
+      ],
+      "points": 14
+    },
+    {
+      "id": "order-19",
+      "cost": [
+        0,
+        0,
+        4,
+        0
+      ],
+      "points": 12
+    },
+    {
+      "id": "order-20",
+      "cost": [
+        1,
+        1,
+        3,
+        1
+      ],
+      "points": 18
+    },
+    {
+      "id": "order-21",
+      "cost": [
+        1,
+        0,
+        2,
+        1
+      ],
+      "points": 12
+    },
+    {
+      "id": "order-22",
+      "cost": [
+        3,
+        1,
+        1,
+        1
+      ],
+      "points": 14
+    },
+    {
+      "id": "order-23",
+      "cost": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "points": 12
+    },
+    {
+      "id": "order-24",
+      "cost": [
+        2,
+        2,
+        0,
+        2
+      ],
+      "points": 15
+    },
+    {
+      "id": "order-25",
+      "cost": [
+        1,
+        3,
+        1,
+        1
+      ],
+      "points": 16
+    },
+    {
+      "id": "order-26",
+      "cost": [
+        0,
+        2,
+        0,
+        3
+      ],
+      "points": 16
+    },
+    {
+      "id": "order-27",
+      "cost": [
+        2,
+        0,
+        2,
+        0
+      ],
+      "points": 8
+    },
+    {
+      "id": "order-28",
+      "cost": [
+        0,
+        0,
+        2,
+        3
+      ],
+      "points": 18
+    },
+    {
+      "id": "order-29",
+      "cost": [
+        0,
+        4,
+        0,
+        0
+      ],
+      "points": 8
+    },
+    {
+      "id": "order-30",
+      "cost": [
+        0,
+        5,
+        0,
+        0
+      ],
+      "points": 10
+    },
+    {
+      "id": "order-31",
+      "cost": [
+        3,
+        2,
+        0,
+        0
+      ],
+      "points": 7
+    },
+    {
+      "id": "order-32",
+      "cost": [
+        2,
+        1,
+        0,
+        1
+      ],
+      "points": 9
+    },
+    {
+      "id": "order-33",
+      "cost": [
+        0,
+        0,
+        5,
+        0
+      ],
+      "points": 15
+    },
+    {
+      "id": "order-34",
+      "cost": [
+        0,
+        2,
+        2,
+        0
+      ],
+      "points": 10
+    },
+    {
+      "id": "order-35",
+      "cost": [
+        0,
+        0,
+        0,
+        4
+      ],
+      "points": 16
+    }
+  ],
+  "provenance": {
+    "checked_on": "2026-10-31",
+    "catalog_source": "https://github.com/yohanlaunay/spice-trader/blob/05c5f138e4fa49a88832b53851ea0277b50fee22/src/games/spices/data.js",
+    "sha256": "f0ae87cb7097f8c0e3df912996acd47f018a43444872f6a9b45747f8b39fefe6",
+    "crosscheck": "https://github.com/ShaPhi7/CenturySpiceRoad/tree/ec638ce92e6ced847de105aff6de1e8b0c1e0b5e/src/main/resources",
+    "crosscheck_result": "36/36 orders and 42/43 merchants exactly agree. The Java CSV has s,0,0,0,4 for the one-brown production card; rejected in favor of the JavaScript catalog and physical component analysis.",
+    "physical_inventory": "https://boardsandbees.wordpress.com/2019/01/15/0823/",
+    "inventory_checks": "34 trades, 8 production cards, 1 upgrade; all eight production cards yield spice value3 or4. Total order points468; full point histogram matches physical inventory. No third-party engine code reused."
+  }
+}
