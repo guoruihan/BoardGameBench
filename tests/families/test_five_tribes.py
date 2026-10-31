@@ -401,6 +401,78 @@ def test_unresolved_bidding_never_invents_credit_or_a_winner():
     g.validate()
 
 
+def test_author_emergency_sale_pays_fourth_bid_and_only_triggers_when_needed():
+    g=game()
+    s=g.state
+    s.update(bid_queue=[0,2,1,3],current_player=0)
+    s['players'][1]['coins']=0
+    for c in GOODS[:3]:
+        resource(g,1,c)
+    resource(g,1,'fakir')
+    g.step(dict(type='bid',slot=0,fakirs=0))
+    assert not any(a['type']=='emergency_sell' for a in g.legal_actions())
+    g.step(dict(type='bid',slot=0,fakirs=0))
+    g.step(dict(type='bid',slot=0,fakirs=0))
+    assert s['phase']=='bid' and s['current_player']==1
+    assert all(a['type']=='emergency_sell' for a in g.legal_actions())
+    assert len(g.legal_actions())==7
+    assert not any('fakir' in a['goods'] for a in g.legal_actions())
+    snap=g.snapshot()
+    clone=GAME_CLASS()
+    clone.restore(json.loads(json.dumps(snap)))
+    action=dict(type='emergency_sell',goods=[sorted(GOODS[:3])[0]])
+    assert clone.step(action)==g.step(action)
+    assert clone.snapshot()==g.snapshot()
+    assert s['players'][1]['coins']==1 and s['bid_queue']==[3]
+    assert g.legal_actions()==[dict(type='bid',slot=1,fakirs=0)]
+    g.step(g.legal_actions()[0])
+    assert s['current_marker']==3 and s['players'][1]['coins']==0
+    g.validate()
+
+
+def test_emergency_sale_not_available_with_kumarbi_affordable_bid():
+    g=game()
+    s=g.state
+    s.update(bid_queue=[0,2,1,3],current_player=0)
+    s['players'][1]['coins']=0
+    resource(g,1,GOODS[0])
+    resource(g,1,'fakir')
+    djinn(g,1,'kumarbi')
+    for _ in range(3):
+        g.step(dict(type='bid',slot=0,fakirs=0))
+    assert g.legal_actions()==[dict(type='bid',slot=1,fakirs=1)]
+    before=g.snapshot()
+    with pytest.raises(InvalidAction):
+        g.step(dict(type='emergency_sell',goods=[GOODS[0]]))
+    assert g.snapshot()==before
+
+
+def test_rules_v2_rejects_pre_ruling_snapshot():
+    g=game()
+    snap=g.snapshot()
+    snap['rules_version']='1'
+    with pytest.raises(ValueError,match='snapshot schema/game/config mismatch'):
+        GAME_CLASS().restore(snap)
+
+
+def test_final_move_triggers_end_before_same_turn_anun_restoration():
+    g=game()
+    blank(g)
+    s=g.state
+    put(g,0,'white',1)
+    put(g,1,'white',1)
+    put(g,10,'yellow',1)  # An isolated meeple does not itself create a move.
+    djinn(g,0,'anun_nak')
+    g.step(dict(type='start_sow',tile=0))
+    assert not s['end_trigger']  # A partial sow is never a completion check.
+    g.step(dict(type='drop',tile=1,color='white'))
+    assert s['end_trigger'] and not legal_starts(s['board'])
+    activate(g,'anun_nak',target=9)
+    assert legal_starts(s['board'])  # Seed 3 restores a real legal move here.
+    assert s['end_trigger'] and not s['terminated']
+    g.validate()
+
+
 def test_unresolved_anun_bag_shortage_retains_state_without_fake_draw():
     g=game()
     s=g.state
@@ -415,6 +487,30 @@ def test_unresolved_anun_bag_shortage_retains_state_without_fake_draw():
     activate(g,'anun_nak',target=0)
     assert s['phase']=='unresolved' and s['players'][0]['white']==1
     assert sum(first['meeples'])==0 and g.rng.getstate()==before
+    g.validate()
+
+
+def test_anun_shortage_is_reachable_from_natural_seed_without_state_editing():
+    g=game(22)
+    for slot in (1,3,0,0):
+        g.step(dict(type='bid',slot=slot,fakirs=0))
+    g.step(dict(type='start_sow',tile=3))
+    for tile,color in ((2,'blue'),(8,'blue'),(9,'white')):
+        g.step(dict(type='drop',tile=tile,color=color))
+    g.step(dict(type='market',indices=[1]))
+    g.step(dict(type='end_turn'))
+    g.step(dict(type='start_sow',tile=2))
+    for tile,color in ((1,'blue'),(0,'blue'),(6,'green'),(7,'white')):
+        g.step(dict(type='drop',tile=tile,color=color))
+    g.step(dict(type='get_djinn',card='anun_nak',payment='two_elders'))
+    assert g.state['bag']==[COLORS.index('white')]*2
+    before=g.snapshot()
+    result=g.step(dict(type='activate',djinn='anun_nak',payment='fakir',target=2))
+    assert result['info']['unresolved_rule']
+    assert g.state['blocked_reason']=='anun_nak_bag_fewer_than_three_requires_ruling'
+    assert g.state['players']==before['state']['players']
+    assert g.state['bag']==before['state']['bag']
+    assert g.rng.getstate()==before['rng']
     g.validate()
 
 

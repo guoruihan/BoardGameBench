@@ -98,6 +98,7 @@ def empty_tile(tile):
 class FiveTribes(DuoGame):
     game_id = 'five_tribes'
     config_id = 'base_fakir_duo_four_markers'
+    rules_version = '2'
 
     def _reset(self, first_player):
         board = [dict(kind=kind, color=color, points=points, meeples=[0]*5,
@@ -227,6 +228,13 @@ class FiveTribes(DuoGame):
                     cost = BIDS[max(0, index-fakirs)]
                     if cost <= p['coins']:
                         result.append(dict(type='bid', slot=slot, fakirs=fakirs))
+            if not result and zero_count == 3 and p['coins'] == 0:
+                # Cathala's 2014-08-20 ruling permits goods sales when the
+                # fourth marker cannot pay 1. It does not grant free credit.
+                available = sorted(set(p['resources'])-{'fakir'})
+                result = [dict(type='emergency_sell', goods=list(group))
+                          for n in range(1, len(available)+1)
+                          for group in combinations(available, n)]
             return result
         if phase == 'sow':
             result = []
@@ -317,6 +325,12 @@ class FiveTribes(DuoGame):
     def _unresolved(self, reason):
         self.state.update(phase='unresolved', blocked_reason=reason)
 
+    def _check_no_moves(self):
+        # Check only complete board operations, never an unfinished sow. Once
+        # triggered, later Anun-Nak use cannot undo the final-round condition.
+        if not self.state['end_trigger'] and not legal_starts(self.state['board']):
+            self.state['end_trigger'] = True
+
     def _claim(self, tile):
         s = self.state
         p = s['players'][s['current_player']]
@@ -366,6 +380,7 @@ class FiveTribes(DuoGame):
             for _ in range(3):
                 color = s['bag'].pop(self.rng.randrange(len(s['bag'])))
                 s['board'][action['target']]['meeples'][color] += 1
+            self._check_no_moves()
         elif d in ('bouraq', 'enki'):
             kind = 'palace' if d == 'bouraq' else 'tree'
             required = 'village' if d == 'bouraq' else 'oasis'
@@ -403,6 +418,7 @@ class FiveTribes(DuoGame):
             else:
                 s['phase'] = 'builder' if name == 'blue' else 'assassin'
         self._event('collect_tribe', tile=s['endpoint'], color=name, count=count)
+        self._check_no_moves()
 
     def _start_turn(self):
         s = self.state
@@ -411,13 +427,11 @@ class FiveTribes(DuoGame):
         s.update(current_marker=marker, current_player=marker//2, used=[], phase='move',
                  endpoint=None, tribe_count=0, tribe_color=None, sow_hand=[0]*5,
                  sow_position=None, sow_previous=-1, sow_start=None, placement=None)
-        if not legal_starts(s['board']):
-            s['end_trigger'] = True
+        self._check_no_moves()
 
     def _end_turn(self):
         s = self.state
-        if not legal_starts(s['board']):
-            s['end_trigger'] = True
+        self._check_no_moves()
         if s['turn_queue']:
             self._start_turn()
         elif s['end_trigger']:
@@ -511,6 +525,7 @@ class FiveTribes(DuoGame):
                 self._claim(target)
             self._event('assassinate', tile=action['tile'], opponent=action['opponent'], colors=action['colors'], fakirs=action['fakirs'])
             s['phase'] = 'tile'
+            self._check_no_moves()
         elif t == 'no_assassination':
             s['phase'] = 'tile'
         elif t == 'tile_effect':
@@ -547,12 +562,12 @@ class FiveTribes(DuoGame):
             s['djinn_row'].remove(action['card'])
             self._get_djinn(action['card'])
             s['phase'] = 'sale'
-        elif t == 'sell':
+        elif t in ('sell', 'emergency_sell'):
             for card in action['goods']:
                 p['resources'].remove(card)
                 s['resource_discard'].append(card)
             p['coins'] += SALE[len(action['goods'])]
-            self._event('sell', goods=action['goods'], coins=SALE[len(action['goods'])])
+            self._event(t, goods=action['goods'], coins=SALE[len(action['goods'])])
         elif t == 'end_turn':
             self._end_turn()
 
@@ -688,7 +703,7 @@ class FiveTribes(DuoGame):
                 f[0] = obs['tribe_count']*blue_neighborhood(board, obs['endpoint'])-3
             elif d == 'iblis' and obs['phase'] == 'assassin':
                 f[0] = 1
-        elif t == 'sell':
+        elif t in ('sell', 'emergency_sell'):
             # End scoring is equivalent; sell large sets, retain partial sets.
             f[0] = len(action['goods'])-5 if p['coins'] < 6 else -1
         elif t in ('tile_effect', 'no_move', 'no_assassination'):

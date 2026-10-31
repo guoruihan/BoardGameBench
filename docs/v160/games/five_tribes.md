@@ -1,7 +1,7 @@
 # Five Tribes — base Fakir edition, two players
 
 Status: **implemented_with_rulings_and_unresolved_boundaries**.
-`config_id=base_fakir_duo_four_markers`, rules schema 1. This is the standard
+`config_id=base_fakir_duo_four_markers`, rules schema 2. This is the standard
 30-tile, 90-meeple, 22-djinn, 54-resource game with two markers and 11 camels per
 player. Expansions and promotional djinn are absent. Do not report this as an
 unconditional complete rules certification: the unresolved cases below remain
@@ -57,20 +57,58 @@ approval. The [community FAQ](https://www.scribd.com/document/432691144/UNOFFICI
 and [French FAQ](http://faqjeux.pbworks.com/w/page/84748465/Five%20tribes) corroborate
 hidden resource hands, preselected Anun-Nak targets, separate personal-turn
 power limits, relocation chains and an end trigger that cannot be cancelled.
-They are secondary evidence; author-linked BGG pages were not fully retrievable.
+They are secondary evidence. On **2026-10-31 11:31 UTC**, the public BGG JSON API
+recovered two primary author replies. The public user record for ID **25583**
+identifies `Bruno des Montagnes` as **Bruno Cathala**, designer ID 1727:
+
+- [Bidding reply, 2014-08-20](https://boardgamegeek.com/thread/1221919/article/16655384#16655384)
+  ([public JSON](https://api.geekdo.com/api/articles/16655384)): when all three
+  zero spaces are filled, a player unable to pay may sell merchandise to fund
+  the required bid. Rules version 2 exposes `emergency_sell` only if no bid is
+  currently affordable. Once a set is sold, normal bidding resumes. This does
+  not add credit, change slot prices or permit routine sales while bidding.
+- [Anun-Nak reply, 2014-08-23](https://boardgamegeek.com/thread/1223771/article/16685898#16685898)
+  ([public JSON](https://api.geekdo.com/api/articles/16685898)): target selection
+  precedes random drawing. The current official help sheet also states this
+  order. This timing is no longer merely a community interpretation.
+
+The complete 29-post bidding thread was checked. No author answer was found for
+having neither coins nor saleable merchandise. The BGA developer's
+[2025 concession statement](https://boardgamegeek.com/thread/3450188/article/46675276#46675276)
+links back to [their own 2024 request for a ruling](https://boardgamegeek.com/thread/2027377/article/45182438#45182438),
+not a designer response. Therefore concession is not treated as an author ruling.
+Version 1 snapshots are rejected rather than silently replayed under version 2.
+
+Further recovered Cathala replies confirm [irreversible ending and later
+Anun-Nak moves](https://boardgamegeek.com/thread/1225526/article/16714739#16714739),
+[one Builder victim's local income without extra Fakirs](https://boardgamegeek.com/thread/1278517/article/17614689#17614689)
+and [Nekir income once per assassination event](https://boardgamegeek.com/thread/1265001/article/17386976#17386976).
+Version 2 also fixes the same-turn end-trigger window: finishing the final legal
+sow or assassination schedules the end immediately, before the player can
+restore moves with Anun-Nak. An unfinished sow is never checked as an empty board.
 
 | Case | Implemented interpretation / status |
 |---|---|
 | Kandicha kills a Builder | One victim's local blue-neighborhood income; no extra Fakir Builder multiplier. Echidna affects the acting player's Builder tribe, not the victim's hypothetical income. The latter scope remains provisional. |
 | Lamia / Hagis neighboring tile | Eight surrounding cells, as indicated by the card's multi-direction icon; sowing and assassin distance remain orthogonal. |
 | Ba'al acquires itself | No income on its own acquisition; its trigger exists for subsequent acquisitions. |
-| No moves then Anun-Nak | Check at a player's movement opportunity / turn completion; once triggered, ending stays scheduled for this round even if later power use restores moves. |
-| Fourth marker cannot pay and all zero slots are full | **Unresolved**: `no_affordable_bid_and_zero_slots_full`. No free bid, debt, forced sale or invented winner is inserted. The community FAQ proposes emergency handling but publisher/author evidence was not verified. |
+| No moves then Anun-Nak | Author-confirmed: check complete movement/assassination operations, movement opportunity and turn completion; once triggered, ending stays scheduled for this round even if later power use restores moves. |
+| Fourth marker cannot pay and all zero slots are full | Author-confirmed emergency merchandise sale when available. If no legal payment or sale exists: **unresolved**, `no_affordable_bid_and_zero_slots_full`. No free bid, debt or invented winner is inserted. |
 | Anun-Nak can draw fewer than three, even after its payment returns an Elder | **Unresolved**: `anun_nak_bag_fewer_than_three_requires_ruling`. Stop before payment/random draws. |
 
 An unresolved state has `phase=unresolved`, nonempty `blocked_reason`, no legal
 actions, `terminated=false`, no winners and `outcome.unresolved_rule=true`.
 Preserve it in completion statistics; never score it as a draw or discard the seed.
+
+The Anun-Nak shortage is reachable without editing a state: environment seed
+**22**, first player 0, legally collecting Whites, buying a Fakir at the small
+market, then buying Anun-Nak with two Elders leaves exactly two meeples in the
+bag. Attempting activation with that Fakir reaches the boundary on decision 17.
+The regression test replays the complete legal sequence. This is not merely a
+synthetic impossible-state concern. All 280 titles in the BGG game's rules forum
+were inspected and the Anun-Nak threads checked; no primary shortage ruling was
+found as of 2026-10-31. Neither drawing fewer meeples nor prohibiting the power
+has been invented as a substitute.
 
 ## Verification
 
@@ -82,4 +120,8 @@ explicit unresolved behavior. Initial smoke batch (environment/policy seeds
 three of four random games completed**. Random seed 0 reached the unaffordable
 fourth-bid boundary after 197 decisions and is retained as unresolved. This is a
 small correctness batch, not an estimate of playing strength or general
-completion probability. The baseline is a simple public tactical heuristic.
+completion probability. All **35 tests** pass after the version 2 ruling change,
+including emergency-sale continuation/replay, exclusion of Fakirs, rejection
+outside the exceptional condition, Kumarbi precedence, snapshot versioning,
+same-turn end-trigger restoration and a naturally reachable shortage trace.
+The baseline is a simple public tactical heuristic.

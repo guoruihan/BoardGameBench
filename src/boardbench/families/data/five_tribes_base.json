@@ -109,5 +109,50 @@
     40,
     50,
     60
+  ],
+  "author_rulings": [
+    {
+      "rule": "emergency_goods_sale_for_unaffordable_fourth_bid",
+      "source": "https://boardgamegeek.com/thread/1221919/article/16655384#16655384",
+      "public_api": "https://api.geekdo.com/api/articles/16655384",
+      "author_userid": 25583,
+      "author": "Bruno Cathala (Bruno des Montagnes)",
+      "published": "2014-08-20T16:37:36+00:00",
+      "verified_at": "2026-10-31T11:31:26Z",
+      "scope": "Sell merchandise to make a legal bid when three zero slots are occupied. No author ruling covers having neither coins nor merchandise."
+    },
+    {
+      "rule": "anun_nak_select_target_before_random_draw",
+      "source": "https://boardgamegeek.com/thread/1223771/article/16685898#16685898",
+      "public_api": "https://api.geekdo.com/api/articles/16685898",
+      "author_userid": 25583,
+      "author": "Bruno Cathala (Bruno des Montagnes)",
+      "published": "2014-08-23T15:55:05+00:00",
+      "verified_at": "2026-10-31T11:31:26Z"
+    },
+    {
+      "rule": "irreversible_end_trigger_and_later_restored_moves",
+      "source": "https://boardgamegeek.com/thread/1225526/article/16714739#16714739",
+      "public_api": "https://api.geekdo.com/api/articles/16714739",
+      "author_userid": 25583,
+      "author": "Bruno Cathala (Bruno des Montagnes)",
+      "verified_at": "2026-10-31T11:31:26Z"
+    },
+    {
+      "rule": "kandicha_builder_local_income_no_fakir_bonus",
+      "source": "https://boardgamegeek.com/thread/1278517/article/17614689#17614689",
+      "public_api": "https://api.geekdo.com/api/articles/17614689",
+      "author_userid": 25583,
+      "author": "Bruno Cathala (Bruno des Montagnes)",
+      "verified_at": "2026-10-31T11:31:26Z"
+    },
+    {
+      "rule": "nekir_once_per_assassination_event",
+      "source": "https://boardgamegeek.com/thread/1265001/article/17386976#17386976",
+      "public_api": "https://api.geekdo.com/api/articles/17386976",
+      "author_userid": 25583,
+      "author": "Bruno Cathala (Bruno des Montagnes)",
+      "verified_at": "2026-10-31T11:31:26Z"
+    }
   ]
 }
