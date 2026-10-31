@@ -100,12 +100,13 @@ def with_guard(cls,policy):
 class TerminalReference:
     def __init__(self,cls,rl_spec,*,seat,seconds=900.,seed=172,weights=None,width=6,
                  objective='win',max_rounds=None,max_simulation_steps=4000,clock=time.monotonic,
-                 continuation='portfolio',improvement_z=0.):
+                 continuation='portfolio',improvement_z=0.,budget_reserve=2.):
         if seat not in (0,1) or not math.isfinite(seconds) or seconds<=0 or not 2<=width<=32:
             raise ValueError('Invalid bounded search configuration')
         if objective not in ('win','score'):raise ValueError('Invalid objective')
         if continuation not in ('portfolio','rl','expert'):raise ValueError('Invalid continuation')
         if not math.isfinite(improvement_z) or improvement_z<0:raise ValueError('Invalid uncertainty gate')
+        if not math.isfinite(budget_reserve) or budget_reserve<0:raise ValueError('Invalid time reserve')
         if objective=='score' and cls.game_id in ('el_dorado','machi_koro','toy_battle'):
             raise ValueError('Race games do not have a scalar score objective')
         self.cls=cls;self.seat=seat;self.seconds=float(seconds);self.width=width
@@ -113,6 +114,7 @@ class TerminalReference:
         self.max_simulation_steps=max_simulation_steps;self.objective=objective
         self.continuation=continuation
         self.improvement_z=float(improvement_z)
+        self.budget_reserve=min(float(budget_reserve),self.seconds*.02)
         self.base=make_policy(cls,guarded_spec(cls.game_id,rl_spec),seed)
         habitat=None
         if cls.game_id=='harmonies':
@@ -174,7 +176,7 @@ class TerminalReference:
         if env.current_player!=self.seat:raise ValueError('Wrong search seat')
         began=self.clock();obs=env.observe(self.seat);actions=env.legal_actions(self.seat)
         if not actions:raise ValueError('No legal root actions')
-        remaining=max(0.,self.seconds-self.spent)
+        remaining=max(0.,self.seconds-self.budget_reserve-self.spent)
         # Leave enough time for later fallback policy calls. Once depleted,
         # selecting an already enumerated legal action requires no model call.
         roots=self.roots(obs,actions) if len(actions)>1 and remaining>.1 else actions[:1]

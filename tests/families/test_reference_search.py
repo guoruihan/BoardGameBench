@@ -66,3 +66,13 @@ def test_paired_uncertainty_gate_keeps_baseline_when_evidence_is_noisy():
     assert paired_selection([2,2.4],[0,.4],[0,.04],4,2.)==1
     assert paired_selection([0,1],[0,1],[0,1],1,2.)==0
     assert paired_selection([2,2.1],[0,.1],[0,1.],4,0.)==1
+
+
+def test_time_reserve_prevents_new_policy_work_near_game_deadline():
+    c=game_class('toy_battle');env=c();env.reset(17221)
+    search=TerminalReference(c,{'kind':'heuristic'},seat=0,seconds=900,clock=lambda:0.)
+    search.spent=899.
+    def forbidden(*args):raise AssertionError('Expensive policy started in reserved shutdown time')
+    search.base.decide=forbidden
+    assert search.decide(env) in env.legal_actions()
+    assert search.spent==899. and search.last['completed_rounds']==0

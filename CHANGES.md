@@ -1,5 +1,13 @@
 # Engineering changes
 
+## 2026-11-01 — keep measured search decisions within the game budget
+
+- Reserve up to two seconds (at most 2% of the budget) for finishing in-flight
+  calls and subsequent cheap fallbacks, rather than spend the entire wall limit
+  in simulations. Keep actual time measurements unmodified.
+- Explicitly mark over-budget completed games as budget_exceeded in new runs.
+  Repeat observed over-budget pilot games and preserve original evidence.
+
 ## 2026-11-01 — paired uncertainty gate for rollout policy improvement
 
 - Preserve the frozen RL action unless an alternative's paired estimated gain

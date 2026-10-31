@@ -56,12 +56,12 @@ def select_rl(game,bundle,current,output,seeds=8):
     write_json(path,result);return result
 
 
-def match(game,selection,seed,search_seat,budget,output,objective='win',max_rounds=None,continuation='portfolio',improvement_z=0.):
+def match(game,selection,seed,search_seat,budget,output,objective='win',max_rounds=None,continuation='portfolio',improvement_z=0.,budget_reserve=2.):
     cls=game_class(game);env=cls();env.reset(seed,first_player=0)
     rl=make_policy(cls,selection['rl_spec'],policy_seed(seed,1-search_seat))
     search=TerminalReference(cls,selection['rl_spec'],seat=search_seat,seconds=budget,
         seed=policy_seed(seed,search_seat)^172,weights=selection['heuristic_weights'],
-        max_rounds=max_rounds,objective=objective,continuation=continuation,improvement_z=improvement_z)
+        max_rounds=max_rounds,objective=objective,continuation=continuation,improvement_z=improvement_z,budget_reserve=budget_reserve)
     began=time.monotonic();cpu=time.process_time();count=0;trace=[];status='incomplete';rl_seconds=0.;last_progress=began
     while not env.outcome()['terminated']:
         if count>=10000 or time.monotonic()-began>budget+180:
@@ -82,11 +82,13 @@ def match(game,selection,seed,search_seat,budget,output,objective='win',max_roun
             last_progress=time.monotonic()
     out=env.outcome()
     if out['terminated']:status='complete'
+    if search.spent>budget:status='budget_exceeded'
     result=dict(game=game,config=cls.config_id,rules_version=cls.rules_version,seed=seed,
         search_seat=search_seat,first_player=0,budget=budget,objective=objective,status=status,
         search_config=dict(width=search.width,max_rounds=max_rounds,max_simulation_steps=search.max_simulation_steps,
                            continuation=continuation,
                            improvement_z=improvement_z,
+                           budget_reserve=search.budget_reserve,
                            continuations={'portfolio':['domain_heuristic','progress_or_habitat','retained_rl'],
                                           'rl':['retained_rl'],'expert':['domain_heuristic']}[continuation]),
         outcome=out,score_breakdown=env.score_breakdown(),decisions=count,
@@ -176,6 +178,7 @@ def main():
     p.add_argument('--max-rounds',type=int);p.add_argument('--objective',default='win')
     p.add_argument('--continuation',choices=['portfolio','rl','expert'],default='portfolio')
     p.add_argument('--improvement-z',type=float,default=0.)
+    p.add_argument('--budget-reserve',type=float,default=2.)
     a=p.parse_args();a.root=a.root.resolve()
     if a.report:
         print(json.dumps(report(a.root),indent=2));return
@@ -191,7 +194,7 @@ def main():
                 if path.exists():continue
                 path.parent.mkdir(parents=True,exist_ok=True)
                 try:
-                    row=match(a.game,selection,172020000+k,seat,budget,path,a.objective,a.max_rounds,a.continuation,a.improvement_z)
+                    row=match(a.game,selection,172020000+k,seat,budget,path,a.objective,a.max_rounds,a.continuation,a.improvement_z,a.budget_reserve)
                     print(json.dumps({k:v for k,v in row.items() if k!='score_breakdown'}),flush=True)
                 except Exception:
                     write_json(path.with_suffix('.error.json'),dict(game=a.game,budget=budget,seed_index=k,seat=seat,error=traceback.format_exc()))
