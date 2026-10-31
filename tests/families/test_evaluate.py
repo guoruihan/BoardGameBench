@@ -1,5 +1,6 @@
 import json
 import time
+from concurrent.futures import Future
 from pathlib import Path
 
 import pytest
@@ -39,6 +40,38 @@ def row(seed, orientation, a_points, status='complete', scores=(20, 10)):
 def slow_worker(job):
     time.sleep(30)  # Owned subprocess must be killed by the evaluator deadline.
     raise AssertionError('deadline failed')
+
+
+@pytest.fixture
+def audit_run_report(monkeypatch):
+    """Compare the actual cleanup path with an independent disk rebuild."""
+    real_run, real_scan, real_save = ev.run_evaluation, ev.latest_attempts, ev.save_report
+    reports = []
+    def checked_run(*args, **kwargs):
+        scans = []
+        def scan(output):
+            scans.append(output)
+            return real_scan(output)
+        def save(output, manifest, samples=2000, seed=160, *, attempt_state=None):
+            assert attempt_state is not None
+            assert len(scans) == 1  # Only the startup/resume scan is allowed.
+            cached = real_save(output, manifest, samples, seed, attempt_state=attempt_state)
+            games = (output/'games.json').read_bytes()
+            summary = (output/'summary.json').read_bytes()
+            assert len(scans) == 1  # Cached cleanup performed no attempt scan.
+            disk = real_save(output, manifest, samples, seed)
+            assert len(scans) == 2  # Default offline API still scans all attempts.
+            assert cached == disk
+            assert (output/'games.json').read_bytes() == games
+            assert (output/'summary.json').read_bytes() == summary
+            reports.append(cached)
+            return cached
+        with monkeypatch.context() as patch:
+            patch.setattr(ev, 'latest_attempts', scan)
+            patch.setattr(ev, 'save_report', save)
+            return real_run(*args, **kwargs)
+    monkeypatch.setattr(ev, 'run_evaluation', checked_run)
+    return reports
 
 
 def test_same_seed_swap_fixed_first_player_and_complete_round_robin():
@@ -163,7 +196,7 @@ def test_confirmation_known_dev_seed_overlap_rejected(tmp_path):
     assert fresh['excluded_manifests'][0]['sha256'] == ev.file_hash(output/'manifest.json')
 
 
-def test_expired_deadline_preserves_every_unstarted_job_then_resumes(tmp_path):
+def test_expired_deadline_preserves_every_unstarted_job_then_resumes(tmp_path, audit_run_report):
     output,manifest = prepare(tmp_path,phase='confirmation')
     stopped = ev.run_evaluation(output,workers=2,deadline_unix=time.time()-1,bootstrap_samples=50)
     assert stopped['scheduled'] == 2 and stopped['completed'] == 0
@@ -182,7 +215,7 @@ def test_expired_deadline_preserves_every_unstarted_job_then_resumes(tmp_path):
     assert len(ev.latest_attempts(output)[1]) == 2
 
 
-def test_running_deadline_is_preserved_as_attempt_and_resume_retries(tmp_path,monkeypatch):
+def test_running_deadline_is_preserved_as_attempt_and_resume_retries(tmp_path,monkeypatch, audit_run_report):
     output,_ = prepare(tmp_path,seeds=(71,72))
     real = ev.frozen_match_worker
     monkeypatch.setattr(ev,'frozen_match_worker',slow_worker)
@@ -199,7 +232,7 @@ def test_running_deadline_is_preserved_as_attempt_and_resume_retries(tmp_path,mo
     assert sorted(a['attempt'] for a in attempts).count(2) == 1
 
 
-def test_crash_running_attempt_retained_and_never_treated_as_loss(tmp_path):
+def test_crash_running_attempt_retained_and_never_treated_as_loss(tmp_path, audit_run_report):
     output,manifest = prepare(tmp_path)
     (output/'attempts').mkdir()
     job = manifest['schedule'][0]
@@ -213,7 +246,7 @@ def test_crash_running_attempt_retained_and_never_treated_as_loss(tmp_path):
     assert ev.latest_attempts(output)[1][0]['result']['status'] == 'interrupted'
 
 
-def test_terminal_errors_are_preserved_and_not_retried_implicitly(tmp_path):
+def test_terminal_errors_are_preserved_and_not_retried_implicitly(tmp_path, audit_run_report):
     output,manifest = prepare(tmp_path)
     (output/'attempts').mkdir()
     for job in manifest['schedule']:
@@ -223,6 +256,77 @@ def test_terminal_errors_are_preserved_and_not_retried_implicitly(tmp_path):
             result=dict(status='error',rewards=None,seconds=1.,error='fixture')))
     report = ev.run_evaluation(output,deadline_unix=time.time()+5,bootstrap_samples=20)
     assert report['statuses'] == {'error':2} and report['attempts'] == 2
+
+
+def test_cached_report_matches_disk_resource_sum_order_and_all_attempts(tmp_path):
+    output, manifest = prepare(tmp_path)
+    (output/'attempts').mkdir()
+    # Retry history and non-associative floating-point sums must retain the disk
+    # reader's exact filename order, not the order of submission/completion.
+    match = sorted(manifest['schedule'], key=lambda r: r['match_id'])[0]
+    attempts = []
+    for number, seconds in enumerate((1e16, 1., 1.), 1):
+        filename = f"{match['match_id']}_{number:04d}.json"
+        attempt = dict(match_id=match['match_id'], attempt=number, filename=filename,
+            manifest_sha256=manifest['manifest_sha256'], result=dict(status='interrupted',
+                rewards=None, seconds=seconds, worker_wall_seconds=seconds,
+                worker_cpu_seconds=seconds))
+        write(output/'attempts'/filename, attempt)
+        attempts.append(attempt)
+    latest = {match['match_id']: attempts[-1]}
+    cached = ev.save_report(output, manifest, 20, attempt_state=(latest, attempts[::-1]))
+    games = (output/'games.json').read_bytes()
+    disk = ev.save_report(output, manifest, 20)
+    assert cached == disk and (output/'games.json').read_bytes() == games
+    assert disk['attempts'] == 3 and disk['statuses'] == {'interrupted': 1, 'not_started': 1}
+
+
+@pytest.mark.parametrize('failure', ('future', 'submit', 'result_write'))
+def test_cached_failure_cleanup_and_resume_preserve_durable_attempts(
+        tmp_path, monkeypatch, audit_run_report, failure):
+    output, _ = prepare(tmp_path)
+    class Pool:
+        def __init__(self, **kwargs):
+            pass
+        def submit(self, function, job):
+            if failure == 'submit':
+                raise RuntimeError('submit fixture')
+            future = Future()
+            if failure == 'future':
+                future.set_exception(RuntimeError('worker fixture'))
+            else:
+                future.set_result(dict(status='complete', rewards=[1., -1.], seconds=.5,
+                    outcome=dict(scores=[7, 3]), worker_wall_seconds=.5, worker_cpu_seconds=.25))
+            return future
+        def shutdown(self, **kwargs):
+            pass
+    monkeypatch.setattr(ev, 'ProcessPoolExecutor', Pool)
+    if failure == 'result_write':
+        real_write = ev.write_json
+        failed = []
+        def write_once_fails(path, value):
+            if (Path(path).parent.name == 'attempts' and not failed
+                    and value['result']['status'] == 'complete'):
+                failed.append(True)
+                raise OSError('result write fixture')
+            return real_write(path, value)
+        monkeypatch.setattr(ev, 'write_json', write_once_fails)
+    if failure == 'future':
+        result = ev.run_evaluation(output, bootstrap_samples=20)
+        assert result['statuses'] == {'error': 2} and result['attempts'] == 2
+    else:
+        with pytest.raises((RuntimeError, OSError), match='fixture'):
+            ev.run_evaluation(output, bootstrap_samples=20)
+        result = audit_run_report[-1]
+        status = 'error' if failure == 'submit' else 'interrupted'
+        assert result['statuses'] == {status: 1, 'not_started': 1}
+        assert result['attempts'] == 1 and result['unmeasured_cpu_attempts'] == 1
+        if failure == 'result_write':
+            resumed = ev.run_evaluation(output, bootstrap_samples=20)
+            assert resumed['completed'] == 2 and resumed['attempts'] == 3
+            assert resumed['measured_worker_cpu_seconds'] == .5
+            assert resumed['unmeasured_cpu_attempts'] == 1
+            assert sorted(a['attempt'] for a in ev.latest_attempts(output)[1]) == [1, 1, 2]
 
 
 def test_single_writer_lock_and_reference_cycles(tmp_path):

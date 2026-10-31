@@ -442,8 +442,17 @@ def build_summary(manifest, rows, attempts=(), bootstrap_samples=2000, bootstrap
                        'Intervals are descriptive seed-cluster bootstrap intervals, not multiple-comparison corrections.'])
 
 
-def save_report(output, manifest, bootstrap_samples=2000, bootstrap_seed=160):
-    latest, attempts = latest_attempts(output)
+def save_report(output, manifest, bootstrap_samples=2000, bootstrap_seed=160, *,
+                attempt_state=None):
+    """Rebuild from disk, or use the writer's already-persisted in-memory records.
+
+    The optional pair is (latest, attempts), owned by this invocation under its
+    evaluation lock. Offline callers keep the complete disk-read behavior.
+    """
+    latest, attempts = latest_attempts(output) if attempt_state is None else attempt_state
+    # Match the disk scanner's filename order, including floating-point resource
+    # sums, even when new attempts were submitted in a different order.
+    attempts = sorted(attempts, key=lambda attempt: attempt['filename'])
     rows = scheduled_results(manifest, latest)
     summary = build_summary(manifest, rows, attempts, bootstrap_samples, bootstrap_seed)
     invocations = [read_json(p) for p in Path(output).glob('invocation_*.json')]
@@ -515,13 +524,19 @@ def run_evaluation(output, workers=1, deadline_unix=None, bootstrap_samples=2000
         if any(a.get('manifest_sha256') != manifest['manifest_sha256']
                or a['match_id'] not in scheduled_ids for a in attempts):
             raise ValueError('Attempt belongs to another frozen evaluation')
+
+        def persist_attempt(attempt, **changes):
+            # The mirror advances only after the atomic file replacement succeeds.
+            # latest/attempts/running share the same record object, including old
+            # attempts whose interrupted result must survive a subsequent retry.
+            write_json(output/'attempts'/attempt['filename'], dict(attempt, **changes))
+            attempt.update(changes)
+
         # A prior writer's abrupt exit cannot silently erase its running attempt.
         for attempt in latest.values():
             if attempt['result']['status'] == 'running':
-                attempt['result'] = dict(status='interrupted', rewards=None, seconds=None,
-                    error='Previous invocation exited without recording an outcome')
-                write_json(output/'attempts'/attempt['filename'], attempt)
-        latest, _ = latest_attempts(output)
+                persist_attempt(attempt, result=dict(status='interrupted', rewards=None, seconds=None,
+                    error='Previous invocation exited without recording an outcome'))
         pending = [r for r in manifest['schedule'] if r['match_id'] not in latest
                    or latest[r['match_id']]['result']['status'] in RETRYABLE]
         invocation = dict(started_unix=began, deadline_unix=deadline_unix, workers=workers,
@@ -538,14 +553,14 @@ def run_evaluation(output, workers=1, deadline_unix=None, bootstrap_samples=2000
             while pending or running:
                 # Harvest already-finished work before considering a deadline.
                 for future in [f for f in running if f.done()]:
-                    attempt, started = running.pop(future)
+                    attempt, started = running[future]
                     try:
                         result = future.result()
                     except Exception as error:
                         result = dict(status='error', rewards=None, seconds=time.time()-started,
                                       error=repr(error))
-                    attempt.update(result=result, finished_unix=time.time())
-                    write_json(output/'attempts'/attempt['filename'], attempt)
+                    persist_attempt(attempt, result=result, finished_unix=time.time())
+                    running.pop(future)
                 if STOP or (deadline_unix is not None and time.time() >= deadline_unix):
                     stopped = 'interrupted' if STOP else 'deadline'
                     break
@@ -559,16 +574,17 @@ def run_evaluation(output, workers=1, deadline_unix=None, bootstrap_samples=2000
                     attempt = dict(match_id=row['match_id'], attempt=number, filename=filename,
                         manifest_sha256=manifest['manifest_sha256'],
                         started_unix=started, result=dict(status='running', rewards=None, seconds=None))
-                    write_json(output/'attempts'/filename, attempt)
+                    persist_attempt(attempt)
+                    attempts.append(attempt)
+                    latest[row['match_id']] = attempt
                     specs = [manifest['bots'][name]['spec'] for name in row['seat_names']]
                     job = dict(game_id=manifest['game'], specs=specs, seed=row['seed'],
                                first_player=row['first_player'], **manifest['settings'])
                     try:
                         future = pool.submit(frozen_match_worker, job)
                     except Exception as error:
-                        attempt.update(finished_unix=time.time(), result=dict(status='error',
+                        persist_attempt(attempt, finished_unix=time.time(), result=dict(status='error',
                             rewards=None, seconds=0., error=repr(error)))
-                        write_json(output/'attempts'/filename, attempt)
                         raise
                     running[future] = (attempt, started)
                 if running:
@@ -579,10 +595,9 @@ def run_evaluation(output, workers=1, deadline_unix=None, bootstrap_samples=2000
         finally:
             if running:
                 for attempt, started in running.values():
-                    attempt.update(finished_unix=time.time(), result=dict(status=stopped or 'interrupted',
+                    persist_attempt(attempt, finished_unix=time.time(), result=dict(status=stopped or 'interrupted',
                         rewards=None, seconds=None, worker_wall_seconds=time.time()-started,
                         error='Owned worker stopped before a terminal result was recorded'))
-                    write_json(output/'attempts'/attempt['filename'], attempt)
             if pool is not None:
                 if running:
                     terminate_pool(pool)
@@ -591,7 +606,8 @@ def run_evaluation(output, workers=1, deadline_unix=None, bootstrap_samples=2000
             invocation.update(finished_unix=time.time(), wall_seconds=time.time()-began,
                               stop_reason=stopped)
             write_json(invocation_path, invocation)
-            summary = save_report(output, manifest, bootstrap_samples, bootstrap_seed)
+            summary = save_report(output, manifest, bootstrap_samples, bootstrap_seed,
+                                  attempt_state=(latest, attempts))
         return summary
 
 

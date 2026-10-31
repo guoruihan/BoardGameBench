@@ -91,6 +91,15 @@ cost. SIGINT/SIGTERM use the same recoverable stop path. An external SIGKILL can
 leave a `running` attempt; the next resume marks that prior attempt interrupted
 before retrying it.
 
+Each invocation reads existing attempts once after taking the writer lock, then
+keeps the latest result and complete retry history in memory as a mirror of
+successful atomic writes. Completion, deadline and exception cleanup summarize
+that mirror instead of reopening every attempt on the shared filesystem. This
+does not defer or batch attempt persistence. The next invocation still restores
+and validates every durable attempt from disk; an offline `save_report(...)`
+call also retains that full disk rebuild by default. Cached and offline reports
+use the same filename order for resource sums, including floating-point rounding.
+
 Only unstarted, interrupted or deadline-stopped jobs are retried. A completed
 match, an explicit per-match `truncated` result, a rule gap, no legal action or an
 execution error is retained as measured evidence and is not silently retried.
@@ -136,8 +145,9 @@ results, including unsuccessful and incomplete runs.
 - `games.json`: one row for every scheduled game, with pair, environment seed,
   seat mapping and latest result. Unstarted rows are explicit `not_started`.
 - `summary.json`: pair reports for both named bots, statuses, score availability,
-  seed-cluster intervals and timing. Rebuilt from durable attempts after stopping
-  or completing; attempt files remain the live progress evidence during play.
+  seed-cluster intervals and timing. Built from the in-memory mirror of durable
+  attempts after stopping or completing; offline rebuilds read those same files.
+  Attempt files remain the live progress evidence during play.
 - `invocation_*.json`: worker count, cutoff, elapsed wall time and stop reason for
   each run/resume invocation.
 
@@ -178,5 +188,9 @@ Tests cover all-pair seat alignment, whole-seed bootstrap, incomplete denominato
 null scores, frozen JSON/model identity, JSON-local paths, code/config rejection,
 phase/seed exclusions, a real spawned-process cutoff and resume, abrupt-exit
 recovery, retained execution errors, single-writer exclusion and a tiny neural
-checkpoint through the common policy loader. These are local smoke checks,
+checkpoint through the common policy loader. Cache checks compare summaries and
+game files byte for byte against independent disk rebuilds for normal runs,
+cutoffs, abrupt-exit recovery, failed submission, worker errors and a failed result
+write followed by resume. Each invocation is checked for exactly one startup
+attempt scan and none during cached cleanup. These are local smoke checks,
 not strength evaluations or production cluster runs.
