@@ -1,0 +1,485 @@
+{
+  "edition": "AEG/Flatout 2020 base, standard setup with chosen cats",
+  "source_rulebook": "https://c.tabletopia.com/games/calico/rules/calico-rules-s/en",
+  "publisher_rulebook": "https://www.alderac.com/wp-content/uploads/2020/09/Calico-Rules.pdf",
+  "source_pages": "4-9; printed teal and purple board images on p4",
+  "discovery_reference": "https://github.com/ZackWebb/calico_engine/blob/edcf62e9343101614931b3bae2dfd477a643f6a6/source/board_configurations.py",
+  "data_audit": "Both 22-cell printed borders independently checked against official rulebook p4 board images; teal (-2,-2) is green FLOWERS, correcting LEAVES in the discovery source. No third-party engine code included.",
+  "colors": [
+    "yellow",
+    "teal",
+    "pink",
+    "purple",
+    "green",
+    "blue"
+  ],
+  "patterns": [
+    "stripes",
+    "swirls",
+    "leaves",
+    "clubs",
+    "flowers",
+    "dots"
+  ],
+  "boards": [
+    {
+      "id": "teal",
+      "printed_cells": [
+        {
+          "q": -1,
+          "r": -3,
+          "color": 0,
+          "pattern": 0
+        },
+        {
+          "q": 0,
+          "r": -3,
+          "color": 1,
+          "pattern": 1
+        },
+        {
+          "q": 1,
+          "r": -3,
+          "color": 2,
+          "pattern": 2
+        },
+        {
+          "q": 2,
+          "r": -3,
+          "color": 3,
+          "pattern": 3
+        },
+        {
+          "q": 3,
+          "r": -3,
+          "color": 0,
+          "pattern": 4
+        },
+        {
+          "q": 4,
+          "r": -3,
+          "color": 4,
+          "pattern": 0
+        },
+        {
+          "q": 4,
+          "r": -2,
+          "color": 5,
+          "pattern": 5
+        },
+        {
+          "q": 3,
+          "r": -1,
+          "color": 3,
+          "pattern": 1
+        },
+        {
+          "q": 3,
+          "r": 0,
+          "color": 0,
+          "pattern": 2
+        },
+        {
+          "q": 2,
+          "r": 1,
+          "color": 4,
+          "pattern": 3
+        },
+        {
+          "q": 2,
+          "r": 2,
+          "color": 5,
+          "pattern": 4
+        },
+        {
+          "q": 1,
+          "r": 3,
+          "color": 1,
+          "pattern": 0
+        },
+        {
+          "q": 0,
+          "r": 3,
+          "color": 2,
+          "pattern": 5
+        },
+        {
+          "q": -1,
+          "r": 3,
+          "color": 4,
+          "pattern": 1
+        },
+        {
+          "q": -2,
+          "r": 3,
+          "color": 5,
+          "pattern": 2
+        },
+        {
+          "q": -3,
+          "r": 3,
+          "color": 2,
+          "pattern": 4
+        },
+        {
+          "q": -4,
+          "r": 3,
+          "color": 1,
+          "pattern": 3
+        },
+        {
+          "q": -4,
+          "r": 2,
+          "color": 0,
+          "pattern": 5
+        },
+        {
+          "q": -4,
+          "r": 1,
+          "color": 3,
+          "pattern": 0
+        },
+        {
+          "q": -3,
+          "r": 0,
+          "color": 1,
+          "pattern": 2
+        },
+        {
+          "q": -3,
+          "r": -1,
+          "color": 5,
+          "pattern": 3
+        },
+        {
+          "q": -2,
+          "r": -2,
+          "color": 4,
+          "pattern": 4
+        }
+      ]
+    },
+    {
+      "id": "purple",
+      "printed_cells": [
+        {
+          "q": -1,
+          "r": -3,
+          "color": 2,
+          "pattern": 5
+        },
+        {
+          "q": 0,
+          "r": -3,
+          "color": 3,
+          "pattern": 4
+        },
+        {
+          "q": 1,
+          "r": -3,
+          "color": 0,
+          "pattern": 2
+        },
+        {
+          "q": 2,
+          "r": -3,
+          "color": 1,
+          "pattern": 0
+        },
+        {
+          "q": 3,
+          "r": -3,
+          "color": 2,
+          "pattern": 3
+        },
+        {
+          "q": 4,
+          "r": -3,
+          "color": 4,
+          "pattern": 5
+        },
+        {
+          "q": 4,
+          "r": -2,
+          "color": 5,
+          "pattern": 1
+        },
+        {
+          "q": 3,
+          "r": -1,
+          "color": 1,
+          "pattern": 4
+        },
+        {
+          "q": 3,
+          "r": 0,
+          "color": 2,
+          "pattern": 2
+        },
+        {
+          "q": 2,
+          "r": 1,
+          "color": 4,
+          "pattern": 0
+        },
+        {
+          "q": 2,
+          "r": 2,
+          "color": 5,
+          "pattern": 3
+        },
+        {
+          "q": 1,
+          "r": 3,
+          "color": 3,
+          "pattern": 5
+        },
+        {
+          "q": 0,
+          "r": 3,
+          "color": 0,
+          "pattern": 1
+        },
+        {
+          "q": -1,
+          "r": 3,
+          "color": 4,
+          "pattern": 4
+        },
+        {
+          "q": -2,
+          "r": 3,
+          "color": 5,
+          "pattern": 2
+        },
+        {
+          "q": -3,
+          "r": 3,
+          "color": 3,
+          "pattern": 0
+        },
+        {
+          "q": -4,
+          "r": 3,
+          "color": 0,
+          "pattern": 3
+        },
+        {
+          "q": -4,
+          "r": 2,
+          "color": 1,
+          "pattern": 5
+        },
+        {
+          "q": -4,
+          "r": 1,
+          "color": 2,
+          "pattern": 1
+        },
+        {
+          "q": -3,
+          "r": 0,
+          "color": 4,
+          "pattern": 2
+        },
+        {
+          "q": -3,
+          "r": -1,
+          "color": 5,
+          "pattern": 0
+        },
+        {
+          "q": -2,
+          "r": -2,
+          "color": 1,
+          "pattern": 3
+        }
+      ]
+    }
+  ],
+  "goal_slots": [
+    [
+      -2,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      -1
+    ]
+  ],
+  "playable_cells": [
+    [
+      -1,
+      -2
+    ],
+    [
+      0,
+      -2
+    ],
+    [
+      1,
+      -2
+    ],
+    [
+      2,
+      -2
+    ],
+    [
+      3,
+      -2
+    ],
+    [
+      -2,
+      -1
+    ],
+    [
+      -1,
+      -1
+    ],
+    [
+      1,
+      -1
+    ],
+    [
+      2,
+      -1
+    ],
+    [
+      -2,
+      0
+    ],
+    [
+      -1,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      -3,
+      1
+    ],
+    [
+      -1,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      -3,
+      2
+    ],
+    [
+      -2,
+      2
+    ],
+    [
+      -1,
+      2
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      2
+    ]
+  ],
+  "cats": [
+    {
+      "id": "millie",
+      "size": 3,
+      "points": 3
+    },
+    {
+      "id": "tibbit",
+      "size": 4,
+      "points": 5
+    },
+    {
+      "id": "coconut",
+      "size": 5,
+      "points": 7
+    }
+  ],
+  "goals": [
+    {
+      "id": "all_different",
+      "counts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "single": 10,
+      "double": 15
+    },
+    {
+      "id": "aaa_bbb",
+      "counts": [
+        3,
+        3
+      ],
+      "single": 8,
+      "double": 13
+    },
+    {
+      "id": "aa_bb_cc",
+      "counts": [
+        2,
+        2,
+        2
+      ],
+      "single": 7,
+      "double": 11
+    },
+    {
+      "id": "aaaa_bb",
+      "counts": [
+        4,
+        2
+      ],
+      "single": 8,
+      "double": 14
+    },
+    {
+      "id": "aaa_bb_c",
+      "counts": [
+        3,
+        2,
+        1
+      ],
+      "single": 7,
+      "double": 11
+    },
+    {
+      "id": "aa_bb_c_d",
+      "counts": [
+        2,
+        2,
+        1,
+        1
+      ],
+      "single": 5,
+      "double": 8
+    }
+  ]
+}
