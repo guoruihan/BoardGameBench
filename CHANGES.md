@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 controlled throughput variants
+
+- Expose rollout/minibatch and checkpoint-gate sizes in immutable remote plans.
+  Larger CPU allocations retain quota/overlap enforcement; the 24-CPU remote
+  evaluation smoke completed all eight games.
+- Verify retained Harmonies model decisions against the original nonaccelerated
+  engine through complete games. Differences in opponent-induced game length
+  explain why raw scores across different opponents cannot be directly ranked.
+
 ## 2026-10-31 — V1.6.0 verification and recoverable reporting
 
 - Publish frozen-source test, 2,176-game invariant sweep and actual installed-wheel

@@ -82,6 +82,9 @@ For continuation, use a new output directory and `--warm-start path/to/best.pt`.
 target. Entropy, prior KL, learning rate and self-play fraction are explicit CLI
 parameters; the frozen warm-start prior cannot silently be replaced by a
 different linear policy.
+Remote plans also expose `games`, `batch_size`, `epochs`, `eval_every` and
+`gate_seeds`, so throughput variants record their actual batch and selection
+settings. These are per-run parameters, not changes to game semantics.
 New runs use `families.seeds.experiment_seed`: disjoint algorithm/split bits,
 32 iteration bits and 16 within-iteration index bits, with integers below 2^53.
 Older 512-update releases used separate arithmetic ranges valid for that length.

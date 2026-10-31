@@ -62,11 +62,12 @@ if cfg['kind']=='eval':
 else:
     command+=['--hours',str(cfg.get('hours',3)),'--source-commit',cfg['commit']]
 if cfg['kind']=='ppo':
-    command+=['--device','cuda','--games','32','--updates',str(cfg.get('updates',512)),
-              '--gate-seeds','12','--confirm-seeds','64','--seed',str(cfg.get('seed',1601))]
+    command+=['--device','cuda','--games',str(cfg.get('games',32)),'--updates',str(cfg.get('updates',512)),
+              '--gate-seeds',str(cfg.get('gate_seeds',12)),'--confirm-seeds','64','--seed',str(cfg.get('seed',1601))]
     if cfg.get('prior'): command+=['--prior',cfg['prior']]
     if cfg.get('warm_start'): command+=['--warm-start',cfg['warm_start']]
-    for key in ('gamma','gae_lambda','self_play_rate','learning_rate','entropy_coef','prior_kl_coef'):
+    for key in ('gamma','gae_lambda','self_play_rate','learning_rate','entropy_coef','prior_kl_coef',
+                'batch_size','epochs','eval_every'):
         if key in cfg: command+=['--'+key.replace('_','-'),str(cfg[key])]
 elif cfg['kind']=='cem':
     command+=['--population','16','--generations','80','--train-seeds','3','--gate-seeds','12','--confirm-seeds','64']
