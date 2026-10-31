@@ -1,5 +1,22 @@
 # Research milestones
 
+## V1.7.2 completed long-search comparison — 2026-11-01
+
+- Complete 456 valid paired development matches across 16 families, retaining
+  portfolio search, frozen-RL continuation, conservative improvement and the
+  Harmonies habitat/own-score reference. Each panel uses four environments and
+  both seats; adaptive method selection is not an independent confirmation.
+- Conservative paired selection improves the four diagnosed families on this
+  panel: Stone Age wins 7/8, Dominion 5/8, Cascadia and El Dorado each 4/8.
+  El Dorado changes very few RL actions; parity does not establish a strong
+  search teacher. Keep the original search failures visible.
+- Harmonies win-target search wins 6/8 with scores 69.25 vs 63.00. Its separate
+  own-score habitat reference scores 92.25 vs 81.25, with animal scores 43.00 vs
+  20.625. Same frozen RL, different opponent behavior and objective.
+- Full public-input models remain untrained. Candidate teachers require fresh
+  confirmation before promotion; game optimality and final-test strength are
+  not established by these small development comparisons.
+
 ## V1.7.2 conservative rollout improvement diagnosis — 2026-11-01
 
 - Retained-RL continuation alone does not remove several search regressions.

@@ -1,6 +1,17 @@
 # BoardGameBench
 
-## 新一轮：V1.7.0 / 0.6.3 统一策略池 PPO
+## 当前：V1.7.2 / 0.6.5 完整输入与独立搜索参考
+
+为 16 个合格双人任务增加完整公开局面／动作编码、上下文 actor-critic、
+隐藏状态重采样和累计决策预算下的真实终局 rollout。旧规则和 RL 权重保留；
+本阶段没有训练新版 RL。
+
+[方法、边界与恢复](docs/v172/Rich_Input_and_Search_Reference_zh.md) ·
+[等价模拟与输入编码性能](docs/v172/Performance_zh.md) ·
+[现有 RL 对长预算搜索的配对结果](docs/v172/Search_vs_RL_Results_zh.md)
+
+
+## 前一阶段：V1.7.0 / 0.6.3 统一策略池 PPO
 
 16 个双人任务使用同一套通用 actor-critic、终局胜负奖励与 A/B 训练流程，
 Harmonies 也纳入通用方法。参见 [试跑方法与恢复说明](docs/v170/Policy_Pool_Pilot_zh.md)。

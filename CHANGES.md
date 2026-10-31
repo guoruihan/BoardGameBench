@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-11-01 — publish V1.7.2 paired search references
+
+- Publish all-family 30/180/900-second comparisons, targeted continuation and
+  conservative-selection diagnoses, and a matched Harmonies own-score anchor.
+  Preserve original records and replacement provenance; no new RL was trained.
+- Link full per-game results, uncertainty, actual resource costs and method
+  limitations from the README. Keep frozen-model specs, trajectories and private
+  launch records in ignored local artifacts.
+- Bound the executable rich-input policy to one PyTorch CPU thread and verify
+  the existing model roundtrip, context/gradient and search-budget checks.
+
 ## 2026-11-01 — keep measured search decisions within the game budget
 
 - Reserve up to two seconds (at most 2% of the budget) for finishing in-flight

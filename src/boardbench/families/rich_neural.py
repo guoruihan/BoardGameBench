@@ -105,6 +105,7 @@ def load_model(path,game,device='cpu'):
 class RichPolicy:
     """Executable player interface; a newly initialized model has no strength claim."""
     def __init__(self,model,encoder,device='cpu'):
+        if torch.device(device).type=='cpu':torch.set_num_threads(1)
         self.model=model.to(device).eval();self.encoder=encoder;self.device=device
 
     def decide(self,observation,actions):
