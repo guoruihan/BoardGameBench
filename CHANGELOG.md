@@ -1,5 +1,15 @@
 # Research milestones
 
+## V1.7.2 rich inputs and independent search protocol — 2026-11-01
+
+- Replace the compact-input assumption for future learners with a full public
+  state/action tree and a context-conditioned actor/critic. Architecture checks
+  establish information/gradient contracts, not learned performance gains.
+- Establish real terminal rollout references with public hidden-state sampling,
+  domain/RL continuation portfolios and cumulative 30/180/900 second game budgets.
+- Separate RL selection from four-environment paired-seat development comparison;
+  retain incomplete/error counts and actual cost. Official test remains unused.
+
 ## V1.7.1 terminal decomposition experiment — 2026-11-01
 
 - Continue each qualified game's final common B model with matched initialization

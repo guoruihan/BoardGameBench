@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-11-01 — 0.6.5 public inputs and terminal search reference
+
+- Preserve complete player-visible state, action fields and public rule catalogs
+  for all 16 qualified families; add contextual ragged actor/critic, independent
+  checkpoint schema and executable policy interface without retraining old bots.
+- Add hidden-world resampling, equivalent internal simulation and budgeted
+  terminal rollout, retaining domain heuristics and frozen RL proposals.
+- Add resumable CPU experiment jobs, paired-seat development selection, complete
+  trajectories/candidate targets and explicit scoreless-race handling.
+- Keep rules, public information rights, official scores and legacy artifacts
+  unchanged; no new RL training or strength promotion is part of this release.
+
 ## 2026-11-01 — Harmonies retrospective and family policy information audit
 
 - Reconstruct matched imitation/random-init PPO controls and distinguish verified
