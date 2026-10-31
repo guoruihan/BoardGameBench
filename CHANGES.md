@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-11-01 — reward-intervention launch verification
+
+- Complete six two-update CUDA smoke conditions with identical first-batch
+  game/action evidence, then launch all 46 bounded conditions across 16 games.
+- Verify live CUDA preflights, initial formal updates and physical-core affinity;
+  enable deadline-bounded resource observation and paired development reporting.
+- Preserve private allocation records and all generated artifacts outside Git;
+  no strength improvement or production promotion is claimed at launch.
+
 ## 2026-11-01 — 0.6.4 terminal auxiliary supervision pilots
 
 - Add optional score/component heads to the common candidate actor-critic,
