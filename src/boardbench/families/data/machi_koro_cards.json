@@ -1,0 +1,312 @@
+{
+  "game": "machi_koro",
+  "edition": "classic_2014_english_base_108_cards",
+  "date_checked": "2026-10-31",
+  "scope": "rule constants, not official artwork or a tested engine",
+  "players": [
+    2,
+    3,
+    4
+  ],
+  "starting_coins": 3,
+  "establishments": [
+    {
+      "card_id": "wheat_field",
+      "name": "Wheat Field",
+      "color": "blue",
+      "icon": "wheat",
+      "activation_totals": [
+        1
+      ],
+      "cost": 1,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 4,
+      "effect": {
+        "type": "bank_fixed",
+        "amount": 1,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "ranch",
+      "name": "Ranch",
+      "color": "blue",
+      "icon": "cow",
+      "activation_totals": [
+        2
+      ],
+      "cost": 1,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "bank_fixed",
+        "amount": 1,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "bakery",
+      "name": "Bakery",
+      "color": "green",
+      "icon": "shop",
+      "activation_totals": [
+        2,
+        3
+      ],
+      "cost": 1,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 4,
+      "effect": {
+        "type": "bank_fixed",
+        "amount": 1,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "cafe",
+      "name": "Cafe",
+      "color": "red",
+      "icon": "cup",
+      "activation_totals": [
+        3
+      ],
+      "cost": 2,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "take_active",
+        "amount": 1,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "convenience_store",
+      "name": "Convenience Store",
+      "color": "green",
+      "icon": "shop",
+      "activation_totals": [
+        4
+      ],
+      "cost": 2,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "bank_fixed",
+        "amount": 3,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "forest",
+      "name": "Forest",
+      "color": "blue",
+      "icon": "gear",
+      "activation_totals": [
+        5
+      ],
+      "cost": 3,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "bank_fixed",
+        "amount": 1,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "stadium",
+      "name": "Stadium",
+      "color": "purple",
+      "icon": "major",
+      "activation_totals": [
+        6
+      ],
+      "cost": 6,
+      "supply_copies": 4,
+      "max_owned": 1,
+      "starting_copies": 0,
+      "effect": {
+        "type": "take_each_opponent",
+        "amount": 2,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "tv_station",
+      "name": "TV Station",
+      "color": "purple",
+      "icon": "major",
+      "activation_totals": [
+        6
+      ],
+      "cost": 7,
+      "supply_copies": 4,
+      "max_owned": 1,
+      "starting_copies": 0,
+      "effect": {
+        "type": "take_chosen_opponent",
+        "amount": 5,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "business_center",
+      "name": "Business Center",
+      "color": "purple",
+      "icon": "major",
+      "activation_totals": [
+        6
+      ],
+      "cost": 8,
+      "supply_copies": 4,
+      "max_owned": 1,
+      "starting_copies": 0,
+      "effect": {
+        "type": "optional_swap_nonpurple",
+        "amount": null,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "cheese_factory",
+      "name": "Cheese Factory",
+      "color": "green",
+      "icon": "factory",
+      "activation_totals": [
+        7
+      ],
+      "cost": 5,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "bank_per_icon",
+        "amount": 3,
+        "count_icon": "cow"
+      }
+    },
+    {
+      "card_id": "furniture_factory",
+      "name": "Furniture Factory",
+      "color": "green",
+      "icon": "factory",
+      "activation_totals": [
+        8
+      ],
+      "cost": 3,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "bank_per_icon",
+        "amount": 3,
+        "count_icon": "gear"
+      }
+    },
+    {
+      "card_id": "mine",
+      "name": "Mine",
+      "color": "blue",
+      "icon": "gear",
+      "activation_totals": [
+        9
+      ],
+      "cost": 6,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "bank_fixed",
+        "amount": 5,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "family_restaurant",
+      "name": "Family Restaurant",
+      "color": "red",
+      "icon": "cup",
+      "activation_totals": [
+        9,
+        10
+      ],
+      "cost": 3,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "take_active",
+        "amount": 2,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "apple_orchard",
+      "name": "Apple Orchard",
+      "color": "blue",
+      "icon": "wheat",
+      "activation_totals": [
+        10
+      ],
+      "cost": 3,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "bank_fixed",
+        "amount": 3,
+        "count_icon": null
+      }
+    },
+    {
+      "card_id": "fruit_vegetable_market",
+      "name": "Fruit and Vegetable Market",
+      "color": "green",
+      "icon": "fruit",
+      "activation_totals": [
+        11,
+        12
+      ],
+      "cost": 2,
+      "supply_copies": 6,
+      "max_owned": null,
+      "starting_copies": 0,
+      "effect": {
+        "type": "bank_per_icon",
+        "amount": 2,
+        "count_icon": "wheat"
+      }
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "train_station",
+      "cost": 4,
+      "effect": "choose_one_or_two_dice"
+    },
+    {
+      "id": "shopping_mall",
+      "cost": 10,
+      "effect": "plus_one_per_activated_shop_or_cup"
+    },
+    {
+      "id": "amusement_park",
+      "cost": 16,
+      "effect": "extra_turn_on_final_doubles"
+    },
+    {
+      "id": "radio_tower",
+      "cost": 22,
+      "effect": "one_optional_full_reroll_per_turn"
+    }
+  ],
+  "unresolved_ruling": [
+    "Whether an Amusement Park bought during construction retroactively triggers from doubles rolled earlier in that same turn. Event-based default: no retroactive trigger, explicitly provisional."
+  ]
+}
