@@ -1,7 +1,7 @@
 """Launch bounded common-policy pilots on explicitly supplied private host plans.
 
-Host/IP inventories and launch plans are local ignored artifacts. One coordinator
-plus six actors use seven distinct physical cores per run; controller core is
+Host/IP inventories and launch plans are local ignored artifacts. A configurable
+physical-core slot covers each coordinator and its actors; a controller core is
 also reserved. Historical and third-party tasks are never interrupted.
 """
 import argparse
@@ -33,16 +33,19 @@ for line in topology.splitlines():
     if online=='Y' and int(cpu_id) in allowed:cores.setdefault((socket,core),int(cpu_id))
 representatives=sorted(cores.values())
 limit=min(len(representatives)//2,128 if request['host'].startswith('a') else len(representatives))
+width=request.get('cores_per_job',7)
+if type(width) is not int or width<2:raise RuntimeError('Invalid per-run core allocation')
 slots=[job.get('cpu_slot',i) for i,job in enumerate(request['jobs'])]
-if len(set(slots))!=len(slots) or any(type(s) is not int or s<0 or (s+1)*7>=limit for s in slots):
+if len(set(slots))!=len(slots) or any(type(s) is not int or s<0 or (s+1)*width>=limit for s in slots):
     raise RuntimeError('Invalid or overlapping physical CPU slots')
-chosen={c for slot in slots for c in representatives[slot*7:(slot+1)*7]}
+chosen={c for slot in slots for c in representatives[slot*width:(slot+1)*width]}
 needed=len(chosen)+1
 if needed>limit:raise RuntimeError('Physical half-host CPU quota exceeded')
 if busy+100*needed/len(allowed)>50:raise RuntimeError('Projected whole-host CPU busy fraction too high')
 sessions=subprocess.run(['tmux','list-sessions','-F','#{session_name}'],capture_output=True,text=True).stdout.splitlines()
 manifests=list(root.glob('outputs/v160/bots/*/*/launch.json'))
 manifests+=list(root.glob('outputs/v170/*/runs/*/*/launch.json'))
+manifests+=list(root.glob('outputs/v171/*/runs/*/*/launch.json'))
 existing=set()
 for manifest in manifests:
     try:old=json.loads(manifest.read_text())
@@ -88,7 +91,8 @@ for i,job in enumerate(request['jobs']):
     if (directory/'launch.json').exists():raise RuntimeError('Existing launch; inspect before retry')
     config=json.loads((directory/'config.json').read_text())
     if config['source_commit']!=request['commit']:raise RuntimeError('Source identity mismatch')
-    slot=slots[i];cpus=representatives[slot*7:(slot+1)*7]
+    if config['workers']+1>width:raise RuntimeError('Worker count exceeds reserved physical cores')
+    slot=slots[i];cpus=representatives[slot*width:(slot+1)*width]
     config['deadline_unix']=min(time.time()+min(3600,config['hours']*3600),
                                config.get('budget_origin_deadline',float('inf')))
     remaining=int(config['deadline_unix']-time.time())

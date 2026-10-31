@@ -1,5 +1,17 @@
 # Research milestones
 
+## V1.7.1 terminal decomposition experiment — 2026-11-01
+
+- Continue each qualified game's final common B model with matched initialization
+  and frozen opponent panels. Compare win PPO, win PPO with terminal auxiliary
+  heads, and an explicit bounded score-margin mixture with auxiliary heads.
+- Prepare three conditions for 14 scored games and two for the two scoreless
+  race games. Their terminal progress labels are supervision only, not invented
+  victory points. Calibration uses completed training games, never final tests.
+- First pilots have per-condition one-hour caps and common per-game decision
+  caps; full batches and deadlines can yield unequal actual counts, which remain
+  explicit in paired reports. This records the method, not improved strength.
+
 ## V1.7.0 all-family equivalent sampling execution — 2026-11-01
 
 - Extend the performance investigation to all 16 qualified games while keeping

@@ -48,6 +48,10 @@ def compact_episode(episode):
     rows=[]
     for original in episode['records']:
         row={k:original[k] for k in TRAINING_FIELDS}
+        for key in ('auxiliary_targets', 'auxiliary_mask', 'auxiliary_clipped',
+                    'win_reward', 'training_reward'):
+            if key in original:
+                row[key] = original[key]
         row['legal_action_count']=len(original['legal_actions'])
         rows.append(row)
     return dict(result=episode['result'],records=rows,archive_member=compressed,

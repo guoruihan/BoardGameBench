@@ -79,15 +79,32 @@ def minibatches(records, batch_size, rng):
 
 
 def update(model, optimizer, records, device, rng, epochs=4, batch_size=64,
-           entropy_coef=.01, prior_kl_coef=.01):
+           entropy_coef=.01, prior_kl_coef=.01, auxiliary_coef=0.):
+    if not np.isfinite(auxiliary_coef) or auxiliary_coef < 0:
+        raise ValueError('Invalid auxiliary loss coefficient')
     advantages = np.asarray([r['advantage'] for r in records])
     mean, std = advantages.mean(), max(advantages.std(), 1e-6)
     losses, norms, kls, entropies = [], [], [], []
+    aux_losses, value_losses, policy_losses, prior_kls = [], [], [], []
     model.train()
     for _ in range(epochs):
         for batch in minibatches(records, batch_size, rng):
             x, prior, mask = collate(batch, device)
-            logits, values = model(x, prior, mask)
+            if auxiliary_coef:
+                logits, values, predictions = model(x, prior, mask, return_auxiliary=True)
+                auxiliary_targets = torch.tensor([r['auxiliary_targets'] for r in batch],
+                                                  dtype=torch.float32, device=device)
+                auxiliary_mask = torch.tensor([r['auxiliary_mask'] for r in batch],
+                                               dtype=torch.bool, device=device)
+                if (predictions.shape != auxiliary_targets.shape or
+                        auxiliary_mask.shape != predictions.shape or
+                        not torch.isfinite(auxiliary_targets).all()):
+                    raise ValueError('Auxiliary label/mask alignment or finiteness failure')
+                auxiliary_loss = ((predictions-auxiliary_targets).square()*auxiliary_mask).sum()/auxiliary_mask.sum().clamp_min(1)
+                aux_losses.append(float(auxiliary_loss.detach()))
+            else:
+                logits, values = model(x, prior, mask)
+                auxiliary_loss = 0.
             distribution = torch.distributions.Categorical(logits=logits)
             actions = torch.tensor([r['action'] for r in batch], device=device)
             if not mask.gather(1, actions[:, None]).all():
@@ -101,8 +118,9 @@ def update(model, optimizer, records, device, rng, epochs=4, batch_size=64,
             entropy = distribution.entropy().mean()
             anchor = torch.distributions.Categorical(logits=prior.masked_fill(~mask, -torch.inf))
             prior_kl = torch.distributions.kl_divergence(anchor, distribution).mean()
-            loss = (policy_loss + .5*(values-targets).square().mean()
-                    - entropy_coef*entropy + prior_kl_coef*prior_kl)
+            value_loss = (values-targets).square().mean()
+            loss = (policy_loss + .5*value_loss
+                    - entropy_coef*entropy + prior_kl_coef*prior_kl + auxiliary_coef*auxiliary_loss)
             if not torch.isfinite(loss):
                 raise FloatingPointError('Nonfinite PPO objective')
             optimizer.zero_grad(set_to_none=True)
@@ -113,9 +131,15 @@ def update(model, optimizer, records, device, rng, epochs=4, batch_size=64,
             norms.append(float(norm))
             kls.append(float(((ratio-1)-(logp-old_logp)).mean().detach()))
             entropies.append(float(entropy.detach()))
+            value_losses.append(float(value_loss.detach()))
+            policy_losses.append(float(policy_loss.detach()))
+            prior_kls.append(float(prior_kl.detach()))
     model.eval()
     return dict(loss=float(np.mean(losses)), grad_norm=float(np.mean(norms)),
                 approximate_kl=float(np.mean(kls)), entropy=float(np.mean(entropies)),
+                value_mse=float(np.mean(value_losses)), policy_loss=float(np.mean(policy_losses)),
+                prior_kl=float(np.mean(prior_kls)),
+                auxiliary_loss=float(np.mean(aux_losses)) if aux_losses else None,
                 decisions=len(records), return_mean=float(np.mean([r['return'] for r in records])))
 
 

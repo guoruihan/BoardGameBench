@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-11-01 — 0.6.4 terminal auxiliary supervision pilots
+
+- Add optional score/component heads to the common candidate actor-critic,
+  preserving legacy checkpoint loading and zero-coefficient PPO behavior.
+- Calibrate masked terminal targets from prior training trajectories only;
+  distinguish win-only, auxiliary-only and explicitly mixed actor objectives.
+- Add fixed-opponent matched preparation, compact label transport, exact recovery,
+  actor/critic diagnostics and paired development reports across qualified games.
+- Support smaller physical-core slots for bounded parallel remote pilots while
+  retaining half-host quotas, fresh GPU checks and existing-process protections.
+
 ## 2026-11-01 — reward-signal literature evidence
 
 - Record primary-source evidence on terminal outcomes, point payoffs, score

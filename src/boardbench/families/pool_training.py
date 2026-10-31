@@ -32,6 +32,7 @@ from .registry import game_class
 from .trajectory_io import compact_episode, json_default, write_compressed, write_episode_batch
 from .harmonies_kernel import configure as configure_harmonies_kernel
 from .state_io import copy_data
+from .reward_signals import terminal_signals, validate_signal
 
 STOP = False
 MODEL_CACHE = {}
@@ -107,8 +108,16 @@ def rollout(job):
             chain[-1]['terminated'] = result['status']=='complete'
             chain[-1]['truncated'] = result['status']!='complete'
         if result['status']=='complete':
-            chain[-1]['reward'] = result['rewards'][seat]
-            records.extend(finish_returns(chain, result['rewards'][seat], 1., job['gae_lambda']))
+            reward = result['rewards'][seat]
+            if job.get('reward_signal'):
+                signals = terminal_signals(result, seat, job['reward_signal'])
+                reward = signals['training_reward']
+                for row in chain:
+                    row.update(auxiliary_targets=signals['targets'], auxiliary_mask=signals['mask'],
+                               auxiliary_clipped=signals['clipped'], win_reward=signals['win_reward'],
+                               training_reward=reward)
+            chain[-1]['reward'] = reward
+            records.extend(finish_returns(chain, reward, 1., job['gae_lambda']))
         else:
             # This complete-game estimator excludes incomplete chains entirely.
             # It never substitutes a zero terminal value or a fabricated loss.
@@ -189,6 +198,25 @@ def member(path, identity, decisions=0, **kwargs):
                 learner_decisions=decisions, quality=None, panel_vector=[], fingerprint=[], **kwargs)
 
 
+def signal_diagnostics(model, records, device):
+    """Fixed-size in-batch diagnostics; not held-out calibration or validation."""
+    indices = np.linspace(0, len(records)-1, min(64, len(records)), dtype=int)
+    batch = [records[i] for i in indices]
+    with torch.inference_mode():
+        x, prior, mask = collate(batch, device)
+        logits, _, predictions = model(x, prior, mask, return_auxiliary=True)
+        targets = torch.tensor([r['auxiliary_targets'] for r in batch], device=device)
+        valid = torch.tensor([r['auxiliary_mask'] for r in batch], device=device)
+        mse = ((predictions-targets).square()*valid).sum(0)/valid.sum(0).clamp_min(1)
+        residual = (logits-prior)[mask]
+        anchor = prior.masked_fill(~mask, -torch.inf)
+        changed = (logits.argmax(-1) != anchor.argmax(-1)).float().mean()
+    return dict(auxiliary_mse_by_head={n:float(v) for n,v in zip(model.auxiliary_names,mse)},
+                actor_residual_std=float(residual.std(unbiased=False)),
+                actor_residual_abs_max=float(residual.abs().max()),
+                greedy_disagreement_with_prior=float(changed))
+
+
 def main(argv=None):
     global STOP
     STOP = False
@@ -223,6 +251,13 @@ def main(argv=None):
     model, saved = load_model(cfg['initial_path'], game_class(cfg['game']), device)
     if file_hash(cfg['initial_path']) != cfg['initial_sha256']:
         raise ValueError('Initial checkpoint changed')
+    signal_config = cfg.get('reward_signal')
+    if signal_config:
+        validate_signal(signal_config, cfg['game'], model.auxiliary_names)
+    auxiliary_coef = signal_config.get('auxiliary_coef', 0.) if signal_config else 0.
+    frozen_opponents = cfg.get('frozen_training_opponents')
+    if frozen_opponents is not None and (cfg['arm'] != 'B' or not frozen_opponents):
+        raise ValueError('Frozen opponent intervention requires a nonempty B-arm panel')
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg['learning_rate'])
     initial = member(Path(cfg['initial_path']), 'initial', provenance=cfg['initial_provenance'])
     history = OpponentPool(initial, capacity=12)
@@ -278,7 +313,7 @@ def main(argv=None):
                     learner_seat=i%2, seed=pool_seed('smoke', cfg['seed'], index=i),
                     opponent=dict(initial['spec'], stochastic=True), opponent_id='initial',
                     policy_version='initial', max_seconds=cfg['max_match_seconds'],
-                    gae_lambda=cfg['gae_lambda'], validate=True) for i in range(2)]
+                    gae_lambda=cfg['gae_lambda'], reward_signal=signal_config, validate=True) for i in range(2)]
                 samples = bounded_jobs(executor, rollout, jobs, state['deadline']-30, cfg['workers'], stopped)
                 write_compressed(out/'preflight.json.gz', samples)
                 if stopped():
@@ -292,7 +327,7 @@ def main(argv=None):
                 # changing the common starting model or spending extra PPO steps.
                 pre_weights = {k:v.detach().clone() for k,v in model.state_dict().items()}
                 update(model, optimizer, rows[:64], device, rng, 1, 32,
-                       cfg['entropy_coef'], cfg['prior_kl_coef'])
+                       cfg['entropy_coef'], cfg['prior_kl_coef'], auxiliary_coef)
                 changed = any(not torch.equal(pre_weights[k], v) for k,v in model.state_dict().items())
                 if not changed:
                     raise RuntimeError('Preflight optimizer did not update weights')
@@ -335,10 +370,20 @@ def main(argv=None):
                            dict(source_commit=cfg['source_commit'], learner_decisions=state['learner_decisions']))
                 policy_version=file_hash(path)
                 ids, probabilities = history.distribution()
+                if frozen_opponents:
+                    ids = sorted(frozen_opponents)
+                    probabilities = np.full(len(ids), 1/len(ids))
                 self_games = int(cfg['games']*.25) if cfg['arm']=='A' else 0
                 jobs = []
                 for i in range(cfg['games']):
-                    if cfg['arm']=='B':
+                    if frozen_opponents:
+                        # Sampling is independent of trajectory length/minibatch RNG.
+                        draw = np.random.default_rng(pool_seed('train', cfg['seed'], iteration, i))
+                        opponent_id = str(draw.choice(sorted(frozen_opponents)))
+                        opponent = dict(frozen_opponents[opponent_id])
+                        if opponent['kind'] == 'neural':
+                            opponent['stochastic'] = True
+                    elif cfg['arm']=='B':
                         opponent_id = str(rng.choice(ids, p=probabilities))
                         opponent = dict(history.state['members'][opponent_id]['spec'], stochastic=True)
                     else:
@@ -347,7 +392,8 @@ def main(argv=None):
                     jobs.append(dict(game=cfg['game'], path=str(path), self_play=i<self_games,
                         learner_seat=i%2, seed=pool_seed('train', cfg['seed'], iteration, i),
                         opponent=opponent, opponent_id=opponent_id, policy_version=policy_version,
-                        max_seconds=cfg['max_match_seconds'], gae_lambda=cfg['gae_lambda']))
+                        max_seconds=cfg['max_match_seconds'], gae_lambda=cfg['gae_lambda'],
+                        reward_signal=signal_config))
                 start = time.time()
                 played = bounded_jobs(executor, compact_rollout if compact else rollout, jobs,
                                       state['deadline']-reserve, cfg['workers'], stopped)
@@ -370,9 +416,9 @@ def main(argv=None):
                 behavior_error = audit_behavior(model, records, device)
                 start = time.time()
                 metric = update(model, optimizer, records, device, rng, cfg['epochs'], cfg['batch_size'],
-                                cfg['entropy_coef'], cfg['prior_kl_coef'])
+                                cfg['entropy_coef'], cfg['prior_kl_coef'], auxiliary_coef)
                 state['costs']['update_seconds'] += time.time()-start
-                if cfg['arm']=='B':
+                if cfg['arm']=='B' and not frozen_opponents:
                     history.update_training([(x['result']['opponent_id'],
                         x['result']['rewards'][x['result']['learner_seat']]) for x in played
                         if x['result']['status']=='complete'])
@@ -393,6 +439,10 @@ def main(argv=None):
                     behavior_max_error=behavior_error, active_pool=len(history.state['active']),
                     wall_seconds=time.time()-state['began_unix']+state.get('elapsed_before_resume',0.),
                     costs=deepcopy(state['costs']), unix=time.time())
+                if signal_config:
+                    metric['reward_mode'] = signal_config['mode']
+                    metric['auxiliary_clipped_labels'] = sum(r['auxiliary_clipped'] for r in records)
+                    metric.update(signal_diagnostics(model, records, device))
                 if compact:
                     metric['archive_workers']={k:sum(x['archive_profile'][k] for x in played)
                         for k in ('serialization_seconds','compression_seconds','uncompressed_bytes','compressed_bytes')}
@@ -455,7 +505,7 @@ def validate_candidate(executor, cfg, out, state, history, path, identity,
     if promoted:
         state['best'] = identity
     history.select()
-    if not final and time.time()+reserve+60 < state['deadline']:
+    if not cfg.get('frozen_training_opponents') and not final and time.time()+reserve+60 < state['deadline']:
         for old_id in history.audit_members(2):
             panel = {old_id:history.state['members'][old_id]['spec']}
             audit, audit_rows = assess(executor, candidate['spec'], cfg['quick_seeds'], 'audit',

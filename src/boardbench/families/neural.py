@@ -10,6 +10,7 @@ from .base import FEATURE_DIM
 from .play import action_features
 
 FORMAT = 'boardbench_family_actor_critic_v1'
+MULTITASK_FORMAT = 'boardbench_family_actor_critic_v2'
 
 
 def prepare(rows, prior_weights):
@@ -24,7 +25,7 @@ def prepare(rows, prior_weights):
 
 
 class CandidateActorCritic(nn.Module):
-    def __init__(self, hidden=64):
+    def __init__(self, hidden=64, auxiliary_names=()):
         super().__init__()
         self.hidden = hidden
         self.encoder = nn.Sequential(nn.Linear(FEATURE_DIM, hidden), nn.Tanh(),
@@ -33,15 +34,25 @@ class CandidateActorCritic(nn.Module):
         self.critic = nn.Sequential(nn.Linear(hidden*2, hidden), nn.Tanh(), nn.Linear(hidden, 1))
         nn.init.zeros_(self.actor.weight)
         nn.init.zeros_(self.actor.bias)
+        self.auxiliary_names = tuple(auxiliary_names)
+        if len(set(self.auxiliary_names)) != len(self.auxiliary_names):
+            raise ValueError('Duplicate auxiliary target names')
+        if self.auxiliary_names:
+            self.auxiliary = nn.Linear(hidden*2, len(self.auxiliary_names))
 
-    def forward(self, x, prior, mask):
+    def forward(self, x, prior, mask, return_auxiliary=False):
         if x.ndim != 3 or mask.shape != x.shape[:2] or not mask.any(dim=1).all():
             raise ValueError('Each state requires a nonempty aligned legal-action mask')
         hidden = self.encoder(x)
         logits = (self.actor(hidden).squeeze(-1)+prior).masked_fill(~mask, -torch.inf)
         mean = (hidden*mask.unsqueeze(-1)).sum(1)/mask.sum(1, keepdim=True)
         maximum = hidden.masked_fill(~mask.unsqueeze(-1), -torch.inf).max(1).values
-        values = self.critic(torch.cat((mean, maximum), -1)).squeeze(-1)
+        pooled = torch.cat((mean, maximum), -1)
+        values = self.critic(pooled).squeeze(-1)
+        if return_auxiliary:
+            if not self.auxiliary_names:
+                raise ValueError('This model has no auxiliary targets')
+            return logits, values, self.auxiliary(pooled)
         return logits, values
 
 
@@ -59,9 +70,12 @@ def collate(records, device):
 
 
 def save_model(path, model, cls, prior_weights, metadata=None):
-    saved = dict(format=FORMAT, game=cls.game_id, config=cls.config_id, rules_version=cls.rules_version,
+    saved = dict(format=MULTITASK_FORMAT if model.auxiliary_names else FORMAT,
+                 game=cls.game_id, config=cls.config_id, rules_version=cls.rules_version,
                  hidden=model.hidden, prior_weights=list(prior_weights), metadata=metadata or {},
                  model={k: v.detach().cpu().clone() for k, v in model.state_dict().items()})
+    if model.auxiliary_names:
+        saved['auxiliary_names'] = list(model.auxiliary_names)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix('.part')
@@ -71,14 +85,17 @@ def save_model(path, model, cls, prior_weights, metadata=None):
 
 def load_model(path, cls, device='cpu'):
     saved = torch.load(path, map_location='cpu', weights_only=True)
-    expected = dict(format=FORMAT, game=cls.game_id, config=cls.config_id, rules_version=cls.rules_version)
-    if any(saved.get(k) != v for k, v in expected.items()):
+    expected = dict(game=cls.game_id, config=cls.config_id, rules_version=cls.rules_version)
+    if saved.get('format') not in (FORMAT, MULTITASK_FORMAT) or any(saved.get(k) != v for k, v in expected.items()):
         raise ValueError('Neural policy game/config/schema mismatch')
+    names = saved.get('auxiliary_names', [])
+    if (saved['format'] == MULTITASK_FORMAT) != bool(names):
+        raise ValueError('Auxiliary model schema mismatch')
     if len(saved['prior_weights']) != FEATURE_DIM or not all(math.isfinite(w) for w in saved['prior_weights']):
         raise ValueError('Invalid policy prior')
     if any(v.dtype != torch.float32 or not torch.isfinite(v).all() for v in saved['model'].values()):
         raise ValueError('Expected finite FP32 model weights')
-    model = CandidateActorCritic(saved['hidden'])
+    model = CandidateActorCritic(saved['hidden'], names)
     model.load_state_dict(saved['model'], strict=True)
     return model.to(device).eval(), saved
 
