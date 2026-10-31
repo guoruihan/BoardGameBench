@@ -1,4 +1,10 @@
-# Original two-player family: rolling development
+# Original two-player family: run and resume
+
+The delivered fixed configurations, frozen opponent pool, installation checks and
+copyable inference commands are in [Delivery.md](Delivery.md). Training methods
+are documented in [Methods.md](Methods.md); measured strength is reported in
+[Results.md](Results.md). The commands below also support new experiments, but
+do not automatically renew an old run's resource budget.
 
 List installed environments (availability is not a complete-rules certificate):
 
@@ -32,7 +38,7 @@ session, fixed CPU affinity, a fresh capacity check and an absolute deadline.
 Combined allocations may use at most half each host (a-host cap 128). Generated
 runs, private cluster inventory, model weights and trajectories stay outside Git.
 
-The learner optimizes public action-feature weights through cross-entropy
+The CPU learner in the command above optimizes public action-feature weights through cross-entropy
 population search; it is not a neural PPO implementation. Every candidate is
 paired on the same environments with seats swapped. Fresh promotion seeds are
 separate from training; final confirmation never chooses the checkpoint.

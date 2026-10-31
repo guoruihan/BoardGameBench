@@ -1,5 +1,22 @@
 # Research milestones
 
+## V1.6.0 original two-player family baseline — 2026-11-01
+
+- Complete 15 new learned-opponent tracks plus the retained Harmonies model,
+  with 16 development-selected pools confirmed on 512 fresh environment seeds
+  and both seats per pairing. Preserve alternative policies rather than silently
+  replacing every game with its latest checkpoint.
+- Use terminal win rewards for new candidate-feature actor-critic models;
+  retain CEM as the primary Spice Road policy. This is not an online rollout/MCTS
+  comparison or a direct absolute-score objective. The heuristic opponent type
+  was seen during training; fresh seeds do not establish unseen-opponent strength.
+- Keep Five Tribes research-only, disclose Jaipur unresolved ties and New World
+  policy-cycle truncations, and preserve rules-1 history alongside the corrected
+  Splendor/Gizmos rules-2 evaluations.
+- The optional New World repeat guard showed no benefit in the subsequent
+  common-seed development league and is not selected in the delivered pool.
+  No recommendation is changed using confirmation outcomes.
+
 ## V1.6.0 New World policy-cycle diagnosis — 2026-10-31
 
 - Reproduce 12 development truncations as legal policy cycles, including learned

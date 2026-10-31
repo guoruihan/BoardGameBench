@@ -1,5 +1,20 @@
 # Engineering changes
 
+## 2026-11-01 — V1.6.0 frozen family delivery
+
+- Deliver 17 fixed original two-player implementations and a portable 80-bot
+  pool. Keep Five Tribes explicitly research-only; 15 games have newly developed
+  learned policies and Harmonies reuses its existing model.
+- Complete independent 512-seed, swapped-seat confirmation for all 16 selected
+  pools. Preserve unknown rule outcomes and runtime truncations in denominators;
+  development selections remain frozen before confirmation.
+- Verify the 0.5.2 wheel from runtime commit `6bcb711` outside the source tree:
+  all 17 environments restore and all 80 actual bots load and execute legal
+  actions. Validate moved paths, pinned checksums and tamper rejection.
+- Publish methods, results and copyable delivery instructions. Preserve raw
+  experiments and model artifacts outside Git; document incomplete trajectory
+  recording and the distinction between trained policies and local heuristics.
+
 ## 2026-10-31 — 0.5.2 policy repetition handling and evaluation I/O
 
 - Add an explicit, portable New World bot guard for repeated public turn states.

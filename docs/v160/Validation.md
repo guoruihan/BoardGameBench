@@ -29,7 +29,25 @@
 - Jaipur 联赛两个三重平手均被精确重放，官方英法规则及原版规则仍没有下一层裁定。
   保留未决，新增真实案例回归。[规则来源与核查](games/jaipur.md)。
 
-实际打包检查使用 `922b689` 的源码归档构建 wheel，未从可变工作区取源码：
+最终交付检查使用冻结源码 `6bcb711` 构建的 `boardbench-0.5.2-py3-none-any.whl`，
+SHA256 为 `f2924bb4ef5ba466cb89a5d0921732d38f13dc4df9e4bd4e914a9525088bae07`。
+实际安装到独立目录，从源码树之外、隔离 Python 进程运行；对手池搬到带空格的新路径：
+
+- 全部 17 个环境完成 reset、合法一步及普通 JSON 状态恢复。
+- 全部 80 个真实 bot 完成加载、决策和合法执行一步：17 随机、17 启发式、
+  11 线性、34 通用神经及 1 个保留的 Harmonies RL，共 35 个模型文件。
+- 对手池可信 manifest 内容摘要、运行代码摘要、规则与模型身份全部通过；
+  修改池文件或运行源码会被拒绝，不会回退到原训练路径或源码树导入。
+- 115 个便携 JSON 的私密配置模式扫描通过。Five Tribes 的两项 bot 严格为
+  research；Harmonies 排序 JSON 的候选顺序边界作为限制保留。
+
+证据为 `outputs/v160/package_052/final_acceptance/acceptance.json`，
+文件 SHA256 `798954f18fb359d91717b60f0acaea36e60769d429fef9c70ad269feec84718d`。
+`all_passed` 与 `final_acceptance` 均为 true。该验收证明安装与调用可用，
+策略强度由独立联赛另行测量；不宣称规则边界穷尽或所有平台逐位复现。
+实际交付路径和启动命令见 [Delivery.md](Delivery.md)。
+
+以下保留早期包验证记录。当时使用 `922b689` 的源码归档构建 wheel：
 
 ```text
 boardbench-0.5.0.dev1-py3-none-any.whl
@@ -41,8 +59,8 @@ Harmonies、Machi Koro 的 7 个真实 bot 的测试包搬移目录，从 `/tmp`
 wheel 校验包，并加载两款真实神经模型完成动作。源码目录和 wheel 安装目录使用相同
 的包内运行文件摘要；修改运行源码仍会被拒绝。
 
-证据保存在 `outputs/v160/package_922b689/`，其中 `installed_smoke.json` 记录实际
-导入位置及成功项。这是测试包，最终推荐对手包尚待训练、开发集选择和新种子确认。
+早期证据保存在 `outputs/v160/package_922b689/`，其中 `installed_smoke.json` 记录实际
+导入位置及成功项。当时仅验证测试包；最终全量安装验收见上文。
 原始结果和模型在共享项目目录中保留，不随源码提交 Git。
 
 资源记录采用任务分配区间上界，区分实际忙碌利用率、任务卡时和同卡共享后的物理
