@@ -36,7 +36,7 @@ class Splendor(DuoGame):
     game_id = 'splendor'
     rules_version = '2'
     config_id = 'classic_2014_duo'
-    coverage_status = 'fixed_scope_with_unresolved_edge'
+    coverage_status = 'ready_with_rulings'
     known_unresolved_edges = ('mutual_forced_pass_has_no_verified_terminal_ruling',)
 
     def _reset(self, first_player):

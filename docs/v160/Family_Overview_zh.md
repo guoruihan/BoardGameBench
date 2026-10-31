@@ -34,6 +34,12 @@
 
 **Jaipur 的完整三重平手没有补写家规。** 官方回合比较依次为卢比、奖励标记数量、货物标记数量；三者均相同后，当前实现保留 `unresolved_round_tie`，不颁发印章、不结束为自然终局。参见 [Jaipur 未决情况](games/jaipur.md#explicit-unresolved-rule-edge)。
 
+**Splendor 和 Gizmos 的规则版本 2 明确采用有出处的无动作裁定。** 只有所有正常主动作
+都无法执行时才允许强制跳过。Splendor 的出版方裁定经公开转引核查，要求展示保留牌；
+Gizmos 依据授权 BGA 实现的专门修复提交，不称为出版方文字 FAQ。双方同时永久阻塞仍
+没有获核实的终局判法，运行器只会外部截断，不制造平局。两款标记 `ready_with_rulings`，
+具体证据等级见各游戏文档；旧模型的显式复用流程见 [规则修正与迁移](Rules_Corrections.md)。
+
 两者的未决状态均没有合法后续动作、没有赢家且 `terminated=false`；具体 outcome 字段分别为 Five Tribes 的 `unresolved_rule` 和 Jaipur 的 `unresolved`。统一运行器将它们记为 `unresolved_rule`。评测必须保留发生次数及原始记录，不应删除这些种子后只报成功对局的胜率。
 
 其他已披露解释包括：
@@ -52,7 +58,8 @@
 
 `describe()` 和命令行 `list` 另外提供机器可读的 `coverage_status` 与
 `known_unresolved_edges`。Five Tribes 标记为 `research_only`，Jaipur 为
-`known_unresolved_edges`；其余 `fixed_scope` 表示本文界定的范围，也不是官方认证。
+`known_unresolved_edges`；Splendor/Gizmos 为 `ready_with_rulings`；其余 `fixed_scope`
+表示本文界定的范围，也不是官方认证。
 
 1. `reset(seed, first_player)` 初始化；随机组件与随机事件由环境 RNG 管理。
 2. `current_player` / `current_actor()` 指定当前决策者；一个 API 步骤是实际玩家选择，可能是反应、支付、奖励选择或额外回合，因此不能假定每步机械轮换双方。

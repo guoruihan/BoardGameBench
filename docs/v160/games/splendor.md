@@ -54,7 +54,7 @@ during a return/noble choice.
 fixture demonstrates this). No verified ruling for ending such a game was found.
 Both players therefore continue forced passes; the existing external evaluation
 cap records `truncated`, with no fabricated draw, winner or training reward.
-The environment explicitly advertises `fixed_scope_with_unresolved_edge`, and
+The environment explicitly advertises `ready_with_rulings`, and
 these incomplete games remain in scheduled-game denominators.
 
 ## Component provenance and cross-check

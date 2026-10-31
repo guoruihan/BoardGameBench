@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-31 — 0.5.1 forced-pass boundary corrections
+
+- Long-run audits expose rare Splendor/Gizmos states with no normal main action.
+  Adopt documented, attributed rulings only for that boundary; disclose reserved
+  cards in Splendor and preserve ordinary end-turn semantics in Gizmos. Upgrade
+  each game to rules version 2 and keep mutual stalemates externally truncated.
+- Add a narrow, audited rules-1-to-2 weight-copy tool. Preserve source model SHA,
+  exact tensor/prior values and original experiment data; require new development
+  evaluation and use fresh optimizer/rollout directories for continuation.
+- Publish source grades, real failing-case regressions, and explicit coverage
+  metadata. The focused engine/policy/migration checks pass 55 tests; the
+  complete frozen family suite passes 490 tests.
+
 ## 2026-10-31 — 0.5.0 runtime freeze for V1.6.0 confirmation
 
 - Freeze the environment/bot runtime after 478 passing family tests, complete

@@ -1,5 +1,14 @@
 # Research milestones
 
+## V1.6.0 long-run rule-boundary correction — 2026-10-31
+
+- Reopen the initial runtime freeze after historical training audits reveal rare
+  no-action states in Splendor and Gizmos. Retain old results as rules-1 evidence;
+  rules-2 selection and confirmation must be rerun, with explicit weight reuse.
+- Other games retain their development-frozen recommendations and independently
+  recorded confirmation source identities. No confirmation result is used to
+  replace a selected policy, and no incomplete game receives a fabricated reward.
+
 ## V1.6.0 paired development and Targi cycle diagnosis — 2026-10-31
 
 - Freeze 12 initial same-seed leagues: 5,760 scheduled games, 5,758 complete and
