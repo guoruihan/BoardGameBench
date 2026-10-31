@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-11-01 — 0.6.1 scoreless-race evaluation and bounded repair
+
+- Preserve null victory-point scores in race games (Machi Koro and El Dorado)
+  while still reporting their actual win outcomes. Fix an initial-panel
+  aggregation error without changing rewards, rules or model parameters.
+- Allow explicit nonoverlapping CPU slots for failed-job repair and preserve
+  the original absolute experiment deadline; prior logs and checkpoints remain.
+- Add a regression covering scoreless outcomes and policy-time aggregation.
+- Verify 56 focused evaluator, policy and race-game tests; repair slots retain
+  process-tree ownership checks before sharing an already allocated GPU.
+
 ## 2026-11-01 — 0.6.0 common historical-opponent PPO pilot
 
 - Add one common terminal-win PPO runner for all 16 qualified family games,

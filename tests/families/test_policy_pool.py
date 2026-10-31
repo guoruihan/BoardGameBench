@@ -78,6 +78,17 @@ def test_paired_statistics_preserve_swapped_seats_and_missing_games():
     assert not panel_summary(b[:-1],['old'],8)['all_complete']
 
 
+def test_scoreless_game_keeps_win_result_without_invented_numeric_scores():
+    rows=[dict(result(1,seat,1.),outcome={'scores':[None,None]},
+               policy_seconds=[.2,.1],policy_max_seconds=[.01,.01],seat_decisions=[20,10])
+          for seat in (0,1)]
+    summary=panel_summary(rows,['old'],1)
+    assert summary['all_complete'] and summary['quality']==1.
+    assert summary['opponents']['old']['own_score'] is None
+    assert summary['opponents']['old']['opponent_score'] is None
+    assert summary['opponents']['old']['mean_policy_seconds']==pytest.approx(.01)
+
+
 def test_deadline_never_submits_an_entire_long_queue():
     class Executor:
         calls=0

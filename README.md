@@ -1,6 +1,6 @@
 # BoardGameBench
 
-## 新一轮：V1.7.0 / 0.6.0 统一策略池 PPO
+## 新一轮：V1.7.0 / 0.6.1 统一策略池 PPO
 
 16 个双人任务使用同一套通用 actor-critic、终局胜负奖励与 A/B 训练流程，
 Harmonies 也纳入通用方法。参见 [试跑方法与恢复说明](docs/v170/Policy_Pool_Pilot_zh.md)。

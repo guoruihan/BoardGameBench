@@ -1,6 +1,7 @@
 """Paired fixed-panel evaluation and public-state behavior diagnostics."""
 import hashlib
 import json
+import math
 import time
 import numpy as np
 
@@ -41,7 +42,9 @@ def panel_summary(rows, names, expected):
         summary = summarize(r, [x['learner_seat'] for x in r])
         summary['scheduled'] = expected*2
         summary['not_run'] = expected*2-len(r)
-        scored = [x for x in r if x['status']=='complete' and len(x.get('outcome',{}).get('scores',[]))==2]
+        scored = [x for x in r if x['status']=='complete' and
+                  len(x.get('outcome',{}).get('scores',[]))==2 and
+                  all(isinstance(v,(int,float)) and math.isfinite(v) for v in x['outcome']['scores'])]
         summary['own_score'] = float(np.mean([x['outcome']['scores'][x['learner_seat']] for x in scored])) if scored else None
         summary['opponent_score'] = float(np.mean([x['outcome']['scores'][1-x['learner_seat']] for x in scored])) if scored else None
         seconds = sum(x.get('policy_seconds',[0.,0.])[x['learner_seat']] for x in r)

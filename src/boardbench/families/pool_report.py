@@ -8,6 +8,10 @@ def report(directory):
     rows=[]
     for config in sorted(Path(directory).glob('runs/*/*/config.json')):
         cfg=json.loads(config.read_text());out=config.parent
+        replacement=out/'replacement.json'
+        if replacement.exists():
+            out=Path(json.loads(replacement.read_text())['output'])
+            cfg=json.loads((out/'config.json').read_text())
         state=json.loads((out/'state.json').read_text()) if (out/'state.json').exists() else {}
         records=[]
         if (out/'metrics.jsonl').exists():
@@ -18,7 +22,7 @@ def report(directory):
         completed=[r for r in validations if r['summary']['all_complete']]
         best=max(completed,key=lambda r:r['summary']['quality'],default=None)
         baseline=state.get('baseline') or {}
-        row=dict(game=cfg['game'],arm=cfg['arm'],phase=state.get('phase','not_started'),
+        row=dict(game=cfg['game'],arm=cfg['arm'],output=str(out),phase=state.get('phase','not_started'),
             updates=state.get('next_update',0),learner_decisions=state.get('learner_decisions',0),
             initial_quality=baseline.get('quality'),latest_quality=validations[-1]['summary']['quality'] if validations else None,
             highest_quick_quality=best['summary']['quality'] if best else None,
