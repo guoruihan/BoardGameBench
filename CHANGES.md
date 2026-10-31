@@ -1,5 +1,15 @@
 # Engineering changes
 
+## 2026-11-01 — paired uncertainty gate for rollout policy improvement
+
+- Preserve the frozen RL action unless an alternative's paired estimated gain
+  exceeds a configurable multiple of its paired standard error (at least four
+  complete rounds). Default zero preserves the original search comparison.
+- Store paired gains/errors with candidate targets; expose the gate in immutable
+  run configuration and reject aggregation across different objectives/gates.
+- Add deterministic checks for noisy, consistent and undersampled comparisons.
+  This is an empirical decision rule, not a formal non-regression guarantee.
+
 ## 2026-11-01 — preserve publicly revealed Dominion reactions in beliefs
 
 - Match the engine's public `reveal` event when a Moat is shown, retaining its

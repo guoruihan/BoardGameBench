@@ -56,12 +56,12 @@ def select_rl(game,bundle,current,output,seeds=8):
     write_json(path,result);return result
 
 
-def match(game,selection,seed,search_seat,budget,output,objective='win',max_rounds=None,continuation='portfolio'):
+def match(game,selection,seed,search_seat,budget,output,objective='win',max_rounds=None,continuation='portfolio',improvement_z=0.):
     cls=game_class(game);env=cls();env.reset(seed,first_player=0)
     rl=make_policy(cls,selection['rl_spec'],policy_seed(seed,1-search_seat))
     search=TerminalReference(cls,selection['rl_spec'],seat=search_seat,seconds=budget,
         seed=policy_seed(seed,search_seat)^172,weights=selection['heuristic_weights'],
-        max_rounds=max_rounds,objective=objective,continuation=continuation)
+        max_rounds=max_rounds,objective=objective,continuation=continuation,improvement_z=improvement_z)
     began=time.monotonic();cpu=time.process_time();count=0;trace=[];status='incomplete';rl_seconds=0.;last_progress=began
     while not env.outcome()['terminated']:
         if count>=10000 or time.monotonic()-began>budget+180:
@@ -86,7 +86,9 @@ def match(game,selection,seed,search_seat,budget,output,objective='win',max_roun
         search_seat=search_seat,first_player=0,budget=budget,objective=objective,status=status,
         search_config=dict(width=search.width,max_rounds=max_rounds,max_simulation_steps=search.max_simulation_steps,
                            continuation=continuation,
-                           continuations=['domain_heuristic','progress_or_habitat','retained_rl']),
+                           improvement_z=improvement_z,
+                           continuations={'portfolio':['domain_heuristic','progress_or_habitat','retained_rl'],
+                                          'rl':['retained_rl'],'expert':['domain_heuristic']}[continuation]),
         outcome=out,score_breakdown=env.score_breakdown(),decisions=count,
         rl=selection['chosen_name'],rl_sha256=selection['rl_spec'].get('sha256'),
         search_seconds=search.spent,rl_seconds=rl_seconds,wall_seconds=time.monotonic()-began,
@@ -117,6 +119,8 @@ def report(root):
     for (game,budget),games in sorted(groups.items()):
         continuations={r.get('search_config',{}).get('continuation','portfolio') for r in games}
         if len(continuations)>1:raise ValueError('Use separate experiment roots for different continuation comparisons')
+        variants={(r.get('objective','win'),r.get('search_config',{}).get('improvement_z',0.)) for r in games}
+        if len(variants)>1:raise ValueError('Use separate experiment roots for objectives/uncertainty gates')
         complete=[r for r in games if r['status']=='complete'];points=own=other=0.
         for r in complete:
             p=r['search_seat'];out=r['outcome']
@@ -171,6 +175,7 @@ def main():
     p.add_argument('--select-only',action='store_true');p.add_argument('--report',action='store_true')
     p.add_argument('--max-rounds',type=int);p.add_argument('--objective',default='win')
     p.add_argument('--continuation',choices=['portfolio','rl','expert'],default='portfolio')
+    p.add_argument('--improvement-z',type=float,default=0.)
     a=p.parse_args();a.root=a.root.resolve()
     if a.report:
         print(json.dumps(report(a.root),indent=2));return
@@ -181,11 +186,12 @@ def main():
         for k in ([a.seed_index] if a.seed_index is not None else range(a.seeds)):
             for seat in ([a.seat] if a.seat is not None else (0,1)):
                 suffix='' if a.continuation=='portfolio' else '_'+a.continuation
+                if a.improvement_z:suffix+=f'_z{a.improvement_z:g}'
                 path=output/'matches'/f'b{budget:g}_s{k}_p{seat}_{a.objective}{suffix}.json'
                 if path.exists():continue
                 path.parent.mkdir(parents=True,exist_ok=True)
                 try:
-                    row=match(a.game,selection,172020000+k,seat,budget,path,a.objective,a.max_rounds,a.continuation)
+                    row=match(a.game,selection,172020000+k,seat,budget,path,a.objective,a.max_rounds,a.continuation,a.improvement_z)
                     print(json.dumps({k:v for k,v in row.items() if k!='score_breakdown'}),flush=True)
                 except Exception:
                     write_json(path.with_suffix('.error.json'),dict(game=a.game,budget=budget,seed_index=k,seat=seat,error=traceback.format_exc()))

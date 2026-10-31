@@ -57,3 +57,12 @@ def test_rl_continuation_does_not_call_heuristic_inside_simulation():
     s.expert.decide=forbidden;s.progress.decide=forbidden
     result,steps,_=s._round(sampled_world(e,0,99),e.legal_actions()[:2],0,s.clock()+10)
     assert result is not None and steps>2
+
+
+def test_paired_uncertainty_gate_keeps_baseline_when_evidence_is_noisy():
+    from boardbench.families.reference_search import paired_selection
+    assert paired_selection([2,2.1],[0,.1],[0,1.],4,2.)==0
+    # Large common-mode variation cancels in a consistent paired improvement.
+    assert paired_selection([2,2.4],[0,.4],[0,.04],4,2.)==1
+    assert paired_selection([0,1],[0,1],[0,1],1,2.)==0
+    assert paired_selection([2,2.1],[0,.1],[0,1.],4,0.)==1

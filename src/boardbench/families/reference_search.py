@@ -38,6 +38,18 @@ HORIZONS = dict(cascadia=65,calico=46,patchwork=28,harmonies=85,
  el_dorado=160,toy_battle=45)
 
 
+def paired_selection(sums,delta_sums,delta_squares,rounds,z):
+    """Heuristic uncertainty gate, not a simultaneous statistical guarantee."""
+    if not rounds:return 0
+    if z<=0:return max(range(len(sums)),key=lambda i:sums[i])
+    if rounds<4:return 0
+    eligible=[0]
+    for i in range(1,len(sums)):
+        error=math.sqrt(max(0.,delta_squares[i]-delta_sums[i]**2/rounds)/(rounds-1)/rounds)
+        if delta_sums[i]/rounds>z*error+1e-8:eligible.append(i)
+    return max(eligible,key=lambda i:sums[i])
+
+
 def guarded_spec(game,spec):
     spec=dict(spec)
     if game=='targi':spec['decision_guard']='targi_trader_acyclic_v1'
@@ -88,17 +100,19 @@ def with_guard(cls,policy):
 class TerminalReference:
     def __init__(self,cls,rl_spec,*,seat,seconds=900.,seed=172,weights=None,width=6,
                  objective='win',max_rounds=None,max_simulation_steps=4000,clock=time.monotonic,
-                 continuation='portfolio'):
+                 continuation='portfolio',improvement_z=0.):
         if seat not in (0,1) or not math.isfinite(seconds) or seconds<=0 or not 2<=width<=32:
             raise ValueError('Invalid bounded search configuration')
         if objective not in ('win','score'):raise ValueError('Invalid objective')
         if continuation not in ('portfolio','rl','expert'):raise ValueError('Invalid continuation')
+        if not math.isfinite(improvement_z) or improvement_z<0:raise ValueError('Invalid uncertainty gate')
         if objective=='score' and cls.game_id in ('el_dorado','machi_koro','toy_battle'):
             raise ValueError('Race games do not have a scalar score objective')
         self.cls=cls;self.seat=seat;self.seconds=float(seconds);self.width=width
         self.rng=random.Random(seed);self.clock=clock;self.max_rounds=max_rounds
         self.max_simulation_steps=max_simulation_steps;self.objective=objective
         self.continuation=continuation
+        self.improvement_z=float(improvement_z)
         self.base=make_policy(cls,guarded_spec(cls.game_id,rl_spec),seed)
         habitat=None
         if cls.game_id=='harmonies':
@@ -167,6 +181,7 @@ class TerminalReference:
         allowance=max(0.,remaining-.002*self.horizon)*min(1.,2/max(2.,self.horizon))
         deadline=min(began+allowance,began+remaining)
         sums=[0.]*len(roots);squares=[0.]*len(roots);score_sums=[[0.,0.] for _ in roots]
+        delta_sums=[0.]*len(roots);delta_squares=[0.]*len(roots)
         rounds=steps=0;own_counts=[]
         while len(roots)>1 and self.clock()<deadline and (self.max_rounds is None or rounds<self.max_rounds):
             world=sampled_world(env,self.seat,self.rng.getrandbits(63),verify=True)
@@ -175,17 +190,21 @@ class TerminalReference:
             values,scores=result
             for i,value in enumerate(values):
                 sums[i]+=value;squares[i]+=value*value
+                delta=value-values[0];delta_sums[i]+=delta;delta_squares[i]+=delta*delta
                 score_sums[i]=[x+y if y is not None else None for x,y in zip(score_sums[i],scores[i])]
             rounds+=1;own_counts+=own
-        selected=max(range(len(roots)),key=lambda i:sums[i]) if rounds else 0
+        selected=paired_selection(sums,delta_sums,delta_squares,rounds,self.improvement_z)
         elapsed=self.clock()-began;self.spent+=elapsed
         fallback=not rounds and len(actions)>1
         self.decisions+=1;self.total_steps+=steps;self.total_rounds+=rounds;self.fallbacks+=int(fallback)
         self.last=dict(completed_rounds=rounds,simulation_steps=steps,selected_rank=selected,
             fallback=fallback,forced_action=len(actions)==1,decision_seconds=elapsed,
             cumulative_decision_seconds=self.spent,objective=self.objective,continuation=self.continuation,
+            improvement_z=self.improvement_z,
             candidates=[dict(action=a,samples=rounds,mean=sums[i]/rounds if rounds else None,
                 terminal_scores=[x/rounds if x is not None else None for x in score_sums[i]] if rounds else None,
+                paired_delta=delta_sums[i]/rounds if rounds else None,
+                paired_standard_error=math.sqrt(max(0.,delta_squares[i]-delta_sums[i]**2/rounds)/(rounds-1)/rounds) if rounds>1 else None,
                 variance=max(0.,(squares[i]-sums[i]**2/rounds)/(rounds-1)) if rounds>1 else None)
                 for i,a in enumerate(roots)])
         self.horizon=max(1.,.2*self.horizon+.8*sum(own_counts)/len(own_counts)-1) if own_counts else max(1.,self.horizon-1)

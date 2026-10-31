@@ -1,5 +1,14 @@
 # Research milestones
 
+## V1.7.2 conservative rollout improvement diagnosis — 2026-11-01
+
+- Retained-RL continuation alone does not remove several search regressions.
+  Saved Dominion traces show choices such as skipping useful treasure plays
+  based on small noisy differences in terminal win estimates.
+- Test a fixed two-standard-error paired improvement gate on the same four
+  development games/environments, preserving the RL action when evidence is
+  weak. No threshold sweep, new RL training or optimality claim is involved.
+
 ## V1.7.2 continuation-bias diagnosis — 2026-11-01
 
 - Early completed 900-second comparisons show search gains in several families
