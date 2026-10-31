@@ -52,8 +52,10 @@ def _identity(spec):
 
 
 def _check_guard(spec):
-    if 'decision_guard' in spec and (spec.get('game') != 'targi' or
-            spec['decision_guard'] != 'targi_trader_acyclic_v1'):
+    allowed_guards = {'targi': 'targi_trader_acyclic_v1',
+                      'century_a_new_world': 'century_new_world_public_repeat_v1'}
+    if 'decision_guard' in spec and (spec.get('game') not in allowed_guards or
+            spec['decision_guard'] != allowed_guards[spec['game']]):
         raise ValueError('Unknown decision_guard or wrong game')
 
 

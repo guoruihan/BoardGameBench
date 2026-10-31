@@ -48,7 +48,9 @@ class FeaturePolicy:
 
 def make_policy(cls, spec, seed=0):
     guard = spec.get('decision_guard')
-    if guard is not None and (cls.game_id != 'targi' or guard != 'targi_trader_acyclic_v1'):
+    allowed_guards = {'targi': 'targi_trader_acyclic_v1',
+                      'century_a_new_world': 'century_new_world_public_repeat_v1'}
+    if guard is not None and guard != allowed_guards.get(cls.game_id):
         raise ValueError('Unsupported decision guard/game combination')
     if spec.get('kind') == 'neural':
         from .neural import NeuralPolicy
@@ -59,9 +61,12 @@ def make_policy(cls, spec, seed=0):
         policy = HarmoniesFrozenPolicy(spec)
     else:
         policy = FeaturePolicy(cls, spec, seed)
-    if guard:
+    if guard == 'targi_trader_acyclic_v1':
         from .targi_policy import TargiTraderAcyclicPolicy
         policy = TargiTraderAcyclicPolicy(policy)
+    elif guard == 'century_new_world_public_repeat_v1':
+        from .century_new_world_policy import CenturyNewWorldRepeatPolicy
+        policy = CenturyNewWorldRepeatPolicy(policy)
     return policy
 
 
