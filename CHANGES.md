@@ -1,5 +1,20 @@
 # Engineering changes
 
+## 2026-10-31 — 0.5.0.dev1 / V1.6.0 first environment batch
+
+- Add fixed original two-player Jaipur, Machi Koro, Patchwork, Clever and Splendor,
+  with authentic component catalogs, source evidence and per-game rule tests.
+  Explicitly document unresolved Jaipur full ties and the provisional Machi Koro
+  newly purchased amusement-park interpretation.
+- Adapt the existing accelerated Harmonies duo engine to the shared family API;
+  preserve its original transitions and retained RL/search artifacts.
+- Add observation-only random/heuristic/linear policies, complete/incomplete match
+  accounting, and resumable parallel cross-entropy policy search. Development and
+  confirmation seeds are disjoint; all candidate matches remain auditable.
+- Package game data in distributions. Family rule/runner tests and a real small
+  Jaipur population-search run pass. This is rolling development, not completion
+  of all 17 environments or a claim of trained-bot superiority.
+
 ## 2026-10-31 — V1.6.0 development contract
 
 - Begin the fixed-setting two-player game family with a shared observation,

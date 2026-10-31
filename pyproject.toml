@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "boardbench"
-version = "0.4.39"
+version = "0.5.0.dev1"
 description = "Local benchmark infrastructure for persistent adaptive solvers"
 requires-python = ">=3.10"
 dependencies = []
@@ -24,6 +24,7 @@ where = ["src"]
 "boardbench.ui" = ["*.html"]
 "boardbench.environments" = ["data/*.json"]
 "boardbench.v129" = ["native/*.cpp"]
+"boardbench.families" = ["data/*.json", "data/*.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,5 +1,15 @@
 # Research milestones
 
+## V1.6.0 initial development / 0.5.0.dev1 — 2026-10-31
+
+- Extend the target to 17 original two-player games, one documented official base
+  setting each; permit explicit blocking when original component data is missing.
+- Start rolling opponent development with public candidate features and paired
+  population policy search. Retain random and heuristic baselines, preserve
+  incomplete/unresolved runs, and reserve independent confirmation seeds.
+- No cross-game learning result or superiority claim yet. Existing Harmonies
+  research artifacts remain separate from newly trained family opponents.
+
 ## V1.5.1 stage closure — 2026-10-31
 
 - Close the stage with a playable solo/duo Harmonies task, reproducible strategy
