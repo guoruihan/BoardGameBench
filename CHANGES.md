@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-10-31 — 0.5.0 runtime freeze for V1.6.0 confirmation
+
+- Freeze the environment/bot runtime after 478 passing family tests, complete
+  invariant sweeps and real package/model portability checks. Publish package
+  version 0.5.0; opponent training and untouched final confirmation are still
+  running and are not implied complete by this engineering version.
+- Choose completed-game recommendations only from frozen development leagues;
+  independent confirmation uses 512 fresh environment seeds with swapped seats.
+
 ## 2026-10-31 — V1.6.0 controlled throughput variants
 
 - Expose rollout/minibatch and checkpoint-gate sizes in immutable remote plans.
