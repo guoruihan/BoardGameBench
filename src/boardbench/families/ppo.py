@@ -169,6 +169,8 @@ def main(argv=None):
     args.output.mkdir(parents=True, exist_ok=True)
     cls = game_class(args.game)
     prior_spec = json.loads(args.prior.read_text()) if args.prior else dict(kind='heuristic', weights=cls.default_weights)
+    if prior_spec.get('decision_guard'):
+        raise ValueError('Guarded priors require explicit guarded rollout support; use the CEM runner')
     warm_model = None
     if args.warm_start:
         warm_model, saved_warm = load_model(args.warm_start, cls)

@@ -123,3 +123,19 @@ def test_guard_is_only_action_selection_not_a_new_ending():
         if g.state['phase']!='trader':break
         g.step(bot.decide(g.observe(),g.legal_actions()))
     assert not g.state['terminated'] and not g.state['winners']
+
+
+def test_factory_and_training_artifact_preserve_explicit_guard():
+    from boardbench.families.play import FeaturePolicy, make_policy
+    from boardbench.families.train import artifact
+    from boardbench.families.games.jaipur import Jaipur
+    from boardbench.families.targi_policy import GUARD_ID
+    plain = artifact(Targi, SLOW_WEIGHTS, 0, 'test')
+    guarded = artifact(Targi, SLOW_WEIGHTS, 0, 'test', GUARD_ID)
+    assert 'decision_guard' not in plain
+    assert guarded['decision_guard'] == GUARD_ID
+    assert isinstance(make_policy(Targi, plain), FeaturePolicy)
+    assert isinstance(make_policy(Targi, guarded), TargiTraderAcyclicPolicy)
+    for cls, spec in ((Jaipur, guarded), (Targi, dict(kind='heuristic', decision_guard='unknown'))):
+        with pytest.raises(ValueError, match='guard'):
+            make_policy(cls, spec)

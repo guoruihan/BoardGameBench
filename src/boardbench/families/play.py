@@ -47,14 +47,22 @@ class FeaturePolicy:
 
 
 def make_policy(cls, spec, seed=0):
+    guard = spec.get('decision_guard')
+    if guard is not None and (cls.game_id != 'targi' or guard != 'targi_trader_acyclic_v1'):
+        raise ValueError('Unsupported decision guard/game combination')
     if spec.get('kind') == 'neural':
         from .neural import NeuralPolicy
-        return NeuralPolicy(cls, spec, seed)
-    if spec.get('kind') == 'harmonies_rl':
+        policy = NeuralPolicy(cls, spec, seed)
+    elif spec.get('kind') == 'harmonies_rl':
         if cls.game_id != 'harmonies':
             raise ValueError('The retained Harmonies RL model is game-specific')
-        return HarmoniesFrozenPolicy(spec)
-    return FeaturePolicy(cls, spec, seed)
+        policy = HarmoniesFrozenPolicy(spec)
+    else:
+        policy = FeaturePolicy(cls, spec, seed)
+    if guard:
+        from .targi_policy import TargiTraderAcyclicPolicy
+        policy = TargiTraderAcyclicPolicy(policy)
+    return policy
 
 
 class HarmoniesFrozenPolicy:

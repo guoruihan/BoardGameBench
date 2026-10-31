@@ -1,5 +1,17 @@
 # Research milestones
 
+## V1.6.0 paired development and Targi cycle diagnosis — 2026-10-31
+
+- Freeze 12 initial same-seed leagues: 5,760 scheduled games, 5,758 complete and
+  two unresolved Jaipur round ties. Report paired intervals and preserve all
+  denominators; these development measurements do not select on final test data.
+- Diagnose a legal 1:1 Targi trade cycle in a CEM candidate. An explicit new bot
+  guard uses public action history to avoid revisiting resource states within one
+  Trader activation; original game legality and older bot behavior are unchanged.
+- Preserve learned-prior and Monte Carlo continuation variants in separate runs.
+  Frozen pool export records explicit development selections and multiple retained
+  opponents; no automatic promotion from confirmation outcomes.
+
 ## V1.6.0 long-run seed partition correction — 2026-10-31
 
 - Detect a potential train/gate/confirmation overlap above 1,000 PPO updates in

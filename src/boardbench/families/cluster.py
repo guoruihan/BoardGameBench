@@ -52,6 +52,9 @@ command=[str(Path(cfg['root'])/'.venv-train/bin/python'),'-m',module,'--game',cf
 if cfg['kind']=='eval':
     command+=['--bots',cfg['bots'],'--phase',cfg['phase'],'--seed-start',str(cfg['seed_start']),
               '--num-seeds',str(cfg['num_seeds']),'--wall-seconds',str(cfg.get('hours',1)*3600)]
+    if cfg.get('validate'): command+=['--validate']
+    if cfg.get('record'): command+=['--record']
+    if 'max_match_seconds' in cfg: command+=['--max-match-seconds',str(cfg['max_match_seconds'])]
     for path in cfg.get('exclude_manifests',[]):command+=['--exclude-manifest',path]
 else:
     command+=['--hours',str(cfg.get('hours',3)),'--source-commit',cfg['commit']]
@@ -64,6 +67,7 @@ if cfg['kind']=='ppo':
         if key in cfg: command+=['--'+key.replace('_','-'),str(cfg[key])]
 elif cfg['kind']=='cem':
     command+=['--population','16','--generations','80','--train-seeds','3','--gate-seeds','12','--confirm-seeds','64']
+    if cfg.get('decision_guard'): command+=['--decision-guard',cfg['decision_guard']]
 remaining=min(int(cfg.get('hours',3)*3600+120),int(cfg['deadline']-time.time()))
 if remaining<300: raise RuntimeError('insufficient time before hard deadline')
 shell='set -uo pipefail\ncd '+shlex.quote(cfg['root'])+'\n'

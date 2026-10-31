@@ -1,5 +1,19 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 portable bot pools and explicit cycle prevention
+
+- Expose per-decision engine validation, public trajectory recording and external
+  match caps in remote evaluation plans, using the existing frozen evaluator.
+- Diagnose two Targi timeouts as the same legal 1:1 trade cycle. Add an explicit
+  public-history decision guard and preserve its identity in CEM artifacts; old
+  bots and game rules remain unchanged. The guarded candidate completes all 12
+  replay games, preserving the 10 previously complete outcomes.
+- Preserve Jaipur's unresolved exact round ties after reproducing both observed
+  cases and checking three official rulebooks; add real-case regressions.
+- Add portable development-selected bot pools with copied models, relative paths,
+  integrity checks and explicit retained/research roles. Confirmation cannot
+  substitute for development provenance or silently change a selected model.
+
 ## 2026-10-31 — V1.6.0 configuration guide and paired development evidence
 
 - Document all 17 fixed configurations in Chinese, including source/ruling

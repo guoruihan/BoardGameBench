@@ -16,7 +16,7 @@ import time
 import numpy as np
 
 from .base import FEATURE_DIM
-from .play import run_match, summarize, write_json, action_features
+from .play import run_match, summarize, write_json, action_features, make_policy
 from .registry import game_class
 from .seeds import experiment_seed
 
@@ -57,11 +57,14 @@ def evaluate(pool, jobs, directory, label):
     return summarize(results, [i % 2 for i in range(len(results))]), results
 
 
-def artifact(cls, weights, generation, source_commit):
-    return dict(format='boardbench_family_linear_v1', game=cls.game_id,
+def artifact(cls, weights, generation, source_commit, decision_guard=None):
+    spec = dict(format='boardbench_family_linear_v1', game=cls.game_id,
                 rules_version=cls.rules_version, config=cls.config_id, kind='linear',
                 weights=list(map(float, weights)), generation=generation, source_commit=source_commit,
                 method='cross_entropy_policy_search', policy_inputs='public_observation_only')
+    if decision_guard is not None:
+        spec['decision_guard'] = decision_guard
+    return spec
 
 
 def main(argv=None):
@@ -79,6 +82,7 @@ def main(argv=None):
     parser.add_argument('--max-match-seconds', type=float, default=120.)
     parser.add_argument('--seed', type=int, default=160)
     parser.add_argument('--source-commit', default='unrecorded')
+    parser.add_argument('--decision-guard', choices=['targi_trader_acyclic_v1'])
     args = parser.parse_args(argv)
     if args.population < 4 or min(args.workers, args.train_seeds, args.gate_seeds, args.confirm_seeds) < 1:
         raise ValueError('Positive workers/seeds and population >=4 required')
@@ -88,6 +92,9 @@ def main(argv=None):
     cls = game_class(args.game)
     rng = np.random.default_rng(args.seed)
     baseline = dict(kind='heuristic', weights=cls.default_weights)
+    if args.decision_guard:
+        baseline['decision_guard'] = args.decision_guard
+    make_policy(cls, baseline)
     start = time.time()
     deadline = min(start + args.hours * 3600, args.deadline_unix)
     state_file = args.output / 'state.json'
@@ -98,13 +105,15 @@ def main(argv=None):
     scales = np.ones(FEATURE_DIM)
     sigma = np.full(FEATURE_DIM, .65)
     sigma[0] = .2
-    best = artifact(cls, mean, -1, args.source_commit)
+    best = artifact(cls, mean, -1, args.source_commit, args.decision_guard)
     first_generation = 0
     records = []
     if state_file.exists():
         state = json.loads(state_file.read_text())
         if state['game'] != args.game or state['source_commit'] != args.source_commit:
             raise ValueError('Resume requires the same game and source snapshot')
+        if state['best'].get('decision_guard') != args.decision_guard:
+            raise ValueError('Resume decision guard changed; use a new run')
         mean, sigma, scales = map(np.asarray, (state['mean'], state['sigma'], state['scales']))
         best, records = state['best'], state['records']
         first_generation = state['next_generation']
@@ -149,7 +158,7 @@ def main(argv=None):
             seeds = [experiment_seed('cem_train', generation, i) for i in range(args.train_seeds)]
             jobs = []
             for weights in candidates:
-                spec = artifact(cls, weights, generation, args.source_commit)
+                spec = artifact(cls, weights, generation, args.source_commit, args.decision_guard)
                 jobs += paired_jobs(args.game, spec, baseline, seeds, max_seconds=args.max_match_seconds)
                 jobs += paired_jobs(args.game, spec, best, seeds, max_seconds=args.max_match_seconds)
             results = list(pool.map(match_worker, jobs, chunksize=1))
@@ -164,7 +173,7 @@ def main(argv=None):
             elite = candidates[order[:max(2, args.population//4)]]
             mean = .3*mean + .7*elite.mean(axis=0)
             sigma = np.maximum(.10, .5*sigma + .5*elite.std(axis=0)*scales)
-            proposed = artifact(cls, candidates[order[0]], generation, args.source_commit)
+            proposed = artifact(cls, candidates[order[0]], generation, args.source_commit, args.decision_guard)
             gate = None
             promoted = False
             if fitness[order[0]] >= .5 and not np.allclose(proposed['weights'], best['weights']):

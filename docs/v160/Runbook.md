@@ -56,6 +56,9 @@ The neural pipeline uses CPU workers for full games and GPU minibatches for PPO.
 It starts from a fixed public heuristic or a frozen population-search prior, with
 a trainable residual action scorer and a critic pooling the legal candidates.
 This compact representation is an initial baseline, not a full board encoder.
+The explicit Targi Trader decision guard is supported by CEM and frozen-policy
+inference. PPO currently rejects a guarded prior rather than silently dropping
+its action-selection behavior; existing unguarded PPO runs are unaffected.
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
@@ -103,3 +106,6 @@ directory so the evaluator can atomically initialize its empty result directory.
 See [Evaluation.md](Evaluation.md) for paired comparison and confirmation rules.
 Model paths in a bot JSON resolve relative to that JSON's directory, while
 absolute paths remain absolute. A supplied SHA is checked before inference.
+Evaluation plans may set `validate: true` to check engine invariants after each
+decision, `record: true` for public trajectories, and `max_match_seconds` for an
+external per-game cap. These change runner checks, not game rules or winners.

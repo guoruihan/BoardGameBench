@@ -1,6 +1,16 @@
 # BoardGameBench
 
-## 当前版本：V1.5.1 / 0.4.39
+## 开发中：V1.6.0 / 0.5.0.dev1
+
+新增 17 款固定原版双人配置的环境族，复用 Harmonies 并开发其余 16 款。
+已实现统一可见观察、合法动作、精确恢复、启发式/CEM/PPO 对手和冻结配对评测；
+多机训练与最终确认仍在进行。Five Tribes 保持研究态，其他规则边界按游戏披露。
+[配置与覆盖边界](docs/v160/Family_Overview_zh.md) ·
+[运行与恢复](docs/v160/Runbook.md) ·
+[开发集阶段结果](docs/v160/Development_Results.md) ·
+[可搬移 bot 包](docs/v160/Bot_Bundle.md)
+
+## 已收尾版本：V1.5.1 / 0.4.39
 
 2026-10-31 阶段收尾：完成 Harmonies 单人/双人任务开发，以及 Codex 在用户给定方向与
 资源约束下的策略探索和直接试玩。固定研究版本标签为 `v1.5.1`。
