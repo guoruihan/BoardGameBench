@@ -1,0 +1,112 @@
+{
+  "game_id": "jaipur",
+  "edition": "Space Cowboys 2019",
+  "players": 2,
+  "match_seals_to_win": 2,
+  "cards": {
+    "diamond": 6,
+    "gold": 6,
+    "silver": 6,
+    "cloth": 8,
+    "spice": 8,
+    "leather": 10,
+    "camel": 11
+  },
+  "goods_tokens_descending": {
+    "diamond": [
+      7,
+      7,
+      5,
+      5,
+      5
+    ],
+    "gold": [
+      6,
+      6,
+      5,
+      5,
+      5
+    ],
+    "silver": [
+      5,
+      5,
+      5,
+      5,
+      5
+    ],
+    "cloth": [
+      5,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "spice": [
+      5,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "leather": [
+      4,
+      3,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "bonus_token_multisets": {
+    "3": [
+      1,
+      1,
+      2,
+      2,
+      2,
+      3,
+      3
+    ],
+    "4": [
+      4,
+      4,
+      5,
+      5,
+      6,
+      6
+    ],
+    "5_or_more": [
+      8,
+      8,
+      9,
+      10,
+      10
+    ]
+  },
+  "camel_bonus": 5,
+  "goods_hand_limit": 7,
+  "initial_dealt_cards_per_player": 5,
+  "initial_fixed_market_camels": 3,
+  "market_size": 5,
+  "minimum_sale": {
+    "diamond": 2,
+    "gold": 2,
+    "silver": 2,
+    "cloth": 1,
+    "spice": 1,
+    "leather": 1
+  },
+  "provenance": {
+    "publisher_rules": "https://cdn.svc.asmodee.net/production-spacecowboys/uploads/2025/11/Rules-JAIPUR-12x17-Version-EN_BD.pdf",
+    "physical_component_inventory": "https://homeofmark.com/jaipur-card-game-review/",
+    "inventory_scope": "Exact token frequencies supplement the publisher rulebook, which gives bonus ranges rather than every token. Cross-check the chosen physical copy before formal benchmark freeze.",
+    "checked_on": "2026-10-31"
+  }
+}
