@@ -92,7 +92,8 @@ class HarmoniesFrozenPolicy:
 
 
 def run_match(game_id, specs, seed=0, first_player=0, max_decisions=10000,
-              max_seconds=300., record=False, validate=False, policies=None):
+              max_seconds=300., record=False, validate=False, policies=None, record_legal=False,
+              measure_policy_time=False):
     """Caps are incomplete runs, never house-rule endings or fabricated rewards."""
     if len(specs) != 2:
         raise ValueError('Exactly two policies required')
@@ -104,6 +105,7 @@ def run_match(game_id, specs, seed=0, first_player=0, max_decisions=10000,
     began = time.monotonic()
     trace = []
     count = 0
+    policy_seconds, policy_max_seconds, seat_decisions = [0., 0.], [0., 0.], [0, 0]
     status = None
     while not env.outcome()['terminated']:
         outcome = env.outcome()
@@ -120,10 +122,18 @@ def run_match(game_id, specs, seed=0, first_player=0, max_decisions=10000,
             status = 'unresolved_rule' if observation.get('blocked_reason') else 'no_legal_action'
             break
         # Defend engine-owned legal dictionaries against accidental policy mutation.
+        policy_begin = time.monotonic() if measure_policy_time else 0.
         action = policies[seat].decide(observation, deepcopy(actions))
+        if measure_policy_time:
+            elapsed = time.monotonic()-policy_begin
+            policy_seconds[seat] += elapsed
+            policy_max_seconds[seat] = max(policy_max_seconds[seat], elapsed)
+            seat_decisions[seat] += 1
         if record:
             trace.append(dict(player=seat, observation=deepcopy(observation),
                               action=deepcopy(action)))
+            if record_legal:
+                trace[-1]['legal_actions'] = deepcopy(actions)
         env.step(action)
         if validate:
             env.validate()
@@ -140,6 +150,9 @@ def run_match(game_id, specs, seed=0, first_player=0, max_decisions=10000,
                   score_breakdown=env.score_breakdown(), rewards=rewards)
     if record:
         result['trajectory'] = trace
+    if measure_policy_time:
+        result.update(policy_seconds=policy_seconds, policy_max_seconds=policy_max_seconds,
+                      seat_decisions=seat_decisions)
     return result
 
 

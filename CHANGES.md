@@ -1,5 +1,19 @@
 # Engineering changes
 
+## 2026-11-01 — 0.6.0 common historical-opponent PPO pilot
+
+- Add one common terminal-win PPO runner for all 16 qualified family games,
+  including Harmonies. Preserve compatible parent checkpoints and initialize
+  a common heuristic-prior network when no compatible parent exists.
+- Add frozen opponent sampling, decayed training-only win statistics, bounded
+  active-pool selection, paired fixed-panel evaluation and complete compressed
+  learner trajectories. Preserve incomplete outcomes and all prior bot artifacts.
+- Save optimizer/RNG/pool recovery state, validate real updates and behavior
+  likelihoods, isolate run/phase seeds and bound remote worker dispatch by time.
+- Add a private-plan remote launcher with physical-core quotas and fresh GPU
+  checks. Document the one-hour A/B pilot and its comparison limitations.
+- Validate 519 family tests and a complete two-update runner smoke experiment.
+
 ## 2026-11-01 — V1.6.0 frozen family delivery
 
 - Deliver 17 fixed original two-player implementations and a portable 80-bot

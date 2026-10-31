@@ -1,5 +1,17 @@
 # Research milestones
 
+## V1.7.0 unified policy-pool baseline pilot — 2026-11-01
+
+- Apply the same public-candidate actor-critic/PPO method to all 16 qualified
+  games. Harmonies starts a common network with a fixed heuristic prior; its
+  old specialized model remains a frozen evaluation opponent only.
+- Compare the old heuristic/current-self-play opponent mixture with a frozen
+  historical pool under shared terminal-win rewards, gamma=1, initialization,
+  parameters, development panels and per-arm one-hour caps.
+- Report learner decisions separately from environment actions and updates.
+  This bounded pilot establishes workflow/throughput, not equal-step superiority,
+  convergence, a 512-seed final result or a claim to match old Harmonies strength.
+
 ## V1.6.0 original two-player family baseline — 2026-11-01
 
 - Complete 15 new learned-opponent tracks plus the retained Harmonies model,
