@@ -1,5 +1,15 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 configuration guide and paired development evidence
+
+- Document all 17 fixed configurations in Chinese, including source/ruling
+  boundaries and the distinction between official scores and training rewards.
+- Publish a timestamped, frozen common-seed development snapshot. Keep incomplete
+  outcomes in denominators and preserve per-seed confidence intervals; this is
+  not final confirmation or a claim that every learned bot improves.
+- Continue selected games from retained models or learned CEM priors in separate
+  remote runs; earlier models and measurements remain unchanged.
+
 ## 2026-10-31 — V1.6.0 complete source family and frozen evaluations
 
 - Add the complete classic Stone Age duo engine and original component catalog.
