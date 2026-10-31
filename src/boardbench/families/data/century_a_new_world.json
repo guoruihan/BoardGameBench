@@ -1,0 +1,1105 @@
+{
+  "schema_version": 1,
+  "edition": "Plan B Games 2019 standalone",
+  "configuration": "A1_B1_C1_D1_duo",
+  "resource_order": [
+    "corn",
+    "meat",
+    "tobacco",
+    "fur"
+  ],
+  "point_cards": [
+    {
+      "id": "card_703",
+      "scan_cell": 703,
+      "cost": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "vp": 4,
+      "ability": "tool",
+      "target": "tobacco",
+      "payload": 0,
+      "world_icon": "hammer",
+      "star": "black",
+      "min_players": 2
+    },
+    {
+      "id": "card_704",
+      "scan_cell": 704,
+      "cost": [
+        0,
+        2,
+        0,
+        1
+      ],
+      "vp": 3,
+      "ability": "tool",
+      "target": "fur",
+      "payload": 1,
+      "world_icon": "hammer",
+      "star": "black",
+      "min_players": 2
+    },
+    {
+      "id": "card_705",
+      "scan_cell": 705,
+      "cost": [
+        1,
+        0,
+        0,
+        2
+      ],
+      "vp": 4,
+      "ability": "tool",
+      "target": "meat",
+      "payload": 1,
+      "world_icon": "hammer",
+      "star": "black",
+      "min_players": 2
+    },
+    {
+      "id": "card_712",
+      "scan_cell": 712,
+      "cost": [
+        2,
+        0,
+        0,
+        1
+      ],
+      "vp": 4,
+      "ability": "tool",
+      "target": "corn",
+      "payload": 0,
+      "world_icon": "hammer",
+      "star": "black",
+      "min_players": 2
+    },
+    {
+      "id": "card_713",
+      "scan_cell": 713,
+      "cost": [
+        0,
+        1,
+        2,
+        0
+      ],
+      "vp": 3,
+      "ability": "tool",
+      "target": "meat",
+      "payload": 1,
+      "world_icon": "hammer",
+      "star": "black",
+      "min_players": 2
+    },
+    {
+      "id": "card_714",
+      "scan_cell": 714,
+      "cost": [
+        1,
+        0,
+        1,
+        1
+      ],
+      "vp": 6,
+      "ability": "tool",
+      "target": "corn",
+      "payload": 0,
+      "world_icon": "hammer",
+      "star": "black",
+      "min_players": 2
+    },
+    {
+      "id": "card_715",
+      "scan_cell": 715,
+      "cost": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "vp": 5,
+      "ability": "settlers",
+      "target": null,
+      "payload": 1,
+      "world_icon": "backpack",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_717",
+      "scan_cell": 717,
+      "cost": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "vp": 5,
+      "ability": "settlers",
+      "target": null,
+      "payload": 1,
+      "world_icon": "backpack",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_719",
+      "scan_cell": 719,
+      "cost": [
+        3,
+        0,
+        0,
+        1
+      ],
+      "vp": 4,
+      "ability": "help",
+      "target": "bone",
+      "payload": 1,
+      "world_icon": "dreamcatcher",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_720",
+      "scan_cell": 720,
+      "cost": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "vp": 4,
+      "ability": "explore",
+      "target": null,
+      "payload": 1,
+      "world_icon": "compass",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_725",
+      "scan_cell": 725,
+      "cost": [
+        0,
+        2,
+        0,
+        1
+      ],
+      "vp": 5,
+      "ability": "help",
+      "target": "bone",
+      "payload": 1,
+      "world_icon": "dreamcatcher",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_800",
+      "scan_cell": 800,
+      "cost": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "vp": 7,
+      "ability": "explore",
+      "target": null,
+      "payload": 1,
+      "world_icon": "compass",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_804",
+      "scan_cell": 804,
+      "cost": [
+        1,
+        0,
+        0,
+        2
+      ],
+      "vp": 6,
+      "ability": "help",
+      "target": "basket",
+      "payload": 1,
+      "world_icon": "dreamcatcher",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_805",
+      "scan_cell": 805,
+      "cost": [
+        0,
+        2,
+        0,
+        1
+      ],
+      "vp": 6,
+      "ability": "explore",
+      "target": null,
+      "payload": 1,
+      "world_icon": "compass",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_807",
+      "scan_cell": 807,
+      "cost": [
+        1,
+        2,
+        0,
+        0
+      ],
+      "vp": 4,
+      "ability": "settlers",
+      "target": null,
+      "payload": 1,
+      "world_icon": "backpack",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_809",
+      "scan_cell": 809,
+      "cost": [
+        0,
+        2,
+        0,
+        1
+      ],
+      "vp": 4,
+      "ability": "settlers",
+      "target": null,
+      "payload": 2,
+      "world_icon": "backpack",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_810",
+      "scan_cell": 810,
+      "cost": [
+        0,
+        2,
+        1,
+        0
+      ],
+      "vp": 4,
+      "ability": "help",
+      "target": "basket",
+      "payload": 1,
+      "world_icon": "dreamcatcher",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_811",
+      "scan_cell": 811,
+      "cost": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "vp": 2,
+      "ability": "help",
+      "target": "trade",
+      "payload": 1,
+      "world_icon": "dreamcatcher",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_814",
+      "scan_cell": 814,
+      "cost": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "vp": 7,
+      "ability": "explore",
+      "target": null,
+      "payload": 1,
+      "world_icon": "compass",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_825",
+      "scan_cell": 825,
+      "cost": [
+        1,
+        0,
+        0,
+        2
+      ],
+      "vp": 5,
+      "ability": "settlers",
+      "target": null,
+      "payload": 2,
+      "world_icon": "backpack",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_826",
+      "scan_cell": 826,
+      "cost": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "vp": 5,
+      "ability": "help",
+      "target": "trade",
+      "payload": 1,
+      "world_icon": "dreamcatcher",
+      "star": null,
+      "min_players": 2
+    },
+    {
+      "id": "card_827",
+      "scan_cell": 827,
+      "cost": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "vp": 5,
+      "ability": "settlers",
+      "target": null,
+      "payload": 2,
+      "world_icon": "backpack",
+      "star": null,
+      "min_players": 2
+    }
+  ],
+  "bonus_tiles": [
+    {
+      "id": "bonus_900",
+      "scan_cell": 900,
+      "kind": "pair",
+      "icons": [
+        "hammer",
+        "hammer"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_901",
+      "scan_cell": 901,
+      "kind": "pair",
+      "icons": [
+        "dreamcatcher",
+        "backpack"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_903",
+      "scan_cell": 903,
+      "kind": "pair",
+      "icons": [
+        "hammer",
+        "hammer"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_905",
+      "scan_cell": 905,
+      "kind": "icon",
+      "icons": [
+        "compass"
+      ],
+      "points": 2
+    },
+    {
+      "id": "bonus_906",
+      "scan_cell": 906,
+      "kind": "icon",
+      "icons": [
+        "compass"
+      ],
+      "points": 2
+    },
+    {
+      "id": "bonus_907",
+      "scan_cell": 907,
+      "kind": "pair",
+      "icons": [
+        "hammer",
+        "backpack"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_908",
+      "scan_cell": 908,
+      "kind": "pair",
+      "icons": [
+        "dreamcatcher",
+        "dreamcatcher"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_910",
+      "scan_cell": 910,
+      "kind": "workers",
+      "icons": [],
+      "points": 1
+    },
+    {
+      "id": "bonus_911",
+      "scan_cell": 911,
+      "kind": "pair",
+      "icons": [
+        "dreamcatcher",
+        "dreamcatcher"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_913",
+      "scan_cell": 913,
+      "kind": "pair",
+      "icons": [
+        "hammer",
+        "dreamcatcher"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_914",
+      "scan_cell": 914,
+      "kind": "workers",
+      "icons": [],
+      "points": 1
+    },
+    {
+      "id": "bonus_915",
+      "scan_cell": 915,
+      "kind": "pair",
+      "icons": [
+        "hammer",
+        "compass"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_917",
+      "scan_cell": 917,
+      "kind": "pair",
+      "icons": [
+        "compass",
+        "backpack"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_918",
+      "scan_cell": 918,
+      "kind": "workers",
+      "icons": [],
+      "points": 1
+    },
+    {
+      "id": "bonus_919",
+      "scan_cell": 919,
+      "kind": "fixed",
+      "icons": [],
+      "points": 3
+    },
+    {
+      "id": "bonus_921",
+      "scan_cell": 921,
+      "kind": "pair",
+      "icons": [
+        "hammer",
+        "dreamcatcher"
+      ],
+      "points": 3
+    },
+    {
+      "id": "bonus_924",
+      "scan_cell": 924,
+      "kind": "pair",
+      "icons": [
+        "compass",
+        "dreamcatcher"
+      ],
+      "points": 3
+    }
+  ],
+  "exploration_tiles": [
+    {
+      "id": "explore_1000",
+      "scan_cell": 1000,
+      "kind": "icon",
+      "value": "dreamcatcher"
+    },
+    {
+      "id": "explore_1001",
+      "scan_cell": 1001,
+      "kind": "points",
+      "value": 3
+    },
+    {
+      "id": "explore_1002",
+      "scan_cell": 1002,
+      "kind": "icon",
+      "value": "hammer"
+    },
+    {
+      "id": "explore_1003",
+      "scan_cell": 1003,
+      "kind": "icon",
+      "value": "compass"
+    },
+    {
+      "id": "explore_1004",
+      "scan_cell": 1004,
+      "kind": "settler",
+      "value": 1
+    },
+    {
+      "id": "explore_1005",
+      "scan_cell": 1005,
+      "kind": "resources",
+      "value": [
+        0,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "explore_1006",
+      "scan_cell": 1006,
+      "kind": "settler",
+      "value": 1
+    },
+    {
+      "id": "explore_1007",
+      "scan_cell": 1007,
+      "kind": "icon",
+      "value": "backpack"
+    },
+    {
+      "id": "explore_1008",
+      "scan_cell": 1008,
+      "kind": "points",
+      "value": 3
+    },
+    {
+      "id": "explore_1009",
+      "scan_cell": 1009,
+      "kind": "resources",
+      "value": [
+        1,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "id": "A1_r1c1",
+      "board": "A1",
+      "cell": "r1c1",
+      "workers": 1,
+      "kind": "fort",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "slot": 0,
+      "bonus_stacks": [
+        0
+      ]
+    },
+    {
+      "id": "A1_r1c2",
+      "board": "A1",
+      "cell": "r1c2",
+      "workers": 1,
+      "kind": "fort",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "slot": 1,
+      "bonus_stacks": [
+        1
+      ]
+    },
+    {
+      "id": "A1_r2c1",
+      "board": "A1",
+      "cell": "r2c1",
+      "workers": 1,
+      "kind": "produce",
+      "icons": [
+        "corn",
+        "basket"
+      ],
+      "covered": false,
+      "gain": [
+        2,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "A1_r2c2",
+      "board": "A1",
+      "cell": "r2c2",
+      "workers": 1,
+      "kind": "produce",
+      "icons": [
+        "meat",
+        "bone"
+      ],
+      "covered": false,
+      "gain": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "A1_r3c1",
+      "board": "A1",
+      "cell": "r3c1",
+      "workers": 2,
+      "kind": "produce",
+      "icons": [
+        "corn",
+        "basket"
+      ],
+      "covered": true,
+      "gain": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "cover_mark": "2-3"
+    },
+    {
+      "id": "A1_r3c2",
+      "board": "A1",
+      "cell": "r3c2",
+      "workers": 3,
+      "kind": "produce",
+      "icons": [
+        "meat",
+        "bone"
+      ],
+      "covered": true,
+      "gain": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "cover_mark": "2-3"
+    },
+    {
+      "id": "B1_r1c1",
+      "board": "B1",
+      "cell": "r1c1",
+      "workers": 2,
+      "kind": "fort",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "slot": 2,
+      "bonus_stacks": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "B1_r1c2",
+      "board": "B1",
+      "cell": "r1c2",
+      "workers": 3,
+      "kind": "fort",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "slot": 3,
+      "bonus_stacks": [
+        4,
+        5
+      ]
+    },
+    {
+      "id": "B1_r2c1",
+      "board": "B1",
+      "cell": "r2c1",
+      "workers": 2,
+      "kind": "produce",
+      "icons": [
+        "tobacco",
+        "basket"
+      ],
+      "covered": false,
+      "gain": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "B1_r2c2",
+      "board": "B1",
+      "cell": "r2c2",
+      "workers": 3,
+      "kind": "produce",
+      "icons": [
+        "fur",
+        "bone"
+      ],
+      "covered": false,
+      "gain": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "B1_r3c1",
+      "board": "B1",
+      "cell": "r3c1",
+      "workers": 1,
+      "kind": "upgrade",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "upgrades": 2
+    },
+    {
+      "id": "C1_r1c1",
+      "board": "C1",
+      "cell": "r1c1",
+      "workers": 2,
+      "kind": "upgrade",
+      "icons": [
+        "trade"
+      ],
+      "covered": true,
+      "upgrades": 3
+    },
+    {
+      "id": "C1_r1c2",
+      "board": "C1",
+      "cell": "r1c2",
+      "workers": 2,
+      "kind": "trade",
+      "icons": [
+        "trade"
+      ],
+      "covered": true,
+      "cost": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "gain": [
+        0,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "C1_r2c1",
+      "board": "C1",
+      "cell": "r2c1",
+      "workers": 2,
+      "kind": "produce",
+      "icons": [
+        "tobacco",
+        "basket"
+      ],
+      "covered": true,
+      "gain": [
+        1,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "C1_r2c2",
+      "board": "C1",
+      "cell": "r2c2",
+      "workers": 2,
+      "kind": "trade",
+      "icons": [
+        "trade"
+      ],
+      "covered": true,
+      "cost": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "gain": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "C1_r3c1",
+      "board": "C1",
+      "cell": "r3c1",
+      "workers": 3,
+      "kind": "produce",
+      "icons": [
+        "tobacco",
+        "basket"
+      ],
+      "covered": true,
+      "gain": [
+        0,
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "id": "C1_r3c2",
+      "board": "C1",
+      "cell": "r3c2",
+      "workers": 3,
+      "kind": "produce",
+      "icons": [
+        "fur",
+        "bone"
+      ],
+      "covered": true,
+      "gain": [
+        0,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "D1_r1c1",
+      "board": "D1",
+      "cell": "r1c1",
+      "workers": 1,
+      "kind": "trade",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "cost": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "gain": [
+        0,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "D1_r1c2",
+      "board": "D1",
+      "cell": "r1c2",
+      "workers": 1,
+      "kind": "trade",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "cost": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "gain": [
+        6,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "D1_r2c1",
+      "board": "D1",
+      "cell": "r2c1",
+      "workers": 2,
+      "kind": "trade",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "cost": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "gain": [
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "D1_r2c2",
+      "board": "D1",
+      "cell": "r2c2",
+      "workers": 1,
+      "kind": "trade",
+      "icons": [
+        "trade"
+      ],
+      "covered": false,
+      "cost": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "gain": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "D1_r3c1",
+      "board": "D1",
+      "cell": "r3c1",
+      "workers": 2,
+      "kind": "trade",
+      "icons": [
+        "trade"
+      ],
+      "covered": true,
+      "cost": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "gain": [
+        0,
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "id": "D1_r3c2",
+      "board": "D1",
+      "cell": "r3c2",
+      "workers": 2,
+      "kind": "trade",
+      "icons": [
+        "trade"
+      ],
+      "covered": true,
+      "cost": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "gain": [
+        0,
+        0,
+        0,
+        2
+      ]
+    }
+  ],
+  "bonus_stack_sizes": [
+    4,
+    3,
+    2,
+    2,
+    2,
+    2
+  ],
+  "provenance": {
+    "retrieved": "2026-10-31",
+    "rules": "https://cdn.svc.asmodee.net/production-nextmove/uploads/sites/4/2024/06/EN-C3-Rules-2019-03-12_compressed.pdf",
+    "physical_photos": [
+      "https://usnoopy.blogspot.com/2019/08/century-new-world.html",
+      "https://misutmeeple.com/2019/12/resena-century-un-nuevo-mundo/"
+    ],
+    "scan_source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3776599714",
+    "scan_updated_epoch": 1785724830,
+    "scan_payload_sha256": "a450e98dac0d85842192e4ae409d8f2075b190cb328251250ae8f637ae495d0e",
+    "sheets": {
+      "7": {
+        "url": "https://steamusercontent-a.akamaihd.net/ugc/14802642960725597570/3300BE60ABEA38CC6F8AD1E565C4EB6407B151A3/",
+        "columns": 7,
+        "rows": 4,
+        "sha256": "10c86ee14e90c8300cc9dce7ff8551947fe1190efb3d88fff9b2957eb2be00d1"
+      },
+      "10": {
+        "url": "https://steamusercontent-a.akamaihd.net/ugc/18230460100864883598/C3F53F2C3915A4D5C892BE69E8B29D70B2BA4404/",
+        "columns": 5,
+        "rows": 2,
+        "sha256": "3cbb1f5d45c06cd4e9e32e737f7a6184ddb62d045ad9bee6abc087444391d1d9"
+      },
+      "8": {
+        "url": "https://steamusercontent-a.akamaihd.net/ugc/17942052448316566664/FAEB141B181E18938225EFE871B1C60E49C47044/",
+        "columns": 7,
+        "rows": 4,
+        "sha256": "7994f6344be1915343acc2cdabd480075c9493ae746e5bb9da54c6d268e3caa2"
+      },
+      "9": {
+        "url": "https://steamusercontent-a.akamaihd.net/ugc/16018712789382511015/FB34F28DB53B53CEA258EBFCA8B6AB96E67A5A31/",
+        "columns": 5,
+        "rows": 5,
+        "sha256": "9d4a303499d079a681881336b92c1827cc47d9a4d987bccbd4fe2697c1230546"
+      },
+      "1": {
+        "url": "https://steamusercontent-a.akamaihd.net/ugc/11005840598731617953/4628F4F86E47B9E5461617E8FD342D60418B2136/",
+        "columns": 3,
+        "rows": 2,
+        "sha256": "413087cabe2be3fb750270025d3cd739b7f6b1953a234308e75eb7f6f31ce872"
+      }
+    },
+    "filter_note": "56 printed point cards: retain 16 unmarked 2p cards + 6 black-star 2p cards. Exclude 12 white-star cards and 22 other 3+/=4 cards. Bonus sheets exclude IDs 902,904,909,912,916,920,922,923 marked I/III. Only numerical component facts transcribed; images and third-party code are not distributed."
+  }
+}
