@@ -99,6 +99,11 @@ does not defer or batch attempt persistence. The next invocation still restores
 and validates every durable attempt from disk; an offline `save_report(...)`
 call also retains that full disk rebuild by default. Cached and offline reports
 use the same filename order for resource sums, including floating-point rounding.
+If writing an interrupted result also fails, owned workers are still terminated
+before the error propagates. No finished invocation or new summary is written on
+that failed cleanup path. The original exception is retained with any cleanup
+exception chained to it; already-durable `running` attempts remain recoverable
+by the next invocation.
 
 Only unstarted, interrupted or deadline-stopped jobs are retried. A completed
 match, an explicit per-match `truncated` result, a rule gap, no legal action or an
@@ -192,5 +197,7 @@ checkpoint through the common policy loader. Cache checks compare summaries and
 game files byte for byte against independent disk rebuilds for normal runs,
 cutoffs, abrupt-exit recovery, failed submission, worker errors and a failed result
 write followed by resume. Each invocation is checked for exactly one startup
-attempt scan and none during cached cleanup. These are local smoke checks,
+attempt scan and none during cached cleanup. Persistent write-failure tests also
+verify pool cleanup, exception preservation, absence of a success report and
+recovery from the unchanged durable start record. These are local smoke checks,
 not strength evaluations or production cluster runs.

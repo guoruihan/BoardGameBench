@@ -329,6 +329,57 @@ def test_cached_failure_cleanup_and_resume_preserve_durable_attempts(
             assert sorted(a['attempt'] for a in ev.latest_attempts(output)[1]) == [1, 1, 2]
 
 
+@pytest.mark.parametrize('trigger', ('result', 'interrupted'))
+def test_persistent_attempt_write_failure_always_cleans_pool_and_can_resume(
+        tmp_path, monkeypatch, trigger):
+    output, _ = prepare(tmp_path)
+    real_write = ev.write_json
+    failures, shutdowns = [], []
+    failing = True
+    class Pool:
+        def __init__(self, **kwargs):
+            pass
+        def submit(self, function, job):
+            future = Future()
+            if trigger == 'result' or not failing:
+                future.set_result(dict(status='complete', rewards=[1., -1.], seconds=.5,
+                    outcome=dict(scores=[7, 3]), worker_wall_seconds=.5, worker_cpu_seconds=.25))
+            return future
+        def shutdown(self, **kwargs):
+            shutdowns.append(kwargs)
+    def fail_result_writes(path, value):
+        if (failing and Path(path).parent.name == 'attempts'
+                and value['result']['status'] != 'running'):
+            error = OSError(f"cannot persist {value['result']['status']}")
+            failures.append(error)
+            raise error
+        return real_write(path, value)
+    monkeypatch.setattr(ev, 'ProcessPoolExecutor', Pool)
+    monkeypatch.setattr(ev, 'write_json', fail_result_writes)
+    monkeypatch.setattr(ev, 'STOP', False)
+    if trigger == 'interrupted':
+        monkeypatch.setattr(ev, 'wait', lambda *args, **kwargs: ev.stop_requested())
+    with pytest.raises(OSError) as caught:
+        ev.run_evaluation(output, bootstrap_samples=20)
+    assert caught.value is failures[0]  # Preserve the original exception.
+    if trigger == 'result':
+        assert len(failures) == 2 and caught.value.__cause__ is failures[1]
+    assert shutdowns == [dict(wait=False, cancel_futures=True)]
+    assert not (output/'summary.json').exists() and not (output/'games.json').exists()
+    invocation = ev.read_json(next(output.glob('invocation_*.json')))
+    assert 'finished_unix' not in invocation
+    _, attempts = ev.latest_attempts(output)
+    assert len(attempts) == 1 and attempts[0]['result']['status'] == 'running'
+    # The durable start survives even a second failed write during cleanup.
+    failing = False
+    ev.STOP = False
+    monkeypatch.setattr(ev, 'wait', lambda *args, **kwargs: None)
+    result = ev.run_evaluation(output, bootstrap_samples=20)
+    assert result['completed'] == 2 and result['attempts'] == 3
+    _, attempts = ev.latest_attempts(output)
+    assert sum(a['result']['status'] == 'interrupted' for a in attempts) == 1
+
+
 def test_single_writer_lock_and_reference_cycles(tmp_path):
     with ev.evaluation_lock(tmp_path):
         with pytest.raises(RuntimeError,match='running writer'):

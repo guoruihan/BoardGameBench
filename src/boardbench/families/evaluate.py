@@ -546,6 +546,7 @@ def run_evaluation(output, workers=1, deadline_unix=None, bootstrap_samples=2000
         pool = None
         running = {}
         stopped = None
+        active_error = None
         try:
             if pending and not STOP and (deadline_unix is None or time.time() < deadline_unix):
                 pool = ProcessPoolExecutor(max_workers=workers, mp_context=mp.get_context('spawn'),
@@ -592,17 +593,30 @@ def run_evaluation(output, workers=1, deadline_unix=None, bootstrap_samples=2000
                     wait(running, timeout=timeout, return_when=FIRST_COMPLETED)
                 elif not pending:
                     break
+        except BaseException as error:
+            active_error = error
+            raise
         finally:
-            if running:
-                for attempt, started in running.values():
-                    persist_attempt(attempt, finished_unix=time.time(), result=dict(status=stopped or 'interrupted',
-                        rewards=None, seconds=None, worker_wall_seconds=time.time()-started,
-                        error='Owned worker stopped before a terminal result was recorded'))
-            if pool is not None:
-                if running:
-                    terminate_pool(pool)
-                else:
-                    pool.shutdown(wait=True)
+            try:
+                try:
+                    if running:
+                        for attempt, started in running.values():
+                            persist_attempt(attempt, finished_unix=time.time(), result=dict(status=stopped or 'interrupted',
+                                rewards=None, seconds=None, worker_wall_seconds=time.time()-started,
+                                error='Owned worker stopped before a terminal result was recorded'))
+                finally:
+                    # A failed interruption write must never orphan owned workers.
+                    if pool is not None:
+                        if running:
+                            terminate_pool(pool)
+                        else:
+                            pool.shutdown(wait=True)
+            except BaseException as cleanup_error:
+                if active_error is not None:
+                    raise active_error from cleanup_error
+                raise
+            # Failed cleanup propagates above: no finished invocation or report
+            # may claim that an unpersisted outcome was successfully recorded.
             invocation.update(finished_unix=time.time(), wall_seconds=time.time()-began,
                               stop_reason=stopped)
             write_json(invocation_path, invocation)
