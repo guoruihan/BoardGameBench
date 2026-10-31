@@ -1,5 +1,13 @@
 # Engineering changes
 
+## 2026-11-01 — optimized pilot recovery verification
+
+- Resume all 32 interrupted common-method A/B pilots from preserved model,
+  optimizer, RNG and opponent-pool checkpoints using frozen 0.6.3 source.
+  Keep original remaining budgets, including recovery preparation time.
+- Start bounded read-only resource observers and preserve predecessor-to-resume
+  report links. Publish the recovery record separately from learning results.
+
 ## 2026-11-01 — 0.6.3 family sampling optimization and budgeted recovery
 
 - Profile all 16 qualified environments. Replace repeated Python deep copies of
