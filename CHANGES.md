@@ -1,5 +1,13 @@
 # Engineering changes
 
+## 2026-11-01 — reward-signal literature evidence
+
+- Record primary-source evidence on terminal outcomes, point payoffs, score
+  increments, auxiliary predictions and round-level reward attribution in games.
+- Separate RL, search and CFR examples, document objective tradeoffs and provide
+  a literature index/BibTeX plus proposed controlled tests. No training or rule
+  changes are included in this documentation update.
+
 ## 2026-11-01 — optimized pilot recovery verification
 
 - Resume all 32 interrupted common-method A/B pilots from preserved model,
