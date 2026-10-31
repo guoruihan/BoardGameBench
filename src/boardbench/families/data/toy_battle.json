@@ -1,0 +1,369 @@
+{
+  "edition": "Repos Production 2025 base game",
+  "board": "Castle Field",
+  "configuration": "Official first-game setup: special bases treated as normal bases (rulebook p3); all troop effects enabled",
+  "source_rules": "https://cdn.svc.asmodee.net/production-rprod/storage/games/toy_battle/rules/toy-en01-rules-1744030094a4kQo.pdf",
+  "source_aid": "https://cdn.svc.asmodee.net/production-rprod/storage/games/toy_battle/helpsheet/toy-en01-player-aid-mkt-1750679915Pm3l4.pdf",
+  "source_board_image": "https://cdn.svc.asmodee.net/production-rprod/storage/games/toy_battle/elements/toy-graphics-boxbottom-game-1744636033ecoem.png",
+  "nodes": [
+    {
+      "id": "H0",
+      "x": 0,
+      "y": 1,
+      "printed_special": false,
+      "hq_owner": 0
+    },
+    {
+      "id": "L0",
+      "x": 0,
+      "y": 0,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "L3",
+      "x": 0,
+      "y": 2,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "L1",
+      "x": 1,
+      "y": 0.6,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "L2",
+      "x": 1,
+      "y": 1.4,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "SL0",
+      "x": 1.5,
+      "y": 0,
+      "printed_special": true,
+      "hq_owner": null
+    },
+    {
+      "id": "SL1",
+      "x": 1.5,
+      "y": 2,
+      "printed_special": true,
+      "hq_owner": null
+    },
+    {
+      "id": "C0",
+      "x": 2.5,
+      "y": 0,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "C1",
+      "x": 2.5,
+      "y": 1,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "C2",
+      "x": 2.5,
+      "y": 2,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "SR0",
+      "x": 3.5,
+      "y": 0,
+      "printed_special": true,
+      "hq_owner": null
+    },
+    {
+      "id": "SR1",
+      "x": 3.5,
+      "y": 2,
+      "printed_special": true,
+      "hq_owner": null
+    },
+    {
+      "id": "R1",
+      "x": 4,
+      "y": 0.6,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "R2",
+      "x": 4,
+      "y": 1.4,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "R0",
+      "x": 5,
+      "y": 0,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "R3",
+      "x": 5,
+      "y": 2,
+      "printed_special": false,
+      "hq_owner": null
+    },
+    {
+      "id": "H1",
+      "x": 5,
+      "y": 1,
+      "printed_special": false,
+      "hq_owner": 1
+    }
+  ],
+  "edges": [
+    [
+      "H0",
+      "L0"
+    ],
+    [
+      "H0",
+      "L3"
+    ],
+    [
+      "L0",
+      "L1"
+    ],
+    [
+      "L3",
+      "L2"
+    ],
+    [
+      "L1",
+      "SL0"
+    ],
+    [
+      "SL0",
+      "C0"
+    ],
+    [
+      "L1",
+      "C0"
+    ],
+    [
+      "L1",
+      "C1"
+    ],
+    [
+      "L1",
+      "L2"
+    ],
+    [
+      "L2",
+      "C1"
+    ],
+    [
+      "L2",
+      "C2"
+    ],
+    [
+      "L2",
+      "SL1"
+    ],
+    [
+      "SL1",
+      "C2"
+    ],
+    [
+      "H1",
+      "R0"
+    ],
+    [
+      "H1",
+      "R3"
+    ],
+    [
+      "R0",
+      "R1"
+    ],
+    [
+      "R3",
+      "R2"
+    ],
+    [
+      "R1",
+      "SR0"
+    ],
+    [
+      "SR0",
+      "C0"
+    ],
+    [
+      "R1",
+      "C0"
+    ],
+    [
+      "R1",
+      "C1"
+    ],
+    [
+      "R1",
+      "R2"
+    ],
+    [
+      "R2",
+      "C1"
+    ],
+    [
+      "R2",
+      "C2"
+    ],
+    [
+      "R2",
+      "SR1"
+    ],
+    [
+      "SR1",
+      "C2"
+    ]
+  ],
+  "regions": [
+    {
+      "id": 0,
+      "boundary": [
+        "L1",
+        "SL0",
+        "C0"
+      ],
+      "medals": 1
+    },
+    {
+      "id": 1,
+      "boundary": [
+        "L2",
+        "SL1",
+        "C2"
+      ],
+      "medals": 1
+    },
+    {
+      "id": 2,
+      "boundary": [
+        "L1",
+        "L2",
+        "C1"
+      ],
+      "medals": 3
+    },
+    {
+      "id": 3,
+      "boundary": [
+        "R1",
+        "SR0",
+        "C0"
+      ],
+      "medals": 1
+    },
+    {
+      "id": 4,
+      "boundary": [
+        "R2",
+        "SR1",
+        "C2"
+      ],
+      "medals": 1
+    },
+    {
+      "id": 5,
+      "boundary": [
+        "R1",
+        "R2",
+        "C1"
+      ],
+      "medals": 3
+    },
+    {
+      "id": 6,
+      "boundary": [
+        "L1",
+        "C0",
+        "R1",
+        "C1"
+      ],
+      "medals": 2
+    },
+    {
+      "id": 7,
+      "boundary": [
+        "L2",
+        "C1",
+        "R2",
+        "C2"
+      ],
+      "medals": 2
+    }
+  ],
+  "headquarters": [
+    "H0",
+    "H1"
+  ],
+  "medal_targets": [
+    7,
+    7
+  ],
+  "troops": [
+    {
+      "id": 0,
+      "name": "Kwak",
+      "strength": null,
+      "copies": 3
+    },
+    {
+      "id": 1,
+      "name": "Skully",
+      "strength": 1,
+      "copies": 3
+    },
+    {
+      "id": 2,
+      "name": "Cap'n",
+      "strength": 2,
+      "copies": 3
+    },
+    {
+      "id": 3,
+      "name": "Jumbo",
+      "strength": 3,
+      "copies": 3
+    },
+    {
+      "id": 4,
+      "name": "Hook",
+      "strength": 4,
+      "copies": 3
+    },
+    {
+      "id": 5,
+      "name": "XB-42",
+      "strength": 5,
+      "copies": 3
+    },
+    {
+      "id": 6,
+      "name": "Star",
+      "strength": 6,
+      "copies": 3
+    },
+    {
+      "id": 7,
+      "name": "Roxy",
+      "strength": 7,
+      "copies": 3
+    }
+  ]
+}
