@@ -4,7 +4,7 @@ The environment exposes actual choices: card commitment, individual movement,
 post-draw trashing, buying and keeping cards. Deck orders stay in snapshots only.
 """
 from collections import Counter, deque
-from copy import deepcopy
+from boardbench.families.state_io import copy_data as deepcopy
 from itertools import combinations
 import heapq
 import math

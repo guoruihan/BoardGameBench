@@ -1,6 +1,6 @@
 """Classic Splendor, original two-player setup and all 90 development cards."""
 from collections import Counter
-from copy import deepcopy
+from boardbench.families.state_io import copy_data as deepcopy
 from itertools import combinations, product
 import json
 from pathlib import Path

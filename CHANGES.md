@@ -1,5 +1,19 @@
 # Engineering changes
 
+## 2026-11-01 — 0.6.3 family sampling optimization and budgeted recovery
+
+- Profile all 16 qualified environments. Replace repeated Python deep copies of
+  builtin game data with equivalent in-process C serialization copies; preserve
+  complete histories, snapshot rollback, aliases, masks and information boundaries.
+- Accelerate legal-action checks without weakening JSON type matching. Reuse
+  observation-local Cascadia features and existing Harmonies observations.
+- Add equivalent Harmonies bitset scoring plus an optional explicitly built,
+  checksum-pinned C++ public-feature kernel. Original transitions/RNG remain intact.
+- Provide fully warmed paired GPU sampler benchmarks with complete trajectory,
+  post-update model and Adam-state equality gates, plus CPU/memory accounting.
+- Extend budget-preserving recovery with pinned native artifacts and chained
+  reports. Add read-only periodic resource observation with resume-aware counters.
+
 ## 2026-11-01 — 0.6.2 lossless sampling/storage pipeline
 
 - Buffer JSON encoding/compression, archive full episodes in CPU actors, and

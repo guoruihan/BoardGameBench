@@ -141,6 +141,31 @@ def best_animal_value(board, animal):
                       if c['animal'] is None and animal in TILES[c['tile']]['supported_animals']])
 
 
+class _FeatureContext:
+    """Public observation-local reuse; never cache across mutable game states."""
+    def __init__(self, board):
+        self.board = board
+        self.coords = {(c['q'], c['r']) for c in board}
+        self.values, self.best_values = {}, {}
+        self.before = None
+
+    def value(self, coord, animal):
+        key = coord, animal
+        if key not in self.values:self.values[key] = animal_value(self.board, coord, animal)
+        return self.values[key]
+
+    def best(self, animal):
+        if animal not in self.best_values:
+            self.best_values[animal] = max([0.] + [self.value((c['q'], c['r']), animal)
+                + int(TILES[c['tile']]['keystone']) for c in self.board
+                if c['animal'] is None and animal in TILES[c['tile']]['supported_animals']])
+        return self.best_values[animal]
+
+    def habitat(self):
+        if self.before is None:self.before = habitat_scores(geometry(self.board))
+        return self.before
+
+
 class Cascadia(DuoGame):
     game_id = 'cascadia'
     rules_version = '2021_base_designer_2023'
@@ -330,39 +355,45 @@ class Cascadia(DuoGame):
             assert s['phase'] == 'finished' and s['turns'] == [20, 20] and not s['deck']
 
     @staticmethod
-    def features(observation, action):
+    def features_batch(observation, actions):
+        context = _FeatureContext(observation['boards'][observation['current_player']])
+        return [Cascadia.features(observation, action, context) for action in actions]
+
+    @staticmethod
+    def features(observation, action, _context=None):
         p = observation['current_player']; board = observation['boards'][p]
+        context = _context if _context is not None else _FeatureContext(board)
         typ = action['type']; f = [0.] * 24
         f[20] = observation['turns'][p] / 20
         f[21] = observation['nature'][p] / 10
         if typ == 'place_animal':
             a = observation['pending_animal']; coord = (action['q'], action['r'])
             c = next(c for c in board if (c['q'], c['r']) == coord)
-            f[1] = animal_value(board, coord, a); f[2] = int(TILES[c['tile']]['keystone'])
+            f[1] = context.value(coord, a); f[2] = int(TILES[c['tile']]['keystone'])
             f[0] = f[1] + 1.3*f[2]
         elif typ == 'place_tile':
             tile = observation['pending_tile']; coord = (action['q'], action['r'])
-            before = habitat_scores(geometry(board))
+            before = context.habitat()
             new = board + [dict(q=coord[0], r=coord[1], tile=tile, rotation=action['rotation'], animal=None)]
             after = habitat_scores(geometry(new))
             f[3] = sum(after)-sum(before)
-            f[4] = sum(n in {(c['q'], c['r']) for c in board} for n in neighbors(coord))
-            values = [animal_value(board, coord, a)+int(TILES[tile]['keystone']) for a in TILES[tile]['supported_animals']]
+            f[4] = sum(n in context.coords for n in neighbors(coord))
+            values = [context.value(coord, a)+int(TILES[tile]['keystone']) for a in TILES[tile]['supported_animals']]
             f[5] = max(values)
             a = observation['pending_animal']
             if a in TILES[tile]['supported_animals']:
-                f[6] = max(0., animal_value(board, coord, a)+int(TILES[tile]['keystone'])-best_animal_value(board, a))
+                f[6] = max(0., context.value(coord, a)+int(TILES[tile]['keystone'])-context.best(a))
             for i, v in enumerate(after): f[10+i] = v-before[i]
             f[0] = f[3] + .15*f[4] + .3*f[5] + .9*f[6] + .2
         elif typ == 'select':
             a = observation['market_animals'][action['animal_slot']]
             t = TILES[observation['market_tiles'][action['tile_slot']]]
-            f[7] = max(best_animal_value(board, a), 2.5 if a in t['supported_animals'] else 0.)
+            f[7] = max(context.best(a), 2.5 if a in t['supported_animals'] else 0.)
             f[8] = len(t['habitats']) + .3*len(t['supported_animals'])
             f[9] = int(action['nature'])
             f[0] = f[7] + .8*f[8] - 1.5*f[9]
         elif typ == 'free_wipe':
-            best = max(best_animal_value(board, a) for a in observation['market_animals'])
+            best = max(context.best(a) for a in observation['market_animals'])
             f[0] = 2.4-best
         elif typ == 'keep':
             f[0] = 0.

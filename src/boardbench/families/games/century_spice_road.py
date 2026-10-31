@@ -1,6 +1,6 @@
 """Century: Spice Road, original standalone two-player configuration."""
 from collections import Counter
-from copy import deepcopy
+from boardbench.families.state_io import copy_data as deepcopy
 import json
 from pathlib import Path
 

@@ -1,5 +1,15 @@
 # Research milestones
 
+## V1.7.0 all-family equivalent sampling execution — 2026-11-01
+
+- Extend the performance investigation to all 16 qualified games while keeping
+  the common candidate model, terminal-win reward, PPO and opponent-pool methods.
+- Compare frozen 0.6.2 against equivalent optimized execution on paired training
+  environments; prewarm both sampling and PPO. Preserve full trajectories and
+  exact post-update model/optimizer states instead of changing data to gain speed.
+- User authorizes automatic continuation of the interrupted A/B pilots after
+  validation, using only their recorded remaining budgets and new output paths.
+
 ## V1.7.0 lossless pipeline performance check — 2026-11-01
 
 - Pause the policy-pool pilot at the user's request and retain all checkpoints.

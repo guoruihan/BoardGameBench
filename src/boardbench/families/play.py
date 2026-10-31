@@ -1,5 +1,5 @@
 """Public-observation policies and auditable matches for original two-player games."""
-from copy import deepcopy
+from .state_io import copy_data as deepcopy
 import hashlib
 import json
 import math

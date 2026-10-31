@@ -8,10 +8,13 @@ def report(directory):
     rows=[]
     for config in sorted(Path(directory).glob('runs/*/*/config.json')):
         cfg=json.loads(config.read_text());out=config.parent
-        replacement=out/'replacement.json'
-        if replacement.exists():
+        replacement=out/'replacement.json';seen=set()
+        while replacement.exists():
+            if out.resolve() in seen:raise ValueError('Cycle in run replacements')
+            seen.add(out.resolve())
             out=Path(json.loads(replacement.read_text())['output'])
             cfg=json.loads((out/'config.json').read_text())
+            replacement=out/'replacement.json'
         state=json.loads((out/'state.json').read_text()) if (out/'state.json').exists() else {}
         records=[]
         if (out/'metrics.jsonl').exists():

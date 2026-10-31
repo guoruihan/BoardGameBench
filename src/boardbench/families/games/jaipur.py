@@ -4,7 +4,7 @@ Cards with identical faces are interchangeable; exchange vectors enumerate every
 legal multiset. A round tied after both printed tiebreaks is explicitly unresolved.
 """
 from collections import Counter
-from copy import deepcopy
+from boardbench.families.state_io import copy_data as deepcopy
 import json
 from pathlib import Path
 

@@ -1,5 +1,5 @@
 """Classic 2014 English Machi Koro, complete fixed two-player base market."""
-from copy import deepcopy
+from boardbench.families.state_io import copy_data as deepcopy
 import json
 from pathlib import Path
 

@@ -1,5 +1,5 @@
 """That's Pretty Clever: original sheet, official six-round two-player game."""
-from copy import deepcopy
+from boardbench.families.state_io import copy_data as deepcopy
 import json
 from pathlib import Path
 

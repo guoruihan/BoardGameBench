@@ -4,7 +4,7 @@ Independent rules implementation. Choices include placement, action order,
 payment, table position, trades, reserved cards and immediate card abilities.
 """
 from collections import Counter
-from copy import deepcopy
+from boardbench.families.state_io import copy_data as deepcopy
 from itertools import combinations, product
 
 from boardbench.families.base import DuoGame

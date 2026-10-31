@@ -1,11 +1,13 @@
 # BoardGameBench
 
-## 新一轮：V1.7.0 / 0.6.2 统一策略池 PPO
+## 新一轮：V1.7.0 / 0.6.3 统一策略池 PPO
 
 16 个双人任务使用同一套通用 actor-critic、终局胜负奖励与 A/B 训练流程，
 Harmonies 也纳入通用方法。参见 [试跑方法与恢复说明](docs/v170/Policy_Pool_Pilot_zh.md)。
 这一轮为每组最多一小时的流程试跑；V1.6.0 已交付策略继续保留。
-当前试跑按用户要求暂停；已完成[采样与保存优化验证](docs/v170/Pipeline_Optimization_zh.md)，未自动恢复正式训练。
+先完成[采样与保存优化](docs/v170/Pipeline_Optimization_zh.md)，再扩展到
+[全部环境的等价采样优化](docs/v170/Family_Sampling_Optimization_zh.md)。
+用户已授权验证后自动续跑原 A/B 试验，沿用暂停时剩余预算，保留原模型与结果。
 
 ## 已交付：V1.6.0 / 0.5.2
 

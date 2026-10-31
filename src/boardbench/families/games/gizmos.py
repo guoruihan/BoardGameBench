@@ -5,7 +5,7 @@ physical payment vectors and used Gizmos, rather than duplicate equivalent
 conversion orders. Research return order and reaction order remain player choices.
 """
 from collections import Counter
-from copy import deepcopy
+from boardbench.families.state_io import copy_data as deepcopy
 from functools import lru_cache
 import json
 from pathlib import Path

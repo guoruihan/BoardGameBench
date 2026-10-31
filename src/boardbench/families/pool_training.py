@@ -30,6 +30,8 @@ from .pool_evaluator import (bounded_jobs, evaluate, fingerprint, paired_differe
 from .ppo import update
 from .registry import game_class
 from .trajectory_io import compact_episode, json_default, write_compressed, write_episode_batch
+from .harmonies_kernel import configure as configure_harmonies_kernel
+from .state_io import copy_data
 
 STOP = False
 MODEL_CACHE = {}
@@ -59,7 +61,8 @@ class RecordingPolicy(NeuralPolicy):
 
     def decide(self, observation, actions):
         action = super().decide(observation, actions)
-        self.records[-1].update(observation=deepcopy(observation), legal_actions=deepcopy(actions),
+        copy_observation = getattr(self.cls, 'copy_observation', deepcopy)
+        self.records[-1].update(observation=copy_observation(observation), legal_actions=copy_data(actions),
             legal_mask=[True]*len(actions), player_id=self.player, policy_version=self.identity,
             opponent_id=self.opponent_id, terminated=False, truncated=False, reward=0.)
         return action
@@ -213,6 +216,7 @@ def main(argv=None):
         torch.cuda.synchronize()
     out = Path(cfg['output'])
     out.mkdir(parents=True, exist_ok=True)
+    configure_harmonies_kernel(cfg.get('harmonies_kernel'))
     def stopped():
         return STOP or (out/'PAUSE').exists()
     compact=cfg.get('pipeline','compact_v2')=='compact_v2'
@@ -267,7 +271,8 @@ def main(argv=None):
         persist('stopped')
         return
     try:
-        with ProcessPoolExecutor(max_workers=cfg['workers'], mp_context=mp.get_context('spawn')) as executor:
+        with ProcessPoolExecutor(max_workers=cfg['workers'], mp_context=mp.get_context('spawn'),
+                initializer=configure_harmonies_kernel, initargs=(cfg.get('harmonies_kernel'),)) as executor:
             if not state.get('preflight'):
                 jobs = [dict(game=cfg['game'], path=cfg['initial_path'], self_play=False,
                     learner_seat=i%2, seed=pool_seed('smoke', cfg['seed'], index=i),

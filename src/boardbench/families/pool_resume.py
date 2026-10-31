@@ -18,7 +18,7 @@ from .play import write_json
 from .pool_training import file_hash
 
 
-def prepare_resume(pause_record,game,arm,output,source_commit):
+def prepare_resume(pause_record,game,arm,output,source_commit,harmonies_kernel=None):
     matches=[j for j in json.loads(Path(pause_record).read_text())['jobs'] if j['game']==game and j['arm']==arm]
     if len(matches)!=1:raise ValueError('Pause record must identify exactly one verified run')
     record=matches[0];source=Path(record['output']);output=Path(output).resolve()
@@ -36,6 +36,10 @@ def prepare_resume(pause_record,game,arm,output,source_commit):
         spec=item['spec']
         if spec.get('sha256') and file_hash(spec['path'])!=spec['sha256']:
             raise ValueError('Archived opponent changed')
+    if harmonies_kernel is not None:
+        if game!='harmonies':raise ValueError('Harmonies kernel requires Harmonies game')
+        from .harmonies_kernel import NativeKernel
+        NativeKernel(harmonies_kernel)  # Verify before creating or changing artifacts.
     now=time.time();deadline=now+remaining
     old_state=deepcopy(payload['state'])
     prior_elapsed=old_state.get('elapsed_before_resume',0.)+cfg['hours']*3600-remaining
@@ -43,7 +47,10 @@ def prepare_resume(pause_record,game,arm,output,source_commit):
                hours=remaining/3600,deadline_unix=deadline,budget_origin_deadline=deadline,
                resume_provenance=dict(source_output=str(source),source_commit=payload['config']['source_commit'],
                     source_checkpoint_sha256=file_hash(source/'checkpoint.pt'),remaining_seconds=remaining,
-                    pause_record=str(Path(pause_record).resolve()),prior_phase=old_state['phase']))
+                    pause_record=str(Path(pause_record).resolve()),prior_phase=old_state['phase'],
+                    starting_learner_decisions=old_state.get('learner_decisions',0),
+                    starting_updates=old_state.get('next_update',0),starting_costs=deepcopy(old_state.get('costs',{}))))
+    if harmonies_kernel is not None:cfg['harmonies_kernel']=harmonies_kernel
     state=payload['state'];state.update(phase='prepared_resume',deadline=deadline,began_unix=now,
         elapsed_before_resume=max(0.,prior_elapsed),resume_source=str(source))
     state.pop('error',None);state.pop('traceback',None)
@@ -65,7 +72,9 @@ def main():
     p.add_argument('--pause-record',required=True,type=Path)
     p.add_argument('--game',required=True);p.add_argument('--arm',choices=['A','B'],required=True)
     p.add_argument('--output',required=True,type=Path);p.add_argument('--source-commit',required=True)
-    a=p.parse_args();cfg=prepare_resume(a.pause_record,a.game,a.arm,a.output,a.source_commit)
+    p.add_argument('--harmonies-kernel',type=Path,help='Optional explicitly built artifact.json; verify and pin in config')
+    a=p.parse_args();kernel=json.loads(a.harmonies_kernel.read_text()) if a.harmonies_kernel else None
+    cfg=prepare_resume(a.pause_record,a.game,a.arm,a.output,a.source_commit,kernel)
     print(json.dumps(dict(config=str(a.output/'config.json'),remaining_seconds=cfg['hours']*3600,
                           launched=False)))
 

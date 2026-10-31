@@ -4,7 +4,7 @@ Subclasses implement _reset, _legal_actions, _step, _observe and scores.
 All chance events use self.rng. An action is one actual player choice, including
 reactions and bonus choices; it need not alternate seats.
 """
-from copy import deepcopy
+from .state_io import copy_data as deepcopy
 import math
 import random
 import json
@@ -78,9 +78,15 @@ class DuoGame:
             raise InvalidAction("game has ended")
         try:
             encoded = json.dumps(action, sort_keys=True, allow_nan=False)
-            legal = isinstance(action, dict) and any(
-                encoded == json.dumps(a, sort_keys=True, allow_nan=False)
-                for a in self.legal_actions())
+            actions = self.legal_actions()
+            # Dict/list equality is a C fast path. Keep the JSON comparison for
+            # the matching candidate to distinguish booleans, ints and floats.
+            legal = isinstance(action, dict) and any(action == a and
+                encoded == json.dumps(a, sort_keys=True, allow_nan=False) for a in actions)
+            if not legal and isinstance(action, dict):
+                # Preserve unusual JSON-equivalent inputs (e.g. tuple vs list),
+                # including the original strict guard on every failed action.
+                legal = any(encoded == json.dumps(a, sort_keys=True, allow_nan=False) for a in actions)
         except (TypeError, ValueError):
             legal = False
         if not legal:
@@ -129,6 +135,8 @@ class DuoGame:
 
     def score_breakdown(self):
         return [dict(total=s) for s in self.scores()]
+
+    copy_observation = staticmethod(deepcopy)
 
     def outcome(self):
         return dict(terminated=bool(self.state.get("terminated")),
