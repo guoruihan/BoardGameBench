@@ -10,6 +10,9 @@
 - Add a regression covering scoreless outcomes and policy-time aggregation.
 - Verify 56 focused evaluator, policy and race-game tests; repair slots retain
   process-tree ownership checks before sharing an already allocated GPU.
+- Launch all 32 bounded A/B tasks and verify actual CUDA updates and recovery.
+  Publish the experiment-start record without internal infrastructure details
+  or claims about final learning results.
 
 ## 2026-11-01 — 0.6.0 common historical-opponent PPO pilot
 
