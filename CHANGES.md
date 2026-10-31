@@ -1,5 +1,13 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 development contract
+
+- Begin the fixed-setting two-player game family with a shared observation,
+  action, terminal-outcome and private replay contract. Existing Harmonies
+  policies remain unchanged; this foundation does not declare new games ready.
+- Verify atomic invalid/failed actions, RNG replay and terminal rewards; document
+  data provenance, per-game acceptance gates and rolling bot development.
+
 ## 2026-10-31 — V1.5.1 / 0.4.39 stage closure
 
 - Save the completed Harmonies task and guided strategy exploration as the
