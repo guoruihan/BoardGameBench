@@ -1,0 +1,939 @@
+{
+  "schema_version": 1,
+  "config_id": "classic_base_duo",
+  "resources": [
+    "wood",
+    "clay",
+    "stone",
+    "gold"
+  ],
+  "resource_values": [
+    3,
+    4,
+    5,
+    6
+  ],
+  "culture_symbols": [
+    "medicine",
+    "art",
+    "writing",
+    "pottery",
+    "sundial",
+    "transport",
+    "music",
+    "weaving"
+  ],
+  "cards": [
+    {
+      "id": 0,
+      "effect": {
+        "type": "agriculture",
+        "amount": 1
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "sundial"
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 2,
+        "column": 2
+      }
+    },
+    {
+      "id": 1,
+      "effect": {
+        "type": "points",
+        "amount": 3
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "music"
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 2,
+        "column": 1
+      }
+    },
+    {
+      "id": 2,
+      "effect": {
+        "type": "points",
+        "amount": 3
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "music"
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 1,
+        "column": 1
+      }
+    },
+    {
+      "id": 3,
+      "effect": {
+        "type": "resource",
+        "resource": "stone",
+        "amount": 2
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "transport"
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 3,
+        "column": 2
+      }
+    },
+    {
+      "id": 4,
+      "effect": {
+        "type": "food",
+        "amount": 5
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "medicine"
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 1,
+        "column": 2
+      }
+    },
+    {
+      "id": 5,
+      "effect": {
+        "type": "food",
+        "amount": 7
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "pottery"
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 1,
+        "column": 3
+      }
+    },
+    {
+      "id": 6,
+      "effect": {
+        "type": "food",
+        "amount": 3
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "weaving"
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 2,
+        "column": 2
+      }
+    },
+    {
+      "id": 7,
+      "effect": {
+        "type": "food",
+        "amount": 1
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "weaving"
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 1,
+        "column": 1
+      }
+    },
+    {
+      "id": 8,
+      "effect": {
+        "type": "roll",
+        "resource": "gold",
+        "dice": 2
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "art"
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 2,
+        "column": 1
+      }
+    },
+    {
+      "id": 9,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "sundial"
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 2,
+        "column": 3
+      }
+    },
+    {
+      "id": 10,
+      "effect": {
+        "type": "extra_card"
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "writing"
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 2,
+        "column": 2
+      }
+    },
+    {
+      "id": 11,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "writing"
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 3,
+        "column": 3
+      }
+    },
+    {
+      "id": 12,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "transport"
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 3,
+        "column": 1
+      }
+    },
+    {
+      "id": 13,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "pottery"
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 1,
+        "column": 3
+      }
+    },
+    {
+      "id": 14,
+      "effect": {
+        "type": "deferred_resources",
+        "amount": 2
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "medicine"
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 2,
+        "column": 1
+      }
+    },
+    {
+      "id": 15,
+      "effect": {
+        "type": "tool",
+        "amount": 1
+      },
+      "bottom": {
+        "kind": "culture",
+        "symbol": "art"
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 2,
+        "column": 2
+      }
+    },
+    {
+      "id": 16,
+      "effect": {
+        "type": "food",
+        "amount": 4
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "builders",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 2,
+        "column": 1
+      }
+    },
+    {
+      "id": 17,
+      "effect": {
+        "type": "food",
+        "amount": 2
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "builders",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 3,
+        "column": 3
+      }
+    },
+    {
+      "id": 18,
+      "effect": {
+        "type": "points",
+        "amount": 3
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "builders",
+        "count": 3
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 3,
+        "column": 2
+      }
+    },
+    {
+      "id": 19,
+      "effect": {
+        "type": "food",
+        "amount": 3
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "farmers",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 1,
+        "column": 3
+      }
+    },
+    {
+      "id": 20,
+      "effect": {
+        "type": "resource",
+        "resource": "stone",
+        "amount": 1
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "farmers",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 3,
+        "column": 2
+      }
+    },
+    {
+      "id": 21,
+      "effect": {
+        "type": "agriculture",
+        "amount": 1
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "farmers",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 3,
+        "column": 3
+      }
+    },
+    {
+      "id": 22,
+      "effect": {
+        "type": "resource",
+        "resource": "clay",
+        "amount": 1
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "shamans",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 2,
+        "column": 3
+      }
+    },
+    {
+      "id": 23,
+      "effect": {
+        "type": "roll",
+        "resource": "wood",
+        "dice": 2
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "shamans",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 2,
+        "column": 3
+      }
+    },
+    {
+      "id": 24,
+      "effect": {
+        "type": "roll",
+        "resource": "stone",
+        "dice": 2
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "shamans",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 1,
+        "column": 2
+      }
+    },
+    {
+      "id": 25,
+      "effect": {
+        "type": "resource",
+        "resource": "stone",
+        "amount": 1
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "shamans",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 1,
+        "column": 1
+      }
+    },
+    {
+      "id": 26,
+      "effect": {
+        "type": "resource",
+        "resource": "gold",
+        "amount": 1
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "shamans",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 1,
+        "column": 2
+      }
+    },
+    {
+      "id": 27,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "builders",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 2,
+        "column": 3
+      }
+    },
+    {
+      "id": 28,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "farmers",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 3,
+        "column": 1
+      }
+    },
+    {
+      "id": 29,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "farmers",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408817,
+        "row": 1,
+        "column": 3
+      }
+    },
+    {
+      "id": 30,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "builders",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408856,
+        "row": 3,
+        "column": 1
+      }
+    },
+    {
+      "id": 31,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "toolmakers",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 1,
+        "column": 1
+      }
+    },
+    {
+      "id": 32,
+      "effect": {
+        "type": "dice_draft"
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "toolmakers",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 3,
+        "column": 3
+      }
+    },
+    {
+      "id": 33,
+      "effect": {
+        "type": "one_use_tool",
+        "amount": 4
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "toolmakers",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408812,
+        "row": 1,
+        "column": 2
+      }
+    },
+    {
+      "id": 34,
+      "effect": {
+        "type": "one_use_tool",
+        "amount": 3
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "toolmakers",
+        "count": 1
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 3,
+        "column": 1
+      }
+    },
+    {
+      "id": 35,
+      "effect": {
+        "type": "one_use_tool",
+        "amount": 2
+      },
+      "bottom": {
+        "kind": "multiplier",
+        "stat": "toolmakers",
+        "count": 2
+      },
+      "face_source": {
+        "image_id": 408814,
+        "row": 3,
+        "column": 2
+      }
+    }
+  ],
+  "buildings": [
+    {
+      "id": 0,
+      "kind": "fixed",
+      "cost": [
+        2,
+        1,
+        0,
+        0
+      ],
+      "points": 10
+    },
+    {
+      "id": 1,
+      "kind": "fixed",
+      "cost": [
+        2,
+        0,
+        1,
+        0
+      ],
+      "points": 11
+    },
+    {
+      "id": 2,
+      "kind": "fixed",
+      "cost": [
+        2,
+        0,
+        0,
+        1
+      ],
+      "points": 12
+    },
+    {
+      "id": 3,
+      "kind": "fixed",
+      "cost": [
+        1,
+        2,
+        0,
+        0
+      ],
+      "points": 11
+    },
+    {
+      "id": 4,
+      "kind": "fixed",
+      "cost": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "points": 12
+    },
+    {
+      "id": 5,
+      "kind": "fixed",
+      "cost": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "points": 12
+    },
+    {
+      "id": 6,
+      "kind": "fixed",
+      "cost": [
+        0,
+        2,
+        1,
+        0
+      ],
+      "points": 13
+    },
+    {
+      "id": 7,
+      "kind": "fixed",
+      "cost": [
+        1,
+        0,
+        1,
+        1
+      ],
+      "points": 14
+    },
+    {
+      "id": 8,
+      "kind": "fixed",
+      "cost": [
+        1,
+        0,
+        1,
+        1
+      ],
+      "points": 14
+    },
+    {
+      "id": 9,
+      "kind": "fixed",
+      "cost": [
+        1,
+        0,
+        2,
+        0
+      ],
+      "points": 13
+    },
+    {
+      "id": 10,
+      "kind": "fixed",
+      "cost": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "points": 13
+    },
+    {
+      "id": 11,
+      "kind": "fixed",
+      "cost": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "points": 13
+    },
+    {
+      "id": 12,
+      "kind": "fixed",
+      "cost": [
+        0,
+        0,
+        2,
+        1
+      ],
+      "points": 16
+    },
+    {
+      "id": 13,
+      "kind": "fixed",
+      "cost": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "points": 15
+    },
+    {
+      "id": 14,
+      "kind": "fixed",
+      "cost": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "points": 15
+    },
+    {
+      "id": 15,
+      "kind": "fixed",
+      "cost": [
+        0,
+        1,
+        2,
+        0
+      ],
+      "points": 14
+    },
+    {
+      "id": 16,
+      "kind": "fixed",
+      "cost": [
+        0,
+        2,
+        0,
+        1
+      ],
+      "points": 14
+    },
+    {
+      "id": 17,
+      "kind": "variable",
+      "minimum": 1,
+      "maximum": 7,
+      "kinds": null
+    },
+    {
+      "id": 18,
+      "kind": "variable",
+      "minimum": 1,
+      "maximum": 7,
+      "kinds": null
+    },
+    {
+      "id": 19,
+      "kind": "variable",
+      "minimum": 1,
+      "maximum": 7,
+      "kinds": null
+    },
+    {
+      "id": 20,
+      "kind": "variable",
+      "minimum": 4,
+      "maximum": 4,
+      "kinds": 1
+    },
+    {
+      "id": 21,
+      "kind": "variable",
+      "minimum": 4,
+      "maximum": 4,
+      "kinds": 2
+    },
+    {
+      "id": 22,
+      "kind": "variable",
+      "minimum": 4,
+      "maximum": 4,
+      "kinds": 3
+    },
+    {
+      "id": 23,
+      "kind": "variable",
+      "minimum": 4,
+      "maximum": 4,
+      "kinds": 4
+    },
+    {
+      "id": 24,
+      "kind": "variable",
+      "minimum": 5,
+      "maximum": 5,
+      "kinds": 1
+    },
+    {
+      "id": 25,
+      "kind": "variable",
+      "minimum": 5,
+      "maximum": 5,
+      "kinds": 2
+    },
+    {
+      "id": 26,
+      "kind": "variable",
+      "minimum": 5,
+      "maximum": 5,
+      "kinds": 3
+    },
+    {
+      "id": 27,
+      "kind": "variable",
+      "minimum": 5,
+      "maximum": 5,
+      "kinds": 4
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/L3-Info-Miage-Universite-Cote-D-Azur/projetinfo-2019-stoneage-sah/tree/e7f17b4ae26f4128bc784977fee68cec5b647ffa",
+      "role": "component facts from CarteCivilisationManager.java and Settings.java; no engine code imported"
+    },
+    {
+      "url": "https://boardgameswithtea.wordpress.com/2025/05/10/stone-age-card-guide/",
+      "role": "independent complete 36-card face pairing list"
+    },
+    {
+      "url": "https://www.yucata.de/en/Rules/StoneAge2",
+      "role": "licensed implementation: building-type counts and rules"
+    },
+    {
+      "url": "https://www.hans-im-glueck.de/wp-content/uploads/2023/06/stone_age_rules.pdf",
+      "sha256": "52b745af7e502b5d9d99b34a4b0472669790d4a62312db9fcc8cdbd8802c7ca8",
+      "role": "primary classic rules"
+    },
+    {
+      "url": "https://cdn.svc.asmodee.net/production-zman/uploads/2024/10/zm7260_stone_age_summary.pdf",
+      "sha256": "15577fdc9a762d8b8afb098abf3060a30ea30ecf5aa09dd7e9fdac65f72030fb",
+      "role": "primary card effect counts and interpretation"
+    },
+    {
+      "url": "https://boardgamegeek.com/image/408812/stone-age",
+      "role": "physical card face photographs, 9 cards per image; checked against component table"
+    },
+    {
+      "url": "https://boardgamegeek.com/image/408814/stone-age",
+      "role": "physical card face photographs, 9 cards per image; checked against component table"
+    },
+    {
+      "url": "https://boardgamegeek.com/image/408817/stone-age",
+      "role": "physical card face photographs, 9 cards per image; checked against component table"
+    },
+    {
+      "url": "https://boardgamegeek.com/image/408856/stone-age",
+      "role": "physical card face photographs: final nine of 36 cards, every top/bottom pairing checked"
+    },
+    {
+      "url": "https://boardgamegeek.com/image/408843/stone-age",
+      "role": "physical photographs of 16 of 28 building tiles, every cost/score/constraint checked"
+    },
+    {
+      "url": "https://boardgamegeek.com/image/408847/stone-age",
+      "role": "physical photographs of remaining 12 of 28 building tiles, every cost/score/constraint checked"
+    },
+    {
+      "url": "https://boardgamegeek.com/image/361106/stone-age",
+      "role": "independent photograph showing all 28 building tiles together, multiplicities cross-checked"
+    }
+  ]
+}
