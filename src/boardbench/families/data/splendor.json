@@ -1,0 +1,1312 @@
+{
+  "edition": "Space Cowboys 2014 classic base game",
+  "colors": [
+    "white",
+    "blue",
+    "green",
+    "red",
+    "black"
+  ],
+  "cards": [
+    {
+      "id": "white-L1-01",
+      "level": 1,
+      "bonus": 0,
+      "points": 0,
+      "cost": [
+        0,
+        3,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "white-L1-02",
+      "level": 1,
+      "bonus": 0,
+      "points": 1,
+      "cost": [
+        0,
+        0,
+        4,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "white-L1-03",
+      "level": 1,
+      "bonus": 0,
+      "points": 0,
+      "cost": [
+        0,
+        0,
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "id": "white-L1-04",
+      "level": 1,
+      "bonus": 0,
+      "points": 0,
+      "cost": [
+        0,
+        2,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "white-L1-05",
+      "level": 1,
+      "bonus": 0,
+      "points": 0,
+      "cost": [
+        3,
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "white-L1-06",
+      "level": 1,
+      "bonus": 0,
+      "points": 0,
+      "cost": [
+        0,
+        2,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "white-L1-07",
+      "level": 1,
+      "bonus": 0,
+      "points": 0,
+      "cost": [
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "white-L1-08",
+      "level": 1,
+      "bonus": 0,
+      "points": 0,
+      "cost": [
+        0,
+        1,
+        2,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "white-L2-01",
+      "level": 2,
+      "bonus": 0,
+      "points": 2,
+      "cost": [
+        0,
+        0,
+        0,
+        5,
+        0
+      ]
+    },
+    {
+      "id": "white-L2-02",
+      "level": 2,
+      "bonus": 0,
+      "points": 3,
+      "cost": [
+        6,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "white-L2-03",
+      "level": 2,
+      "bonus": 0,
+      "points": 2,
+      "cost": [
+        0,
+        0,
+        0,
+        5,
+        3
+      ]
+    },
+    {
+      "id": "white-L2-04",
+      "level": 2,
+      "bonus": 0,
+      "points": 2,
+      "cost": [
+        0,
+        0,
+        1,
+        4,
+        2
+      ]
+    },
+    {
+      "id": "white-L2-05",
+      "level": 2,
+      "bonus": 0,
+      "points": 1,
+      "cost": [
+        0,
+        0,
+        3,
+        2,
+        2
+      ]
+    },
+    {
+      "id": "white-L2-06",
+      "level": 2,
+      "bonus": 0,
+      "points": 1,
+      "cost": [
+        2,
+        3,
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "white-L3-01",
+      "level": 3,
+      "bonus": 0,
+      "points": 4,
+      "cost": [
+        0,
+        0,
+        0,
+        0,
+        7
+      ]
+    },
+    {
+      "id": "white-L3-02",
+      "level": 3,
+      "bonus": 0,
+      "points": 4,
+      "cost": [
+        3,
+        0,
+        0,
+        3,
+        6
+      ]
+    },
+    {
+      "id": "white-L3-03",
+      "level": 3,
+      "bonus": 0,
+      "points": 3,
+      "cost": [
+        0,
+        3,
+        3,
+        5,
+        3
+      ]
+    },
+    {
+      "id": "white-L3-04",
+      "level": 3,
+      "bonus": 0,
+      "points": 5,
+      "cost": [
+        3,
+        0,
+        0,
+        0,
+        7
+      ]
+    },
+    {
+      "id": "blue-L1-01",
+      "level": 1,
+      "bonus": 1,
+      "points": 0,
+      "cost": [
+        0,
+        0,
+        0,
+        0,
+        3
+      ]
+    },
+    {
+      "id": "blue-L1-02",
+      "level": 1,
+      "bonus": 1,
+      "points": 1,
+      "cost": [
+        0,
+        0,
+        0,
+        4,
+        0
+      ]
+    },
+    {
+      "id": "blue-L1-03",
+      "level": 1,
+      "bonus": 1,
+      "points": 0,
+      "cost": [
+        1,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "blue-L1-04",
+      "level": 1,
+      "bonus": 1,
+      "points": 0,
+      "cost": [
+        0,
+        0,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "blue-L1-05",
+      "level": 1,
+      "bonus": 1,
+      "points": 0,
+      "cost": [
+        0,
+        1,
+        3,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "blue-L1-06",
+      "level": 1,
+      "bonus": 1,
+      "points": 0,
+      "cost": [
+        1,
+        0,
+        2,
+        2,
+        0
+      ]
+    },
+    {
+      "id": "blue-L1-07",
+      "level": 1,
+      "bonus": 1,
+      "points": 0,
+      "cost": [
+        1,
+        0,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "blue-L1-08",
+      "level": 1,
+      "bonus": 1,
+      "points": 0,
+      "cost": [
+        1,
+        0,
+        1,
+        2,
+        1
+      ]
+    },
+    {
+      "id": "blue-L2-01",
+      "level": 2,
+      "bonus": 1,
+      "points": 2,
+      "cost": [
+        0,
+        5,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "blue-L2-02",
+      "level": 2,
+      "bonus": 1,
+      "points": 3,
+      "cost": [
+        0,
+        6,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "blue-L2-03",
+      "level": 2,
+      "bonus": 1,
+      "points": 2,
+      "cost": [
+        5,
+        3,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "blue-L2-04",
+      "level": 2,
+      "bonus": 1,
+      "points": 2,
+      "cost": [
+        2,
+        0,
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "id": "blue-L2-05",
+      "level": 2,
+      "bonus": 1,
+      "points": 1,
+      "cost": [
+        0,
+        2,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "blue-L2-06",
+      "level": 2,
+      "bonus": 1,
+      "points": 1,
+      "cost": [
+        0,
+        2,
+        3,
+        0,
+        3
+      ]
+    },
+    {
+      "id": "blue-L3-01",
+      "level": 3,
+      "bonus": 1,
+      "points": 4,
+      "cost": [
+        7,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "blue-L3-02",
+      "level": 3,
+      "bonus": 1,
+      "points": 4,
+      "cost": [
+        6,
+        3,
+        0,
+        0,
+        3
+      ]
+    },
+    {
+      "id": "blue-L3-03",
+      "level": 3,
+      "bonus": 1,
+      "points": 3,
+      "cost": [
+        3,
+        0,
+        3,
+        3,
+        5
+      ]
+    },
+    {
+      "id": "blue-L3-04",
+      "level": 3,
+      "bonus": 1,
+      "points": 5,
+      "cost": [
+        7,
+        3,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "green-L1-01",
+      "level": 1,
+      "bonus": 2,
+      "points": 0,
+      "cost": [
+        0,
+        0,
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "green-L1-02",
+      "level": 1,
+      "bonus": 2,
+      "points": 1,
+      "cost": [
+        0,
+        0,
+        0,
+        0,
+        4
+      ]
+    },
+    {
+      "id": "green-L1-03",
+      "level": 1,
+      "bonus": 2,
+      "points": 0,
+      "cost": [
+        2,
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "green-L1-04",
+      "level": 1,
+      "bonus": 2,
+      "points": 0,
+      "cost": [
+        0,
+        2,
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "id": "green-L1-05",
+      "level": 1,
+      "bonus": 2,
+      "points": 0,
+      "cost": [
+        1,
+        3,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "green-L1-06",
+      "level": 1,
+      "bonus": 2,
+      "points": 0,
+      "cost": [
+        0,
+        1,
+        0,
+        2,
+        2
+      ]
+    },
+    {
+      "id": "green-L1-07",
+      "level": 1,
+      "bonus": 2,
+      "points": 0,
+      "cost": [
+        1,
+        1,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "green-L1-08",
+      "level": 1,
+      "bonus": 2,
+      "points": 0,
+      "cost": [
+        1,
+        1,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "green-L2-01",
+      "level": 2,
+      "bonus": 2,
+      "points": 2,
+      "cost": [
+        0,
+        0,
+        5,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "green-L2-02",
+      "level": 2,
+      "bonus": 2,
+      "points": 3,
+      "cost": [
+        0,
+        0,
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "green-L2-03",
+      "level": 2,
+      "bonus": 2,
+      "points": 2,
+      "cost": [
+        0,
+        5,
+        3,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "green-L2-04",
+      "level": 2,
+      "bonus": 2,
+      "points": 2,
+      "cost": [
+        4,
+        2,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "green-L2-05",
+      "level": 2,
+      "bonus": 2,
+      "points": 1,
+      "cost": [
+        2,
+        3,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "green-L2-06",
+      "level": 2,
+      "bonus": 2,
+      "points": 1,
+      "cost": [
+        3,
+        0,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "green-L3-01",
+      "level": 3,
+      "bonus": 2,
+      "points": 4,
+      "cost": [
+        0,
+        7,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "green-L3-02",
+      "level": 3,
+      "bonus": 2,
+      "points": 4,
+      "cost": [
+        3,
+        6,
+        3,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "green-L3-03",
+      "level": 3,
+      "bonus": 2,
+      "points": 3,
+      "cost": [
+        5,
+        3,
+        0,
+        3,
+        3
+      ]
+    },
+    {
+      "id": "green-L3-04",
+      "level": 3,
+      "bonus": 2,
+      "points": 5,
+      "cost": [
+        0,
+        7,
+        3,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "red-L1-01",
+      "level": 1,
+      "bonus": 3,
+      "points": 0,
+      "cost": [
+        3,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "red-L1-02",
+      "level": 1,
+      "bonus": 3,
+      "points": 1,
+      "cost": [
+        4,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "red-L1-03",
+      "level": 1,
+      "bonus": 3,
+      "points": 0,
+      "cost": [
+        0,
+        2,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "red-L1-04",
+      "level": 1,
+      "bonus": 3,
+      "points": 0,
+      "cost": [
+        2,
+        0,
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "id": "red-L1-05",
+      "level": 1,
+      "bonus": 3,
+      "points": 0,
+      "cost": [
+        1,
+        0,
+        0,
+        1,
+        3
+      ]
+    },
+    {
+      "id": "red-L1-06",
+      "level": 1,
+      "bonus": 3,
+      "points": 0,
+      "cost": [
+        2,
+        0,
+        1,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "red-L1-07",
+      "level": 1,
+      "bonus": 3,
+      "points": 0,
+      "cost": [
+        1,
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "red-L1-08",
+      "level": 1,
+      "bonus": 3,
+      "points": 0,
+      "cost": [
+        2,
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "red-L2-01",
+      "level": 2,
+      "bonus": 3,
+      "points": 2,
+      "cost": [
+        0,
+        0,
+        0,
+        0,
+        5
+      ]
+    },
+    {
+      "id": "red-L2-02",
+      "level": 2,
+      "bonus": 3,
+      "points": 3,
+      "cost": [
+        0,
+        0,
+        0,
+        6,
+        0
+      ]
+    },
+    {
+      "id": "red-L2-03",
+      "level": 2,
+      "bonus": 3,
+      "points": 2,
+      "cost": [
+        3,
+        0,
+        0,
+        0,
+        5
+      ]
+    },
+    {
+      "id": "red-L2-04",
+      "level": 2,
+      "bonus": 3,
+      "points": 2,
+      "cost": [
+        1,
+        4,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "red-L2-05",
+      "level": 2,
+      "bonus": 3,
+      "points": 1,
+      "cost": [
+        2,
+        0,
+        0,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "red-L2-06",
+      "level": 2,
+      "bonus": 3,
+      "points": 1,
+      "cost": [
+        0,
+        3,
+        0,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "red-L3-01",
+      "level": 3,
+      "bonus": 3,
+      "points": 4,
+      "cost": [
+        0,
+        0,
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "red-L3-02",
+      "level": 3,
+      "bonus": 3,
+      "points": 4,
+      "cost": [
+        0,
+        3,
+        6,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "red-L3-03",
+      "level": 3,
+      "bonus": 3,
+      "points": 3,
+      "cost": [
+        3,
+        5,
+        3,
+        0,
+        3
+      ]
+    },
+    {
+      "id": "red-L3-04",
+      "level": 3,
+      "bonus": 3,
+      "points": 5,
+      "cost": [
+        0,
+        0,
+        7,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "black-L1-01",
+      "level": 1,
+      "bonus": 4,
+      "points": 0,
+      "cost": [
+        0,
+        0,
+        3,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "black-L1-02",
+      "level": 1,
+      "bonus": 4,
+      "points": 1,
+      "cost": [
+        0,
+        4,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "black-L1-03",
+      "level": 1,
+      "bonus": 4,
+      "points": 0,
+      "cost": [
+        0,
+        0,
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "black-L1-04",
+      "level": 1,
+      "bonus": 4,
+      "points": 0,
+      "cost": [
+        2,
+        0,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "black-L1-05",
+      "level": 1,
+      "bonus": 4,
+      "points": 0,
+      "cost": [
+        0,
+        0,
+        1,
+        3,
+        1
+      ]
+    },
+    {
+      "id": "black-L1-06",
+      "level": 1,
+      "bonus": 4,
+      "points": 0,
+      "cost": [
+        2,
+        2,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "black-L1-07",
+      "level": 1,
+      "bonus": 4,
+      "points": 0,
+      "cost": [
+        1,
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "black-L1-08",
+      "level": 1,
+      "bonus": 4,
+      "points": 0,
+      "cost": [
+        1,
+        2,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "black-L2-01",
+      "level": 2,
+      "bonus": 4,
+      "points": 2,
+      "cost": [
+        5,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "black-L2-02",
+      "level": 2,
+      "bonus": 4,
+      "points": 3,
+      "cost": [
+        0,
+        0,
+        0,
+        0,
+        6
+      ]
+    },
+    {
+      "id": "black-L2-03",
+      "level": 2,
+      "bonus": 4,
+      "points": 2,
+      "cost": [
+        0,
+        0,
+        5,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "black-L2-04",
+      "level": 2,
+      "bonus": 4,
+      "points": 2,
+      "cost": [
+        0,
+        1,
+        4,
+        2,
+        0
+      ]
+    },
+    {
+      "id": "black-L2-05",
+      "level": 2,
+      "bonus": 4,
+      "points": 1,
+      "cost": [
+        3,
+        2,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "black-L2-06",
+      "level": 2,
+      "bonus": 4,
+      "points": 1,
+      "cost": [
+        3,
+        0,
+        3,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "black-L3-01",
+      "level": 3,
+      "bonus": 4,
+      "points": 4,
+      "cost": [
+        0,
+        0,
+        0,
+        7,
+        0
+      ]
+    },
+    {
+      "id": "black-L3-02",
+      "level": 3,
+      "bonus": 4,
+      "points": 4,
+      "cost": [
+        0,
+        0,
+        3,
+        6,
+        3
+      ]
+    },
+    {
+      "id": "black-L3-03",
+      "level": 3,
+      "bonus": 4,
+      "points": 3,
+      "cost": [
+        3,
+        3,
+        5,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "black-L3-04",
+      "level": 3,
+      "bonus": 4,
+      "points": 5,
+      "cost": [
+        0,
+        0,
+        0,
+        7,
+        3
+      ]
+    }
+  ],
+  "nobles": [
+    {
+      "id": "noble-0",
+      "points": 3,
+      "required": [
+        0,
+        0,
+        4,
+        4,
+        0
+      ]
+    },
+    {
+      "id": "noble-1",
+      "points": 3,
+      "required": [
+        0,
+        4,
+        4,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "noble-2",
+      "points": 3,
+      "required": [
+        4,
+        4,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "noble-3",
+      "points": 3,
+      "required": [
+        4,
+        0,
+        0,
+        0,
+        4
+      ]
+    },
+    {
+      "id": "noble-4",
+      "points": 3,
+      "required": [
+        0,
+        0,
+        0,
+        4,
+        4
+      ]
+    },
+    {
+      "id": "noble-5",
+      "points": 3,
+      "required": [
+        0,
+        3,
+        3,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "noble-6",
+      "points": 3,
+      "required": [
+        3,
+        3,
+        3,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "noble-7",
+      "points": 3,
+      "required": [
+        3,
+        3,
+        0,
+        0,
+        3
+      ]
+    },
+    {
+      "id": "noble-8",
+      "points": 3,
+      "required": [
+        3,
+        0,
+        0,
+        3,
+        3
+      ]
+    },
+    {
+      "id": "noble-9",
+      "points": 3,
+      "required": [
+        0,
+        0,
+        3,
+        3,
+        3
+      ]
+    }
+  ],
+  "provenance": {
+    "checked_on": "2026-10-31",
+    "card_sources": [
+      {
+        "url": "https://github.com/anicolao/splendor/blob/5b3efd26f2e460b1bef3839a058270b536a13648/data/verified_card_properties.csv",
+        "sha256": "3e7025f64c7788a8021688099048aa4d21198a28286f3b227aa16fc805057f5b",
+        "description": "Numeric transcription checked against physical photographs"
+      },
+      {
+        "url": "https://github.com/seal256/splendor/blob/263abc066c563a1c89dba4bdc408446a20ad9d1d/assets/cards.csv",
+        "sha256": "4b63a97ba3b30b4b6b8f7aa2a1d9aae0d981651557b8eada37ceeab3e87e6b74",
+        "description": "All 90 normalized numerical records agree exactly"
+      }
+    ],
+    "noble_source": "https://github.com/seal256/splendor/blob/263abc066c563a1c89dba4bdc408446a20ad9d1d/pysplendor/splendor.py",
+    "noble_crosscheck": "Nine entries agree with bouk/splendimax src/noble.rs; missing white4 blue4 agrees with boardgamers/splendor. No engine code reused.",
+    "rejected_source": "boardgamers/splendor data.ts contains conflicting color costs and one noble requirement; not used for development cards."
+  }
+}
