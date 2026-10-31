@@ -83,3 +83,18 @@ def test_jaipur_publicly_taken_goods_remain_in_opponent_hand():
     for seed in range(12):
         world=sampled_world(env,1,seed,verify=True)
         assert world.state['hands'][0][GOODS.index(action['good'])]>=1
+
+
+def test_dominion_revealed_moat_is_retained_in_opponent_hidden_hand():
+    import json
+    from pathlib import Path
+    from boardbench.families.public_world import dominion_zone_counts
+    prefix=json.loads((Path(__file__).parents[1]/'fixtures/families/dominion_reveal_prefix.json').read_text())
+    env=game_class('dominion')();env.reset(prefix['seed'],prefix['first_player'])
+    for action in prefix['actions']:env.step(action)
+    obs=env.observe();event=obs['history'][-1]
+    assert event['event']=='reveal' and event['player']!=env.current_player
+    assert dominion_zone_counts(obs)[event['player']]['known']['hand']['moat']>=1
+    for seed in range(12):
+        world=sampled_world(env,env.current_player,seed,verify=True)
+        assert 'moat' in world.state['players'][event['player']]['hand']

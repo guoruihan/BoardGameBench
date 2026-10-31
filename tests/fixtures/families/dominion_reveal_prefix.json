@@ -1,0 +1,944 @@
+{
+  "seed": 172020000,
+  "first_player": 0,
+  "actions": [
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "silver"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "militia"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "copper"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "silver"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "smithy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "estate"
+    },
+    {
+      "type": "play_action",
+      "card": "militia"
+    },
+    {
+      "type": "accept_attack"
+    },
+    {
+      "type": "discard",
+      "card": "smithy"
+    },
+    {
+      "type": "discard",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "gold"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "smithy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "play_action",
+      "card": "militia"
+    },
+    {
+      "type": "accept_attack"
+    },
+    {
+      "type": "discard",
+      "card": "estate"
+    },
+    {
+      "type": "discard",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "market"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "gold"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "province"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "play_action",
+      "card": "smithy"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "smithy"
+    },
+    {
+      "type": "play_action",
+      "card": "market"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "silver"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "village"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "estate"
+    },
+    {
+      "type": "play_action",
+      "card": "smithy"
+    },
+    {
+      "type": "play_treasure",
+      "card": "gold"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "province"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "militia"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "market"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "play_action",
+      "card": "militia"
+    },
+    {
+      "type": "accept_attack"
+    },
+    {
+      "type": "discard",
+      "card": "estate"
+    },
+    {
+      "type": "discard",
+      "card": "estate"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "moat"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "play_action",
+      "card": "market"
+    },
+    {
+      "type": "play_action",
+      "card": "militia"
+    },
+    {
+      "type": "accept_attack"
+    },
+    {
+      "type": "discard",
+      "card": "copper"
+    },
+    {
+      "type": "discard",
+      "card": "estate"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "market"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "play_action",
+      "card": "smithy"
+    },
+    {
+      "type": "play_treasure",
+      "card": "gold"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "gold"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "silver"
+    },
+    {
+      "type": "play_action",
+      "card": "village"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "village"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "silver"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "play_action",
+      "card": "moat"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "moat"
+    },
+    {
+      "type": "play_action",
+      "card": "market"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "market"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "copper"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "gold"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "gold"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "copper"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "estate"
+    },
+    {
+      "type": "play_action",
+      "card": "market"
+    },
+    {
+      "type": "play_action",
+      "card": "militia"
+    },
+    {
+      "type": "accept_attack"
+    },
+    {
+      "type": "discard",
+      "card": "village"
+    },
+    {
+      "type": "discard",
+      "card": "estate"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "gold"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "market"
+    },
+    {
+      "type": "play_action",
+      "card": "militia"
+    },
+    {
+      "type": "accept_attack"
+    },
+    {
+      "type": "discard",
+      "card": "estate"
+    },
+    {
+      "type": "discard",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "village"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "militia"
+    },
+    {
+      "type": "play_action",
+      "card": "market"
+    },
+    {
+      "type": "play_action",
+      "card": "smithy"
+    },
+    {
+      "type": "play_treasure",
+      "card": "gold"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "province"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "smithy"
+    },
+    {
+      "type": "play_action",
+      "card": "village"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "copper"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "village"
+    },
+    {
+      "type": "play_action",
+      "card": "market"
+    },
+    {
+      "type": "end_actions"
+    },
+    {
+      "type": "play_treasure",
+      "card": "gold"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "play_treasure",
+      "card": "silver"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "buy",
+      "card": "province"
+    },
+    {
+      "type": "buy",
+      "card": "moat"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "estate"
+    },
+    {
+      "type": "play_action",
+      "card": "militia"
+    },
+    {
+      "type": "accept_attack"
+    },
+    {
+      "type": "discard",
+      "card": "copper"
+    },
+    {
+      "type": "discard",
+      "card": "market"
+    },
+    {
+      "type": "play_treasure",
+      "card": "copper"
+    },
+    {
+      "type": "start_buy"
+    },
+    {
+      "type": "end_turn",
+      "discard_top": "copper"
+    },
+    {
+      "type": "play_action",
+      "card": "militia"
+    },
+    {
+      "type": "reveal_moat"
+    }
+  ]
+}

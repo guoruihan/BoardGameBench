@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-11-01 — preserve publicly revealed Dominion reactions in beliefs
+
+- Match the engine's public `reveal` event when a Moat is shown, retaining its
+  known hand membership through sampled worlds and subsequent public moves.
+- Add a reachable 252-action replay regression and repeated hidden-world checks.
+  This changes search beliefs only, not actual rules or player observations.
+- Archive the earlier Dominion comparison and repeat its portfolio/RL-continuation
+  panels under the corrected sampler before reporting final comparisons.
+
 ## 2026-11-01 — search continuation diagnosis and complete denominators
 
 - Add explicit portfolio, retained-RL-only and domain-expert continuation modes

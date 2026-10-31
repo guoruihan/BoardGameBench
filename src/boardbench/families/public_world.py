@@ -61,7 +61,7 @@ def dominion_zone_counts(obs):
             zone=event.get('destination','discard');c[zone]+=1;c['known'][zone][card]+=1
         elif typ=='trash':
             c['hand']-=1;c['known']['hand'][card]=max(0,c['known']['hand'][card]-1)
-        elif typ=='reveal_moat':c['known']['hand']['moat']=max(1,c['known']['hand']['moat'])
+        elif typ=='reveal' and card=='moat':c['known']['hand']['moat']=max(1,c['known']['hand']['moat'])
         elif typ=='cleanup_top':
             c['known']['discard'].update(c['known']['hand']);c['known']['discard'].update(c['known']['in_play'])
             c['known']['discard'][card]=max(1,c['known']['discard'][card])
