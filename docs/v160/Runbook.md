@@ -79,6 +79,11 @@ For continuation, use a new output directory and `--warm-start path/to/best.pt`.
 target. Entropy, prior KL, learning rate and self-play fraction are explicit CLI
 parameters; the frozen warm-start prior cannot silently be replaced by a
 different linear policy.
+New runs use `families.seeds.experiment_seed`: disjoint algorithm/split bits,
+32 iteration bits and 16 within-iteration index bits, with integers below 2^53.
+Older 512-update releases used separate arithmetic ranges valid for that length.
+Three longer old-scheme continuations were preserved and stopped before 1,000
+updates; restarting uses a new directory and the corrected source release.
 
 ## Checked SSH launches
 
@@ -91,3 +96,10 @@ It checks fresh CPU/GPU headroom, rejects CPU overlap with its live tmux session
 and applies affinity plus a terminating wall-clock watchdog. Host batches launch
 independently; reservations on each host are serialized. Private inventory and
 run manifests remain under ignored `outputs/`, never in source control.
+
+Use `kind: eval` for frozen leagues, with `bots`, `phase`, `seed_start` and
+`num_seeds` fields. The launch log/manifest lives in a separate sibling `*_job`
+directory so the evaluator can atomically initialize its empty result directory.
+See [Evaluation.md](Evaluation.md) for paired comparison and confirmation rules.
+Model paths in a bot JSON resolve relative to that JSON's directory, while
+absolute paths remain absolute. A supplied SHA is checked before inference.

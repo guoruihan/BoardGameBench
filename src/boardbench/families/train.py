@@ -18,6 +18,7 @@ import numpy as np
 from .base import FEATURE_DIM
 from .play import run_match, summarize, write_json, action_features
 from .registry import game_class
+from .seeds import experiment_seed
 
 STOP = False
 
@@ -145,7 +146,7 @@ def main(argv=None):
             candidates[1] = cls.default_weights
             candidates[:, 0] = np.clip(candidates[:, 0], .1, 3.)
             # Fresh training environments each generation; confirmation has a disjoint namespace.
-            seeds = [10_100_000 + generation*1000 + i for i in range(args.train_seeds)]
+            seeds = [experiment_seed('cem_train', generation, i) for i in range(args.train_seeds)]
             jobs = []
             for weights in candidates:
                 spec = artifact(cls, weights, generation, args.source_commit)
@@ -167,7 +168,7 @@ def main(argv=None):
             gate = None
             promoted = False
             if fitness[order[0]] >= .5 and not np.allclose(proposed['weights'], best['weights']):
-                gate_seeds = [11_000_000 + generation*1000 + i for i in range(args.gate_seeds)]
+                gate_seeds = [experiment_seed('cem_gate', generation, i) for i in range(args.gate_seeds)]
                 gate, _ = evaluate(pool, paired_jobs(args.game, proposed, best, gate_seeds,
                                     max_seconds=args.max_match_seconds), args.output, f'g{generation:03d}_gate')
                 if gate['completed'] == gate['games'] and gate['completed_win_rate'] >= .625:
@@ -183,7 +184,7 @@ def main(argv=None):
         save(next_generation, 'stopping' if STOP else 'confirmation')
         # Holdout is assessed once per completed run. Its result never changes the selected bot.
         if not STOP and time.time() + args.max_match_seconds < deadline and not (args.output/'confirmation.json').exists():
-            seeds = [12_000_000+i for i in range(args.confirm_seeds)]
+            seeds = [experiment_seed('cem_confirmation', index=i) for i in range(args.confirm_seeds)]
             summary, _ = evaluate(pool, paired_jobs(args.game, best, baseline, seeds, True,
                                   args.max_match_seconds), args.output, 'confirmation')
             write_json(args.output / 'confirmation_summary.json', summary)

@@ -168,10 +168,17 @@ def code_identity():
     root, paths = source_files()
     hashes = {name: file_hash(path) for name, path in paths.items()}
     try:
-        commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root,
-                                         text=True, stderr=subprocess.DEVNULL).strip()
-        dirty = bool(subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'],
-                                             cwd=root, text=True))
+        git_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=root,
+                                            text=True, stderr=subprocess.DEVNULL).strip()
+        # An immutable git archive can live inside a changing checkout's outputs/.
+        # The enclosing checkout's HEAD is not the archive's source revision.
+        if Path(git_root).resolve() != root.resolve():
+            commit, dirty = None, None
+        else:
+            commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root,
+                                             text=True, stderr=subprocess.DEVNULL).strip()
+            dirty = bool(subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'],
+                                                 cwd=root, text=True))
     except (OSError, subprocess.CalledProcessError):
         commit, dirty = None, None
     dependencies = {}

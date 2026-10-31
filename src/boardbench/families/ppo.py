@@ -20,6 +20,7 @@ from . import train
 from .neural import CandidateActorCritic, NeuralPolicy, collate, finish_returns, load_model, save_model
 from .play import make_policy, policy_seed, run_match, write_json
 from .registry import game_class
+from .seeds import experiment_seed
 
 STOP = False
 _CACHE = {}
@@ -233,7 +234,7 @@ def main(argv=None):
             path = args.output/f'policy_{iteration:04d}.pt'
             save_model(path, model, cls, weights, dict(source_commit=args.source_commit, update=iteration-1))
             jobs = [dict(game=args.game, path=str(path), self_play=i<round(args.games*args.self_play_rate),
-                         learner_seat=i%2, seed=20_000_000+iteration*1000+i,
+                         learner_seat=i%2, seed=experiment_seed('ppo_train', iteration, i),
                          opponent=prior_spec if i%3 else dict(kind='heuristic'),
                          max_seconds=args.max_match_seconds, record=i==0,
                          gamma=args.gamma, gae_lambda=args.gae_lambda) for i in range(args.games)]
@@ -252,7 +253,7 @@ def main(argv=None):
                 candidate_path = args.output/f'candidate_{iteration:04d}.pt'
                 save_model(candidate_path, model, cls, weights, dict(source_commit=args.source_commit, update=iteration))
                 candidate = dict(kind='neural', path=str(candidate_path))
-                seeds = [21_000_000+iteration*1000+i for i in range(args.gate_seeds)]
+                seeds = [experiment_seed('ppo_gate', iteration, i) for i in range(args.gate_seeds)]
                 gate, _ = train.evaluate(pool, train.paired_jobs(args.game, candidate,
                     dict(kind='neural', path=str(best_path)), seeds, max_seconds=args.max_match_seconds),
                     args.output, f'gate_{iteration:04d}')
@@ -267,7 +268,7 @@ def main(argv=None):
             print(json.dumps(metric), flush=True)
         save(next_update, 'stopping' if STOP else 'confirmation')
         if not STOP and time.time()+args.max_match_seconds < deadline and not (args.output/'confirmation.json').exists():
-            seeds = [22_000_000+i for i in range(args.confirm_seeds)]
+            seeds = [experiment_seed('ppo_confirmation', index=i) for i in range(args.confirm_seeds)]
             summary, _ = train.evaluate(pool, train.paired_jobs(args.game,
                 dict(kind='neural', path=str(best_path)), dict(kind='heuristic'), seeds,
                 record=True, max_seconds=args.max_match_seconds), args.output, 'confirmation')

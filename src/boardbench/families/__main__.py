@@ -10,7 +10,11 @@ from .registry import GAME_IDS, available_games, game_class
 def specification(value):
     if value in ('random', 'heuristic'):
         return dict(kind=value)
-    return json.loads(Path(value).read_text())
+    source = Path(value)
+    spec = json.loads(source.read_text())
+    if spec.get('path') and not Path(spec['path']).is_absolute():
+        spec['path'] = str((source.parent/spec['path']).resolve())
+    return spec
 
 
 def main(argv=None):

@@ -1,5 +1,14 @@
 # Research milestones
 
+## V1.6.0 long-run seed partition correction — 2026-10-31
+
+- Detect a potential train/gate/confirmation overlap above 1,000 PPO updates in
+  the initial arithmetic scheme. Stop the three longer continuations before that
+  boundary (613, 757 and 681 updates), preserving models, optimizer states and data.
+- New experiments encode disjoint algorithm/split, iteration and game-index bits,
+  staying exactly representable as JSON integers. The completed original 512-update
+  runs are unaffected. Later pool confirmation uses fresh common environment seeds.
+
 ## V1.6.0 continued opponent development — 2026-10-31
 
 - Add full-game Monte Carlo return and reduced-prior continuation variants, with

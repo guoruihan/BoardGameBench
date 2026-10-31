@@ -1,6 +1,7 @@
 """Launch checked immutable family jobs via SSH; private host maps stay external.
 
 The JSON plan provides host/game/kind/slot/gpu/output/hours and optional prior.
+Evaluation jobs use kind=eval, bots, phase, seed_start and num_seeds.
 Every slot reserves eight CPUs (seven workers plus coordinator). Hostnames map
 to previously reachable IPs in a private inventory; do not probe failed hosts.
 """
@@ -27,7 +28,9 @@ start=cfg['slot']*8
 if start<0 or start+8>limit: raise RuntimeError('half CPU quota exceeded')
 chosen=cpus[start:start+8]
 if util>55: raise RuntimeError('CPU capacity changed; defer launch: '+str(util))
-out=Path(cfg['output']);out.mkdir(parents=True,exist_ok=True)
+destination=Path(cfg['output'])
+out=destination if cfg['kind']!='eval' else destination.with_name(destination.name+'_job')
+out.mkdir(parents=True,exist_ok=True)
 manifest=out/'launch.json'
 if manifest.exists(): raise RuntimeError('existing launch manifest; inspect before restarting')
 active=subprocess.run(['tmux','list-sessions','-F','#{session_name}'],capture_output=True,text=True).stdout.splitlines()
@@ -42,10 +45,16 @@ if cfg['kind']=='ppo':
     used,total,gpu_util=map(int,query.stdout.strip().split(','))
     if total-used<16000 or used>5000 or gpu_util>30: raise RuntimeError('GPU headroom changed; defer launch')
     cfg['gpu_preflight']=dict(used_mib=used,total_mib=total,util_percent=gpu_util)
-module='boardbench.families.ppo' if cfg['kind']=='ppo' else 'boardbench.families.train'
+module={'ppo':'boardbench.families.ppo','cem':'boardbench.families.train',
+        'eval':'boardbench.families.evaluate'}[cfg['kind']]
 command=[str(Path(cfg['root'])/'.venv-train/bin/python'),'-m',module,'--game',cfg['game'],
- '--output',str(out),'--workers','7','--hours',str(cfg.get('hours',3)),
- '--deadline-unix',str(cfg['deadline']),'--source-commit',cfg['commit']]
+ '--output',str(destination),'--workers','7','--deadline-unix',str(cfg['deadline'])]
+if cfg['kind']=='eval':
+    command+=['--bots',cfg['bots'],'--phase',cfg['phase'],'--seed-start',str(cfg['seed_start']),
+              '--num-seeds',str(cfg['num_seeds']),'--wall-seconds',str(cfg.get('hours',1)*3600)]
+    for path in cfg.get('exclude_manifests',[]):command+=['--exclude-manifest',path]
+else:
+    command+=['--hours',str(cfg.get('hours',3)),'--source-commit',cfg['commit']]
 if cfg['kind']=='ppo':
     command+=['--device','cuda','--games','32','--updates',str(cfg.get('updates',512)),
               '--gate-seeds','12','--confirm-seeds','64','--seed',str(cfg.get('seed',1601))]
@@ -53,7 +62,7 @@ if cfg['kind']=='ppo':
     if cfg.get('warm_start'): command+=['--warm-start',cfg['warm_start']]
     for key in ('gamma','gae_lambda','self_play_rate','learning_rate','entropy_coef','prior_kl_coef'):
         if key in cfg: command+=['--'+key.replace('_','-'),str(cfg[key])]
-else:
+elif cfg['kind']=='cem':
     command+=['--population','16','--generations','80','--train-seeds','3','--gate-seeds','12','--confirm-seeds','64']
 remaining=min(int(cfg.get('hours',3)*3600+120),int(cfg['deadline']-time.time()))
 if remaining<300: raise RuntimeError('insufficient time before hard deadline')
@@ -93,7 +102,7 @@ def main():
     deadline=datetime.fromisoformat(args.deadline.replace('Z','+00:00')).timestamp()
     groups={}
     for job in jobs:
-        if job['kind'] not in ('cem','ppo') or type(job['slot']) is not int:
+        if job['kind'] not in ('cem','ppo','eval') or type(job['slot']) is not int:
             raise ValueError('Invalid job kind/CPU slot')
         if job['host'] not in hosts:
             raise ValueError('Host was not previously reachable')

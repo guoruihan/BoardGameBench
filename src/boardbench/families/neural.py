@@ -88,6 +88,10 @@ class NeuralPolicy:
         torch.set_num_threads(1)
         self.cls = cls
         if model is None:
+            if spec.get('sha256'):
+                import hashlib
+                if hashlib.sha256(Path(spec['path']).read_bytes()).hexdigest() != spec['sha256']:
+                    raise ValueError('Neural policy checksum mismatch')
             model, saved = load_model(spec['path'], cls)
             prior_weights = saved['prior_weights']
         self.model, self.prior_weights = model.eval(), prior_weights

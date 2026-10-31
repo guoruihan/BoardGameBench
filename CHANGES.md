@@ -1,5 +1,23 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 complete source family and frozen evaluations
+
+- Add the complete classic Stone Age duo engine and original component catalog.
+  All 17 requested game modules now exist; Five Tribes remains a research setting
+  with explicitly unresolved original-rule edges, and other scope/ruling limits
+  remain documented per game. Module availability does not imply exhaustive rules.
+- Add frozen paired leagues, seed-cluster confidence intervals, source/model
+  archives, per-attempt recovery, explicit incomplete denominators, and separate
+  development/confirmation phases. Remote evaluation uses isolated CPU slots.
+- Support portable relative model paths and SHA checks. Validate a built wheel
+  including every component file and run installed-package reset/step checks.
+  The declared isolated build dependencies are required; the old training Python's
+  bundled setuptools is insufficient for a no-isolation wheel build.
+- Replace arithmetic seed ranges with disjoint bit partitions before long runs
+  could cross into validation ranges. Gracefully stop and preserve the three
+  continuation jobs at updates 613/757/681; original 512-update jobs remain valid.
+  New continuation directories use the corrected seed scheme.
+
 ## 2026-10-31 — V1.6.0 fourth environment batch and continued learning
 
 - Add official fixed Cascadia, Targi and Century: A New World settings, original
