@@ -1,0 +1,98 @@
+{
+  "edition": "Ravensburger 2017 English base 26754",
+  "verified": "2026-10-31",
+  "scope": "first route B/C/N/I/K, two players with two pawns, no caves",
+  "sources": [
+    {
+      "url": "https://cdn.1j1ju.com/medias/fc/6a/fa-the-quest-for-el-dorado-rulebook.pdf",
+      "sha256": "0f6f1dc314a18eb14b4ac781089b86f61f1e9df208d14927fa909f8df59d0909",
+      "bytes": 1909932,
+      "role": "publisher_rulebook"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/setup-route.npWe0n4z_8RkIR.webp",
+      "sha256": "cf44261aee7447fab7a0a595b2733c529ce037f8f0452097bc0bbb84aecdcae4",
+      "bytes": 602284,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://bghub.org/r/thequestforeldorado.pdf",
+      "sha256": "bd2e363784589516059e9a903ba876532ff4ba512e233f7c1f3f7ebf03997349",
+      "bytes": 6032337,
+      "role": "publisher_rulebook"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/start-a.CHHnyx4g_1rmseQ.webp",
+      "sha256": "af26432036d3a68a043a0929635b9ac75291631a80f83bb0951a3b8f2157cbb7",
+      "bytes": 100298,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/start-b.D9COPiP__1phxnc.webp",
+      "sha256": "da4ae805fcafbef2a8ced7aa424325dd621aed5fce784f0a23b562b1f80ce5e8",
+      "bytes": 99864,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/terrain-c.Czn8tJ6h_2ageJ4.webp",
+      "sha256": "41a4829cf33655a964d2fd60ec289c0fe2970d14b6b326d1bb96ddbe8fa78ff9",
+      "bytes": 81522,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/terrain-i.DoDD4kPc_Z2gpCoy.webp",
+      "sha256": "89fdb27364734fe35b8a56ea5d97043016c73e8d6389ab9f743f1b400dcc037d",
+      "bytes": 90854,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/terrain-k.C-nN65oP_1U1WO.webp",
+      "sha256": "d2aa25caa5bb5f55bdfffeaf2de1319649465ac3a20970bdfc8770419fa44ff1",
+      "bytes": 98918,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/terrain-n.CsKPG__p_Z23piFE.webp",
+      "sha256": "c2cba4e4192581cc3f7652a7bc1370399f1d7447517ea516924616150c69e0fd",
+      "bytes": 89458,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/base-blockade-1.B9zHbyWZ_1IBg54.webp",
+      "sha256": "1888a714b47e52dbadc925ec2642c8306b8b21a4cbb570df03d992d9233bca03",
+      "bytes": 8616,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/base-blockade-2.CFlP8tzI_166F6J.webp",
+      "sha256": "798aaa963f612db84a93778b3581b6ca2f47ec899f041c885ef7351e12e2e8a6",
+      "bytes": 5976,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/base-blockade-3.DJ8FGFYs_2wHXGJ.webp",
+      "sha256": "2171ebc9bfc0630cab6c6c1de7303e16461c75ea4dcdf1894c2c004d8cb05bb2",
+      "bytes": 5910,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/base-blockade-4.DckjiJON_oW7oG.webp",
+      "sha256": "1c155b4da4e6aea9c0434bcf13477cc5fdeffac79517e2f842027e2662becb52",
+      "bytes": 4262,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/base-blockade-5.DkqhXs5W_ZqiMfA.webp",
+      "sha256": "14a12591d0ed0f1beb899477535be0398a9ec617ce2038f1b661679ba3833d42",
+      "bytes": 7958,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    },
+    {
+      "url": "https://img.ludex.dev/_astro/base-blockade-6.BQb7YdQS_1b4Eeu.webp",
+      "sha256": "ee4e4a23fc14c12aacc2865ba8f2e2c722d90b1450c873a5dfe6488ee8be90c1",
+      "bytes": 5866,
+      "role": "original_publisher_component_or_setup_image_mirror"
+    }
+  ],
+  "redistribution": "No original images or third-party implementation code redistributed; numerical facts independently transcribed."
+}
