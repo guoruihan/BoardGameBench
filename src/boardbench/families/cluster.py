@@ -2,7 +2,8 @@
 
 The JSON plan provides host/game/kind/slot/gpu/output/hours and optional prior.
 Evaluation jobs use kind=eval, bots, phase, seed_start and num_seeds.
-Every slot reserves eight CPUs (seven workers plus coordinator). Hostnames map
+Slots start at multiples of eight CPUs; cpu_count defaults to eight, with one
+coordinator and cpu_count-1 workers. Hostnames map
 to previously reachable IPs in a private inventory; do not probe failed hosts.
 """
 import argparse
@@ -25,8 +26,10 @@ util=100*(1-(b[1]-a[1])/max(1,b[0]-a[0]))
 cpus=sorted(os.sched_getaffinity(0));limit=len(cpus)//2
 if cfg['host'].startswith('a'): limit=min(limit,128)
 start=cfg['slot']*8
-if start<0 or start+8>limit: raise RuntimeError('half CPU quota exceeded')
-chosen=cpus[start:start+8]
+cpu_count=cfg.get('cpu_count',8)
+if type(cpu_count) is not int or cpu_count<2: raise ValueError('cpu_count must be an integer >=2')
+if start<0 or start+cpu_count>limit: raise RuntimeError('half CPU quota exceeded')
+chosen=cpus[start:start+cpu_count]
 if util>55: raise RuntimeError('CPU capacity changed; defer launch: '+str(util))
 destination=Path(cfg['output'])
 out=destination if cfg['kind']!='eval' else destination.with_name(destination.name+'_job')
@@ -48,7 +51,7 @@ if cfg['kind']=='ppo':
 module={'ppo':'boardbench.families.ppo','cem':'boardbench.families.train',
         'eval':'boardbench.families.evaluate'}[cfg['kind']]
 command=[str(Path(cfg['root'])/'.venv-train/bin/python'),'-m',module,'--game',cfg['game'],
- '--output',str(destination),'--workers','7','--deadline-unix',str(cfg['deadline'])]
+ '--output',str(destination),'--workers',str(cpu_count-1),'--deadline-unix',str(cfg['deadline'])]
 if cfg['kind']=='eval':
     command+=['--bots',cfg['bots'],'--phase',cfg['phase'],'--seed-start',str(cfg['seed_start']),
               '--num-seeds',str(cfg['num_seeds']),'--wall-seconds',str(cfg.get('hours',1)*3600)]

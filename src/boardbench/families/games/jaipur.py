@@ -26,6 +26,8 @@ def multisets(limits, total, prefix=()):
 
 
 class Jaipur(DuoGame):
+    coverage_status = 'known_unresolved_edges'
+    known_unresolved_edges = ('unresolved_round_tie',)
     game_id = 'jaipur'
     config_id = 'space_cowboys_2019_duo_match'
 

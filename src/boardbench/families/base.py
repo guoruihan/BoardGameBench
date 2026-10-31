@@ -23,6 +23,8 @@ class DuoGame:
     game_id = "abstract"
     rules_version = "1"
     config_id = "base_duo"
+    coverage_status = "fixed_scope"
+    known_unresolved_edges = ()
     default_weights = [1.0] + [0.0] * (FEATURE_DIM - 1)
 
     def __init__(self):
@@ -32,7 +34,9 @@ class DuoGame:
     @classmethod
     def describe(cls):
         return dict(game_id=cls.game_id, rules_version=cls.rules_version,
-                    config_id=cls.config_id, players=2, feature_dim=FEATURE_DIM)
+                    config_id=cls.config_id, players=2, feature_dim=FEATURE_DIM,
+                    coverage_status=cls.coverage_status,
+                    known_unresolved_edges=list(cls.known_unresolved_edges))
 
     def reset(self, seed=0, first_player=0):
         if type(first_player) is not int or first_player not in (0, 1):

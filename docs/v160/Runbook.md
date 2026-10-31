@@ -94,6 +94,10 @@ updates; restarting uses a new directory and the corrected source release.
 Its private inventory maps previously reachable host names to IPs. A private JSON
 plan assigns each job a game, `kind` (`cem` or `ppo`), host, eight-CPU slot, output
 directory, hours, and GPU for PPO. Optional `prior` points to a frozen linear bot.
+`slot` locates the start at a multiple of eight CPUs. `cpu_count` defaults to 8
+and may be increased for larger evaluation batches; one CPU is reserved for the
+coordinator and the others become workers. The complete contiguous allocation
+must fit the host's half-CPU quota and cannot overlap any live owned allocation.
 The launcher requires an immutable Git release path and an absolute UTC deadline.
 It checks fresh CPU/GPU headroom, rejects CPU overlap with its live tmux sessions,
 and applies affinity plus a terminating wall-clock watchdog. Host batches launch

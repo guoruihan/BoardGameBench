@@ -50,6 +50,10 @@
 
 入口为 [`boardbench.families.registry`](../../src/boardbench/families/registry.py)。`GAME_IDS` 定义请求的游戏族；`available_games()` 只表明模块已安装，**不认证规则完整性或 bot 训练完成情况**。用 `game_class(game_id)` 获取实现后，按以下流程运行：
 
+`describe()` 和命令行 `list` 另外提供机器可读的 `coverage_status` 与
+`known_unresolved_edges`。Five Tribes 标记为 `research_only`，Jaipur 为
+`known_unresolved_edges`；其余 `fixed_scope` 表示本文界定的范围，也不是官方认证。
+
 1. `reset(seed, first_player)` 初始化；随机组件与随机事件由环境 RNG 管理。
 2. `current_player` / `current_actor()` 指定当前决策者；一个 API 步骤是实际玩家选择，可能是反应、支付、奖励选择或额外回合，因此不能假定每步机械轮换双方。
 3. `observe(player)` 返回该玩家按规则可见的局面；`legal_actions(player)` 返回当前阶段的动作字典。环境合法动作与 bot 的选择偏好分开，启发式分数不是合法性条件。

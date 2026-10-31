@@ -71,6 +71,8 @@ games/<game>/dev_provenance.json
 
 manifest 包含每个文件的 SHA256 和字节数、每个 bot 的状态、原 dev 候选身份
 与去除运行元数据后的推理身份、官方固定配置 ID、规则版本和源码内容身份。
+每款另带 `rules_coverage`：固定内容范围、已知未决边界或研究态。这与 bot 是否
+被开发集选中分开；推荐了一个 bot 不代表该游戏所有规则边界已解决。
 `dev_provenance.json` 是脱敏后的来源摘要，保留原 dev manifest 文件 SHA256、
 manifest 内容 SHA256、种子和候选身份；不复制含绝对机器路径的原始 manifest。
 原始文件仍应保留在实验档案中，以便按 SHA 对照。

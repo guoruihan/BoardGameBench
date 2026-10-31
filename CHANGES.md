@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 verification and recoverable reporting
+
+- Publish frozen-source test, 2,176-game invariant sweep and actual installed-wheel
+  evidence, including moved real-model loading. Keep Five Tribes unresolved games
+  visible rather than assigning artificial outcomes.
+- Expose rules coverage separately from installation and bot selection in the
+  machine-readable interface and portable pool metadata.
+- Add read-only result/resource reports with explicit uncertain process liveness,
+  preserved incomplete denominators, streaming large-trajectory record counts,
+  and allocation interval bounds rather than invented busy utilization.
+- Allow larger contiguous CPU allocations for evaluation while retaining the
+  half-host limit and overlap checks; default training allocations remain eight.
+
 ## 2026-10-31 — V1.6.0 portable bot pools and explicit cycle prevention
 
 - Expose per-decision engine validation, public trajectory recording and external

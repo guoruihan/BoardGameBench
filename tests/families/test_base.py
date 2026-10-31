@@ -50,3 +50,16 @@ def test_json_replay_terminal_rewards_and_private_boundary():
     with pytest.raises(ValueError):
         restored.restore(malformed)
     assert restored.snapshot() == before
+
+
+def test_machine_readable_coverage_is_separate_from_installation():
+    from boardbench.families.registry import available_games, game_class
+    assert len(available_games()) == 17
+    jaipur = game_class('jaipur').describe()
+    five_tribes = game_class('five_tribes').describe()
+    assert jaipur['coverage_status'] == 'known_unresolved_edges'
+    assert jaipur['known_unresolved_edges'] == ['unresolved_round_tie']
+    assert five_tribes['coverage_status'] == 'research_only'
+    assert len(five_tribes['known_unresolved_edges']) == 2
+    jaipur['known_unresolved_edges'].clear()
+    assert game_class('jaipur').describe()['known_unresolved_edges']

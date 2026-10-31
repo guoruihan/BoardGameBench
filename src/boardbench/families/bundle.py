@@ -163,6 +163,8 @@ def export_bundle(plan_file, output):
                 source_code_sha256=dev['code']['content_sha256'])
             write_json(directory/'dev_provenance.json', provenance)
             games[game] = dict(config=cls.config_id, rules_version=cls.rules_version,
+                rules_coverage=dict(status=cls.coverage_status,
+                                    known_unresolved_edges=list(cls.known_unresolved_edges)),
                 status=request['status'], recommended=recommended, bots=entries,
                 bots_file=str((directory/'bots.json').relative_to(staging)),
                 dev_provenance=str((directory/'dev_provenance.json').relative_to(staging)))
@@ -213,6 +215,9 @@ def load_bundle(directory, expected_sha256=None, verify_code=True):
         cls = game_class(game)
         if (entry['config'], entry['rules_version']) != (cls.config_id, cls.rules_version):
             raise ValueError('Installed game/config/rules mismatch')
+        if entry.get('rules_coverage') != dict(status=cls.coverage_status,
+                known_unresolved_edges=list(cls.known_unresolved_edges)):
+            raise ValueError('Installed rules coverage metadata mismatch')
         for name, bot in entry['bots'].items():
             path = _member(root, bot['path'])
             spec = ev.read_json(path)

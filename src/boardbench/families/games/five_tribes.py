@@ -96,6 +96,9 @@ def empty_tile(tile):
 
 
 class FiveTribes(DuoGame):
+    coverage_status = 'research_only'
+    known_unresolved_edges = ('no_affordable_bid_and_zero_slots_full',
+                              'anun_nak_bag_fewer_than_three_requires_ruling')
     game_id = 'five_tribes'
     config_id = 'base_fakir_duo_four_markers'
     rules_version = '2'
