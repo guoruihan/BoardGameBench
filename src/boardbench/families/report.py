@@ -47,6 +47,14 @@ def read_json(path, issues, expected=dict):
         return None
 
 
+def read_json_files(paths):
+    def load(path):
+        issues = []
+        return path, read_json(path, issues), issues
+    with ThreadPoolExecutor(max_workers=READ_THREADS) as pool:
+        yield from pool.map(load, paths)
+
+
 def header_events(chunk):
     """C-level literal searches avoid a regex check at every trajectory byte."""
     chunk = b'\n'+chunk; events = []
@@ -184,8 +192,8 @@ def league(directory, issues, bootstrap_samples):
         issues.append(dict(code='invalid_frozen_manifest', file='manifest.json'))
         return None
     latest, attempts, identities = {}, [], set()
-    for path in sorted((directory/'attempts').glob('*.json')):
-        record = read_json(path, issues)
+    for path, record, local_issues in read_json_files(sorted((directory/'attempts').glob('*.json'))):
+        issues.extend(local_issues)
         if record is None:
             continue
         key = record.get('match_id'); attempt = record.get('attempt')
@@ -367,6 +375,9 @@ def build_report(root, now=None, include_host_aliases=False, bootstrap_samples=2
             status = 'abnormal'
         if evaluation and status == 'completed' and evaluation['completed'] != evaluation['scheduled']:
             status = 'abnormal'; issues.append(dict(code='evaluation_incomplete_after_exit'))
+        if evaluation and any(n for key, n in evaluation['statuses'].items()
+                              if key not in ('complete', 'not_started', 'running')):
+            issues.append(dict(code='recorded_noncomplete_evaluation'))
         deadline = launch.get('deadline')
         if exit_code is None and status == 'activity_unverified' and number(deadline) and now > deadline:
             issues.append(dict(code='deadline_passed_without_exit_record'))

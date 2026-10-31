@@ -248,3 +248,14 @@ def test_complete_state_without_exit_is_not_process_completion_and_stale_exit_fl
     t = build_report(tmp_path, now=8000)['tasks'][0]
     assert t['status'] == 'abnormal'
     assert dict(code='state_updated_after_exit_record', file='exit_code') in t['issues']
+
+
+def test_orphan_frozen_rule_failures_are_abnormal_not_unknown(tmp_path):
+    p = tmp_path/'calico'/'rules_dev_r1'; frozen(p)
+    for match in ('10-0', '10-1', '11-0'):
+        attempt(p, match)
+    attempt(p, '11-1', status='unresolved_rule', rewards=None)
+    t = build_report(tmp_path, now=8000, bootstrap_samples=10)['tasks'][0]
+    assert t['status'] == 'abnormal' and t['process_liveness'] == 'unverified'
+    assert t['league']['statuses'] == dict(complete=3, unresolved_rule=1)
+    assert dict(code='recorded_noncomplete_evaluation') in t['issues']

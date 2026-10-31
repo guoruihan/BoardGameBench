@@ -34,7 +34,7 @@ PYTHONPATH=src .venv-train/bin/python -m boardbench.families.report \
 | `completed` | 有有效退出码 0；存在旧退出记录或数据问题时会降为异常 |
 | `activity_unverified` | 有启动记录但没有有效退出证据；**既不声称仍在运行，也不因 state 显示完成就声称已退出** |
 | `artifacts_complete` | 没有启动记录，只有 state 或冻结计划的完成产物；不表示确认了进程状态 |
-| `abnormal` | 非零退出、blocked/stopped 状态、超过 deadline 仍无退出记录、评测退出但计划未全部完成，或文件/数据校验异常 |
+| `abnormal` | 非零退出、blocked/stopped 状态、超过 deadline 仍无退出记录、评测出现 unresolved/truncated/error 等结果、评测退出但计划未全部完成，或文件/数据校验异常 |
 | `unknown` | 缺少启动与完成证据 |
 
 报告不将 timeout、主动停止或未完成评测解释成算法失败；查看 `phase`、`exit_code`
@@ -57,7 +57,7 @@ metrics，都不增加此计数。损坏文件与不合法行单独报警，不�
 与流式记录头扫描；后者**没有重新校验整个嵌套轨迹 JSON**。小文件使用完整 JSON
 解析。首次统计仍需顺序读取所有结果字节，几十 GiB 目录可能需要几分钟，但不会因
 单个 GiB 级轨迹文件而一次性构造完整对象树。
-为缓解共享文件系统大量小文件的打开延迟，训练结果最多使用 4 个只读线程，且不超过
+为缓解共享文件系统大量小文件的打开延迟，训练结果与评测尝试最多使用 4 个只读线程，且不超过
 当前进程可用 CPU 数量的一半（至少 1 个）；不会启动环境对局或训练进程。
 
 ## 冻结评测
