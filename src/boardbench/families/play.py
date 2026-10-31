@@ -50,7 +50,32 @@ def make_policy(cls, spec, seed=0):
     if spec.get('kind') == 'neural':
         from .neural import NeuralPolicy
         return NeuralPolicy(cls, spec, seed)
+    if spec.get('kind') == 'harmonies_rl':
+        if cls.game_id != 'harmonies':
+            raise ValueError('The retained Harmonies RL model is game-specific')
+        return HarmoniesFrozenPolicy(spec)
     return FeaturePolicy(cls, spec, seed)
+
+
+class HarmoniesFrozenPolicy:
+    """Reuse the retained pretrained duo model, including its per-seat planner."""
+    def __init__(self, spec):
+        from pathlib import Path
+        import torch
+        from boardbench.v145.policy import SelfplaySolver
+        torch.set_num_threads(1)
+        path = Path(spec['path'])
+        if spec.get('sha256') and hashlib.sha256(path.read_bytes()).hexdigest() != spec['sha256']:
+            raise ValueError('Retained model checksum mismatch')
+        self.solver = SelfplaySolver(device='cpu')
+        self.solver.load_weights(path)
+        self.started = False
+
+    def decide(self, observation, actions):
+        if not self.started:
+            self.solver.start_episode(observation)
+            self.started = True
+        return self.solver.decide(observation)
 
 
 def run_match(game_id, specs, seed=0, first_player=0, max_decisions=10000,
@@ -69,7 +94,7 @@ def run_match(game_id, specs, seed=0, first_player=0, max_decisions=10000,
     status = None
     while not env.outcome()['terminated']:
         outcome = env.outcome()
-        if outcome.get('unresolved'):
+        if outcome.get('unresolved') or outcome.get('unresolved_rule'):
             status = 'unresolved_rule'
             break
         if count >= max_decisions or time.monotonic() - began >= max_seconds:

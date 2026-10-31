@@ -1,5 +1,21 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 third environment batch and cluster execution
+
+- Add original El Dorado first route, Gizmos complete catalog, and the documented
+  fixed standard Calico size-cat configuration, with component-source evidence
+  and per-game transition, privacy, replay and complete-game tests.
+- Add an executable family listing/match CLI and checked SSH job launcher using
+  immutable code, fresh resource checks, disjoint CPU affinity, named tmux jobs
+  and the absolute experiment deadline. Private host maps remain outside Git.
+- Eight independent GPU PPO jobs have completed real training updates, alongside
+  CPU policy-search jobs. This records execution, not a promotion of every model.
+- Preserve the full Five Tribes research engine separately with explicit unresolved
+  bankruptcy/djinn boundaries; do not certify it as a complete benchmark setting.
+  The generic runner counts both unresolved-outcome formats as incomplete.
+- Expose the retained Harmonies duo RL model through the family policy interface,
+  with game/schema and optional checksum validation and isolated planner memory.
+
 ## 2026-10-31 — V1.6.0 second environment batch and GPU learner
 
 - Add official Dominion First Game, Century: Spice Road, and Toy Battle Castle

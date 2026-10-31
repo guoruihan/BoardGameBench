@@ -5,11 +5,19 @@ List installed environments (availability is not a complete-rules certificate):
 ```bash
 .venv-train/bin/python -c 'from boardbench.families.registry import available_games; print(available_games())'
 .venv-train/bin/python -m pytest tests/families -q
+.venv-train/bin/python -m boardbench.families list
+.venv-train/bin/python -m boardbench.families match --game jaipur \
+  --bot0 heuristic --bot1 random --seed 80 --trajectory \
+  --output outputs/v160/jaipur/example_match.json
 ```
 
 Each game's scope, genuine data sources and unresolved boundaries are documented
 under `docs/v160/games/`. Missing games are explicit unavailable entries rather
 than substitutes. Harmonies reuses the previous accelerated official duo engine.
+Five Tribes is currently a research implementation with explicit unresolved
+rule edges; installed code is not an assertion that those edges are settled.
+The prior Harmonies RL opponent can be specified with `kind: harmonies_rl`,
+`path`, and optional `sha256` matching `configs/harmonies_duo_play.json`.
 
 Run or resume a small CPU policy-search experiment:
 
@@ -66,3 +74,15 @@ use sampled actions; incomplete games never receive fabricated terminal targets.
 `best.json` points to a portable, identity-checked `.pt` model. The original
 heuristic remains separately available regardless of neural promotion. A completed
 confirmation is final for that directory; new training requires a new run.
+
+## Checked SSH launches
+
+`python -m boardbench.families.cluster --help` describes the shared launcher.
+Its private inventory maps previously reachable host names to IPs. A private JSON
+plan assigns each job a game, `kind` (`cem` or `ppo`), host, eight-CPU slot, output
+directory, hours, and GPU for PPO. Optional `prior` points to a frozen linear bot.
+The launcher requires an immutable Git release path and an absolute UTC deadline.
+It checks fresh CPU/GPU headroom, rejects CPU overlap with its live tmux sessions,
+and applies affinity plus a terminating wall-clock watchdog. Host batches launch
+independently; reservations on each host are serialized. Private inventory and
+run manifests remain under ignored `outputs/`, never in source control.
