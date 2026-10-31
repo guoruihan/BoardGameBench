@@ -28,6 +28,9 @@ class FeaturePolicy:
     """No engine reference or snapshot is supplied to a policy."""
     def __init__(self, cls, spec, seed=0):
         self.cls, self.spec, self.rng = cls, deepcopy(spec), random.Random(seed)
+        for key, expected in (('game', cls.game_id), ('config', cls.config_id), ('rules_version', cls.rules_version)):
+            if key in spec and spec[key] != expected:
+                raise ValueError('Policy game/config mismatch')
         self.weights = spec.get('weights', cls.default_weights)
         if len(self.weights) != FEATURE_DIM or not all(math.isfinite(float(w)) for w in self.weights):
             raise ValueError('Expected 24 finite weights')
@@ -43,6 +46,13 @@ class FeaturePolicy:
         return actions[self.rng.choice([i for i, v in enumerate(values) if v == best])]
 
 
+def make_policy(cls, spec, seed=0):
+    if spec.get('kind') == 'neural':
+        from .neural import NeuralPolicy
+        return NeuralPolicy(cls, spec, seed)
+    return FeaturePolicy(cls, spec, seed)
+
+
 def run_match(game_id, specs, seed=0, first_player=0, max_decisions=10000,
               max_seconds=300., record=False, validate=False, policies=None):
     """Caps are incomplete runs, never house-rule endings or fabricated rewards."""
@@ -51,7 +61,7 @@ def run_match(game_id, specs, seed=0, first_player=0, max_decisions=10000,
     cls = game_class(game_id)
     env = cls()
     env.reset(seed=seed, first_player=first_player)
-    policies = policies or [FeaturePolicy(cls, spec, policy_seed(seed, p))
+    policies = policies or [make_policy(cls, spec, policy_seed(seed, p))
                             for p, spec in enumerate(specs)]
     began = time.monotonic()
     trace = []

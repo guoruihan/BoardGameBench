@@ -1,5 +1,15 @@
 # Research milestones
 
+## V1.6.0 opponent-learning pipeline — 2026-10-31
+
+- Introduce heuristic-prior candidate PPO alongside evolutionary policy search.
+  Each player's complete decision chain gets its own terminal outcome and GAE;
+  opponents are a frozen prior, base heuristic and a self-play mixture.
+- Use CPU simulation and a GPU actor/critic optimizer. Preserve independent
+  checkpoint gates and final confirmation, and retain heuristic opponents when
+  learned candidates do not improve reliably. CUDA smoke is engineering evidence,
+  not a learned-strength result.
+
 ## V1.6.0 initial development / 0.5.0.dev1 — 2026-10-31
 
 - Extend the target to 17 original two-player games, one documented official base

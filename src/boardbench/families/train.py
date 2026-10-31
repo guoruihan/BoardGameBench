@@ -90,6 +90,9 @@ def main(argv=None):
     start = time.time()
     deadline = min(start + args.hours * 3600, args.deadline_unix)
     state_file = args.output / 'state.json'
+    if (args.output/'confirmation_summary.json').exists():
+        print('Run already confirmed; use a new output directory for new training.', flush=True)
+        return
     mean = np.asarray(cls.default_weights, dtype=float)
     scales = np.ones(FEATURE_DIM)
     sigma = np.full(FEATURE_DIM, .65)

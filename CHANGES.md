@@ -1,5 +1,17 @@
 # Engineering changes
 
+## 2026-10-31 — V1.6.0 second environment batch and GPU learner
+
+- Add official Dominion First Game, Century: Spice Road, and Toy Battle Castle
+  Field introductory configurations; document the latter's publisher-authorized
+  omission of special-base powers while retaining all troop powers.
+- Add a public candidate actor-critic with heuristic priors, separate seat-return
+  chains, full-game PPO, paired checkpoint gates and atomic resume artifacts.
+  CPU simulation feeds GPU minibatch optimization; no claim of GPU-only rollouts.
+- Verify variable legal-action padding, gradients, returns, artifact identity,
+  and a real two-update CUDA Jaipur run with finite losses and complete games.
+  Completed confirmation runs cannot silently continue training with stale scores.
+
 ## 2026-10-31 — 0.5.0.dev1 / V1.6.0 first environment batch
 
 - Add fixed original two-player Jaipur, Machi Koro, Patchwork, Clever and Splendor,

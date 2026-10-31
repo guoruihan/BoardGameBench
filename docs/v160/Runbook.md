@@ -41,3 +41,28 @@ Runner caps produce `truncated`, not invented game endings. Rule gaps produce
 `unresolved_rule`; execution failures produce `error`. These counts remain in
 the scheduled-match denominator. Official scores and winner rewards are separate;
 Machi Koro is a race with null official victory-point scores.
+
+## GPU actor-critic experiments
+
+The neural pipeline uses CPU workers for full games and GPU minibatches for PPO.
+It starts from a fixed public heuristic or a frozen population-search prior, with
+a trainable residual action scorer and a critic pooling the legal candidates.
+This compact representation is an initial baseline, not a full board encoder.
+
+```bash
+CUDA_VISIBLE_DEVICES=0 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+.venv-train/bin/python -m boardbench.families.ppo --game jaipur \
+  --output outputs/v160/jaipur/ppo_example --device cuda --workers 7 \
+  --games 32 --updates 512 --hours 3 --source-commit "$(git rev-parse HEAD)"
+```
+
+An optional `--prior outputs/.../best.json` freezes learned linear weights.
+Checkpoint and optimizer state are saved after every update. Separate players
+have separate GAE chains even when reaction choices or extra turns change the
+normal actor order. Variable legal-action padding is masked in actor and critic.
+Inference defaults to deterministic legal-action selection. Training trajectories
+use sampled actions; incomplete games never receive fabricated terminal targets.
+
+`best.json` points to a portable, identity-checked `.pt` model. The original
+heuristic remains separately available regardless of neural promotion. A completed
+confirmation is final for that directory; new training requires a new run.
