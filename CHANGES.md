@@ -1,5 +1,15 @@
 # Engineering changes
 
+## 2026-11-01 — equivalent rich-input cache and measured costs
+
+- Reuse unchanged public fields, exactly matching appended history prefixes and
+  bounded repeated-action encodings; reject mutated prefixes and reset caches
+  by content. Reference-array equality remains checked across all 16 families.
+- Publish single-core transition/encoding measurements, explicitly separating
+  kernel speedups from whole-game performance and richer-input overhead.
+- Verify 21 rich-interface tests and 16 remote timing/equivalence jobs; running
+  search comparisons continue from their previously frozen source snapshot.
+
 ## 2026-11-01 — 0.6.5 public inputs and terminal search reference
 
 - Preserve complete player-visible state, action fields and public rule catalogs

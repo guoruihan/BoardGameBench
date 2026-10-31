@@ -89,3 +89,15 @@ def test_new_model_roundtrip_explicit_schema_and_numeric_types(tmp_path):
     restored,encoding,_=load_model(path,'splendor')
     assert RichPolicy(model,enc).decide(obs,env.legal_actions())==RichPolicy(restored,encoding).decide(obs,env.legal_actions())
     with pytest.raises(ValueError):load_model(path,'dominion')
+
+
+def test_history_append_cache_rejects_mutated_prefix_and_episode_reset():
+    env=game_class('dominion')();enc=PublicTreeEncoder('dominion');ref=PublicTreeEncoder('dominion',cache=False)
+    env.reset(17231)
+    for _ in range(12):
+        obs=env.observe();np.testing.assert_array_equal(enc.encode(obs),ref.encode(obs))
+        actions=env.legal_actions();env.step(actions[0])
+    obs=env.observe();assert obs['history']
+    obs['history'][0]['player']=1-obs['history'][0]['player']
+    np.testing.assert_array_equal(enc.encode(obs),ref.encode(obs))
+    obs=env.reset(17232);np.testing.assert_array_equal(enc.encode(obs),ref.encode(obs))

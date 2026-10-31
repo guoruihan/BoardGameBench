@@ -84,6 +84,7 @@ class PublicTreeEncoder:
         self._paths = {}
         self._static = {}
         self._catalog_cache = {}
+        self._action_cache = {}
 
     def _catalog(self,observation):
         """Game-specific public component facts, not hidden component locations."""
@@ -203,12 +204,25 @@ class PublicTreeEncoder:
         parts=[]
         for key in sorted(items):
             value=items[key];path=(('key',key),)
-            if self.cache and key in STATIC_FIELDS[self.game]:
+            if self.cache:
                 packed=json.dumps(value,sort_keys=True,separators=(',',':'))
                 entry=self._static.get(key)
                 if entry is None or entry[0]!=packed:
-                    part=[];self._walk(value,path,part)
-                    entry=(packed,np.asarray(part,np.float32));self._static[key]=entry
+                    # Public histories grow by appending events. Reuse only an
+                    # exactly matching serialized prefix; reset/mutation falls
+                    # through to the reference traversal. Never trust identity
+                    # of mutable engine objects or a sampled environment seed.
+                    if (entry is not None and key in ('history','public_history') and isinstance(value,list)
+                            and entry[2] is not None and len(value)>entry[2]
+                            and (entry[2]==0 or packed.startswith(entry[0][:-1]+','))):
+                        part=[]
+                        for i in range(entry[2],len(value)):
+                            self._walk(value[i],path+(('index',i),),part)
+                        header=entry[1][:1].copy();header[0,-1]=len(value)
+                        array=np.concatenate((header,entry[1][1:],np.asarray(part,np.float32).reshape(-1,WIDTH)))
+                    else:
+                        part=[];self._walk(value,path,part);array=np.asarray(part,np.float32)
+                    entry=(packed,array,len(value) if isinstance(value,list) else None);self._static[key]=entry
                 parts.append(entry[1])
             else:
                 rows=[];self._walk(value,path,rows)
@@ -226,8 +240,14 @@ class PublicTreeEncoder:
         return np.concatenate(parts)
 
     def encode_action(self,action):
+        packed=json.dumps(action,sort_keys=True,separators=(',',':')) if self.cache else None
+        if packed in self._action_cache:return self._action_cache[packed].copy()
         rows=[];self._walk(action,(('key','action'),),rows)
-        return np.asarray(rows,np.float32).reshape(-1,WIDTH)
+        result=np.asarray(rows,np.float32).reshape(-1,WIDTH)
+        if self.cache:
+            if len(self._action_cache)>=4096:self._action_cache.clear()
+            self._action_cache[packed]=result.copy()
+        return result
 
     def encode_actions(self,actions):
         chunks=[self.encode_action(a) for a in actions]
