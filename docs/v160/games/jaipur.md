@@ -31,6 +31,41 @@ count it as an unresolved run, not discard it or assign a reward. This boundary
 prevents claiming exhaustive official-rule coverage; it is not a house rule.
 Camel-count ties, which are explicitly specified, give neither player 5 rupees.
 
+### Exact-tie audit, 2026-10-31
+
+The `league_dev_r1` evaluation encountered this boundary in 2 of 384 scheduled
+matches (0.52%). Replaying both with the recorded policies and policy seeds
+reproduced the decisions, score breakdown and unresolved outcome exactly;
+component-conservation checks passed after every action. The two cases both have
+`heuristic` in seat 0 and `cem_r1` in seat 1, orientation 1:
+
+| Environment seed | Round | Rupees, each | Bonus tokens, each | Goods tokens, each | Seals before boundary |
+| --- | --- | --- | --- | --- | --- |
+| 33000005 | 3 | 74 | 3 | 14 | 1 : 1 |
+| 33000055 | 1 | 75 | 3 | 16 | 0 : 0 |
+
+The camel token's five rupees are already included in both cases; the token is a
+separate component category and does not add to either printed tiebreak count.
+The [current publisher French rules, page 6](https://cdn.svc.asmodee.net/production-spacecowboys/uploads/2025/12/Rules-JAIPUR_SCJAI01FR_HD_ss_reperes.pdf)
+agree with the English edition. The [original GameWorks French rules, PDF page 4](https://www.gameworks.ch/JAIPUR/JAIPUR_FR.pdf)
+also stop after goods-token count. None of these books specifies a winner,
+shared seal, rematch, or next starting player after an exact tie.
+
+A bounded search of publisher/designer sources found no verifiable additional
+ruling. A fan FAQ points to [BGG thread 548575](https://boardgamegeek.com/thread/548575),
+but its original content and author identity could not be checked (HTTP 403 / web
+fetch unavailable); it is **an unverified lead**, not evidence of a designer ruling.
+This audit does not establish that no clarification exists anywhere. The rule
+implementation therefore remains unchanged; these runs remain unresolved and
+count in the full evaluation denominator, with no draw reward.
+
+Local audit artifacts are under
+`outputs/v160/bots/jaipur/league_dev_r1/rule_audit_20261031/`: reproducible action
+traces, privileged snapshots, source PDF hashes and `REPORT.md`. They remain
+outside Git and are not policy inputs. The tests retain the two scoring-inventory
+cases and verify no seal award, new round, RNG advance or normal termination,
+including JSON restoration of the unresolved state.
+
 Tests cover component conservation, full seeded matches, large-sale bonuses,
 hand limits and exchange exclusions, deck refill timing, match seals, tiebreaks,
 hidden information, atomic illegal actions and JSON snapshot replay. There is no

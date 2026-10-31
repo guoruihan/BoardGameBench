@@ -108,6 +108,63 @@ def test_round_ties_and_match_end():
     assert g.state['seals'] == [0, 1] and g.current_player == 0
 
 
+@pytest.mark.parametrize('points,goods,bonus,herds,seals,reason', [
+    (74, [
+        {'gold': [6, 6, 5], 'silver': [5] * 5, 'spice': [5, 3, 3, 2], 'diamond': [5, 5]},
+        {'leather': [4, 3, 2, 1, 1], 'cloth': [5, 3, 3, 2], 'diamond': [7, 7, 5], 'gold': [5, 5]},
+    ], [[('3', 2), ('4', 4), ('3', 3)], [('5_or_more', 8), ('4', 5), ('3', 3)]],
+     [3, 6], [1, 1], 'three_goods_depleted'),
+    (75, [
+        {'silver': [5] * 3, 'leather': [4, 3, 2], 'gold': [6, 6, 5, 5],
+         'cloth': [2, 2, 1, 1], 'diamond': [5, 5]},
+        {'spice': [5, 3, 3, 2], 'diamond': [7, 7], 'cloth': [5, 3, 3],
+         'leather': [1] * 5, 'silver': [5, 5]},
+    ], [[('3', 2), ('4', 6), ('4', 5)], [('4', 4), ('3', 3), ('5_or_more', 10)]],
+     [3, 7], [0, 0], 'market_cannot_refill'),
+])
+def test_exact_scoring_tie_preserves_unresolved_state(points, goods, bonus, herds, seals, reason):
+    """Token allocations from the two league cases; no invented fourth tiebreak.
+
+    The fixture reconstructs scoring inventory, not the original action trajectory.
+    The camel holder has five extra rupees, but no extra bonus/goods token.
+    """
+    g = game()
+    s = g.state
+    s['seals'], s['herds'] = list(seals), list(herds)
+    s['round_number'] = sum(seals) + 1
+    s['hands'] = [[0] * 6 for _ in range(2)]
+    cards = [kind for kind, count in DATA['cards'].items()
+             for _ in range(count - (sum(herds) if kind == 'camel' else 0))]
+    market_size = 4 if reason == 'market_cannot_refill' else 5
+    s['market'], s['discard'], s['deck'] = cards[:market_size], cards[market_size:], []
+    for p in (0, 1):
+        s['goods_won'][p] = [dict(good=kind, value=v)
+                             for kind, values in goods[p].items() for v in values]
+        for token in s['goods_won'][p]:
+            s['goods_tokens'][token['good']].remove(token['value'])
+        s['bonus_won'][p] = [dict(kind=kind, value=v) for kind, v in bonus[p]]
+        for token in s['bonus_won'][p]:
+            s['bonus_tokens'][token['kind']].remove(token['value'])
+    before_rng, before_round = g.snapshot()['rng'], s['round_number']
+    g._end_round(reason)
+    g.validate()
+    expected = [points, 3, 14 if points == 74 else 16]
+    assert s['rounds'][-1]['criteria'] == [expected, expected]
+    assert s['camel_award'] == [0, 5]
+    assert s['seals'] == seals and s['round_number'] == before_round
+    assert g.snapshot()['rng'] == before_rng  # No implicit restart/shuffle.
+    assert g.outcome() == dict(terminated=False, scores=seals, winners=[],
+                               reason='unresolved_round_tie', unresolved=True)
+    assert not g.legal_actions()
+    clone = Jaipur()
+    clone.restore(json.loads(json.dumps(g.snapshot())))
+    assert clone.outcome() == g.outcome() and not clone.legal_actions()
+    before = clone.snapshot()
+    with pytest.raises(InvalidAction):
+        clone.step(dict(type='camels'))
+    assert clone.snapshot() == before
+
+
 def test_atomic_rejection_json_replay():
     g = game(2)
     before = g.snapshot()
