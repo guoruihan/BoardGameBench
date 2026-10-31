@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-11-01 — search continuation diagnosis and complete denominators
+
+- Add explicit portfolio, retained-RL-only and domain-expert continuation modes
+  without changing candidates, game rules or cumulative decision budgets.
+- Keep missing scheduled games in reports and reject aggregation of different
+  continuation modes in one experiment root.
+- After early long-budget results, prepare a paired continuation diagnosis for
+  four games where the portfolio reference trails RL; preserve the original run.
+
 ## 2026-11-01 — equivalent rich-input cache and measured costs
 
 - Reuse unchanged public fields, exactly matching appended history prefixes and

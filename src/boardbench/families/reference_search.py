@@ -87,15 +87,18 @@ def with_guard(cls,policy):
 
 class TerminalReference:
     def __init__(self,cls,rl_spec,*,seat,seconds=900.,seed=172,weights=None,width=6,
-                 objective='win',max_rounds=None,max_simulation_steps=4000,clock=time.monotonic):
+                 objective='win',max_rounds=None,max_simulation_steps=4000,clock=time.monotonic,
+                 continuation='portfolio'):
         if seat not in (0,1) or not math.isfinite(seconds) or seconds<=0 or not 2<=width<=32:
             raise ValueError('Invalid bounded search configuration')
         if objective not in ('win','score'):raise ValueError('Invalid objective')
+        if continuation not in ('portfolio','rl','expert'):raise ValueError('Invalid continuation')
         if objective=='score' and cls.game_id in ('el_dorado','machi_koro','toy_battle'):
             raise ValueError('Race games do not have a scalar score objective')
         self.cls=cls;self.seat=seat;self.seconds=float(seconds);self.width=width
         self.rng=random.Random(seed);self.clock=clock;self.max_rounds=max_rounds
         self.max_simulation_steps=max_simulation_steps;self.objective=objective
+        self.continuation=continuation
         self.base=make_policy(cls,guarded_spec(cls.game_id,rl_spec),seed)
         habitat=None
         if cls.game_id=='harmonies':
@@ -128,7 +131,7 @@ class TerminalReference:
     def _round(self,world,roots,round_index,deadline):
         # Alternate a domain heuristic, its long-term emphasis, and the retained
         # RL itself. Harmonies keeps its proven habitat rollout in two of three.
-        mode=round_index%3
+        mode=round_index%3 if self.continuation=='portfolio' else (2 if self.continuation=='rl' else 0)
         values=[];scores=[];own_counts=[];steps=0
         for action in roots:
             if self.clock()>=deadline:return None,steps,[]
@@ -180,7 +183,7 @@ class TerminalReference:
         self.decisions+=1;self.total_steps+=steps;self.total_rounds+=rounds;self.fallbacks+=int(fallback)
         self.last=dict(completed_rounds=rounds,simulation_steps=steps,selected_rank=selected,
             fallback=fallback,forced_action=len(actions)==1,decision_seconds=elapsed,
-            cumulative_decision_seconds=self.spent,objective=self.objective,
+            cumulative_decision_seconds=self.spent,objective=self.objective,continuation=self.continuation,
             candidates=[dict(action=a,samples=rounds,mean=sums[i]/rounds if rounds else None,
                 terminal_scores=[x/rounds if x is not None else None for x in score_sums[i]] if rounds else None,
                 variance=max(0.,(squares[i]-sums[i]**2/rounds)/(rounds-1)) if rounds>1 else None)

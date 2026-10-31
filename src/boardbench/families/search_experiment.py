@@ -56,12 +56,12 @@ def select_rl(game,bundle,current,output,seeds=8):
     write_json(path,result);return result
 
 
-def match(game,selection,seed,search_seat,budget,output,objective='win',max_rounds=None):
+def match(game,selection,seed,search_seat,budget,output,objective='win',max_rounds=None,continuation='portfolio'):
     cls=game_class(game);env=cls();env.reset(seed,first_player=0)
     rl=make_policy(cls,selection['rl_spec'],policy_seed(seed,1-search_seat))
     search=TerminalReference(cls,selection['rl_spec'],seat=search_seat,seconds=budget,
         seed=policy_seed(seed,search_seat)^172,weights=selection['heuristic_weights'],
-        max_rounds=max_rounds,objective=objective)
+        max_rounds=max_rounds,objective=objective,continuation=continuation)
     began=time.monotonic();cpu=time.process_time();count=0;trace=[];status='incomplete';rl_seconds=0.;last_progress=began
     while not env.outcome()['terminated']:
         if count>=10000 or time.monotonic()-began>budget+180:
@@ -85,6 +85,7 @@ def match(game,selection,seed,search_seat,budget,output,objective='win',max_roun
     result=dict(game=game,config=cls.config_id,rules_version=cls.rules_version,seed=seed,
         search_seat=search_seat,first_player=0,budget=budget,objective=objective,status=status,
         search_config=dict(width=search.width,max_rounds=max_rounds,max_simulation_steps=search.max_simulation_steps,
+                           continuation=continuation,
                            continuations=['domain_heuristic','progress_or_habitat','retained_rl']),
         outcome=out,score_breakdown=env.score_breakdown(),decisions=count,
         rl=selection['chosen_name'],rl_sha256=selection['rl_spec'].get('sha256'),
@@ -105,11 +106,17 @@ def match(game,selection,seed,search_seat,budget,output,objective='win',max_roun
 
 def report(root):
     groups=defaultdict(list)
+    expected_counts=defaultdict(int)
+    if (root/'schedule.json').exists():
+        for entry in json.loads((root/'schedule.json').read_text())['jobs']:
+            key=(entry['game'],float(entry['budget']));expected_counts[key]+=1;groups[key]
     for path in root.glob('games/*/matches/*.json'):
         if path.name.endswith(('.error.json','.progress.json')):continue
         row=json.loads(path.read_text());groups[(row['game'],row['budget'])].append(row)
     rows=[]
     for (game,budget),games in sorted(groups.items()):
+        continuations={r.get('search_config',{}).get('continuation','portfolio') for r in games}
+        if len(continuations)>1:raise ValueError('Use separate experiment roots for different continuation comparisons')
         complete=[r for r in games if r['status']=='complete'];points=own=other=0.
         for r in complete:
             p=r['search_seat'];out=r['outcome']
@@ -131,19 +138,23 @@ def report(root):
             z=np.asarray(clusters);rng=np.random.default_rng(172)
             boot=z[rng.integers(len(z),size=(4000,len(z)))].mean(1)
             intervals=np.quantile(boot,[.025,.975],axis=0).T.tolist()
-        expected=8 if (root/'schedule.json').exists() else len(games)
+        expected=expected_counts.get((game,budget),len(games))
+        statuses={s:sum(r['status']==s for r in games) for s in sorted({r['status'] for r in games})}
+        statuses['no_result']=expected-len(games)
         rows.append(dict(game=game,budget=budget,scheduled=expected,finished=len(games),complete=n,
+            continuation=next(iter(continuations)) if continuations else None,
+            statuses=statuses,
             paired_environment_groups=len(clusters),search_win_interval=intervals[0] if intervals else None,
             score_gap_interval=intervals[1] if intervals and complete[0]['outcome']['scores'][0] is not None else None,
             search_win_rate=points/expected,rl_win_rate=(n-points)/expected,
             search_score=own/n if n and complete[0]['outcome']['scores'][0] is not None else None,
             rl_score=other/n if n and complete[0]['outcome']['scores'][0] is not None else None,
-            search_seconds=sum(r['search_seconds'] for r in games)/len(games),
-            rl_seconds=sum(r['rl_seconds'] for r in games)/len(games),
+            search_seconds=sum(r['search_seconds'] for r in games)/len(games) if games else None,
+            rl_seconds=sum(r['rl_seconds'] for r in games)/len(games) if games else None,
             cpu_hours=sum(r['cpu_seconds'] for r in games)/3600,
             simulation_steps=sum(r['simulation_steps'] for r in games),
             fallback_fraction=sum(r['fallback_decisions'] for r in games)/max(1,sum(r['search_decisions'] for r in games)),
-            rl=games[0]['rl']))
+            rl=games[0]['rl'] if games else None))
     write_json(root/'report.json',dict(results=rows,observed_unix=time.time(),
         error_files=[str(p.relative_to(root)) for p in root.glob('games/*/matches/*.error.json')]))
     return rows
@@ -159,6 +170,7 @@ def main():
     p.add_argument('--seed-index',type=int);p.add_argument('--seat',type=int)
     p.add_argument('--select-only',action='store_true');p.add_argument('--report',action='store_true')
     p.add_argument('--max-rounds',type=int);p.add_argument('--objective',default='win')
+    p.add_argument('--continuation',choices=['portfolio','rl','expert'],default='portfolio')
     a=p.parse_args();a.root=a.root.resolve()
     if a.report:
         print(json.dumps(report(a.root),indent=2));return
@@ -168,11 +180,12 @@ def main():
     for budget in a.budgets:
         for k in ([a.seed_index] if a.seed_index is not None else range(a.seeds)):
             for seat in ([a.seat] if a.seat is not None else (0,1)):
-                path=output/'matches'/f'b{budget:g}_s{k}_p{seat}_{a.objective}.json'
+                suffix='' if a.continuation=='portfolio' else '_'+a.continuation
+                path=output/'matches'/f'b{budget:g}_s{k}_p{seat}_{a.objective}{suffix}.json'
                 if path.exists():continue
                 path.parent.mkdir(parents=True,exist_ok=True)
                 try:
-                    row=match(a.game,selection,172020000+k,seat,budget,path,a.objective,a.max_rounds)
+                    row=match(a.game,selection,172020000+k,seat,budget,path,a.objective,a.max_rounds,a.continuation)
                     print(json.dumps({k:v for k,v in row.items() if k!='score_breakdown'}),flush=True)
                 except Exception:
                     write_json(path.with_suffix('.error.json'),dict(game=a.game,budget=budget,seed_index=k,seat=seat,error=traceback.format_exc()))

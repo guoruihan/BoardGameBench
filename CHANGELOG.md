@@ -1,5 +1,13 @@
 # Research milestones
 
+## V1.7.2 continuation-bias diagnosis — 2026-11-01
+
+- Early completed 900-second comparisons show search gains in several families
+  but losses in Cascadia, Dominion, El Dorado and Stone Age. Test retained-RL
+  continuation on the same four development environments and both seats, keeping
+  root candidates and the 900-second cap. This is adaptive development evidence,
+  not an independent confirmation set or a newly trained policy.
+
 ## V1.7.2 rich inputs and independent search protocol — 2026-11-01
 
 - Replace the compact-input assumption for future learners with a full public
