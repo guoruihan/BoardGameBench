@@ -1,0 +1,370 @@
+{
+  "game": "targi",
+  "configuration": "original_2012_duo",
+  "retrieved_utc": "2026-10-31",
+  "catalog_complete": true,
+  "tribe_count": 45,
+  "goods_count": 19,
+  "assets": [
+    {
+      "kind": "tribe_component",
+      "card_id": 0,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_0.jpg",
+      "sha256": "5f33700b97b59ddff38e58daad3419e6ed3250dadc881b1a4f88b1d0ad54fa0b"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 1,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_1.jpg",
+      "sha256": "491d12f42ef1bc3598d3b48c28ae49a953f7a5a9c9e33ab1d3e8bee73deb1992"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 2,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_2.jpg",
+      "sha256": "9b0ad01752fe64c67e71cc6ea8c78be37118a7a32ca90653fcd80e0d6fa12ab7"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 3,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_3.jpg",
+      "sha256": "5dcb0181c6506f8d5629b61dfda7aa7518fa16779c0dc90e387ad64d15781c26"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 4,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_4.jpg",
+      "sha256": "4df6db7292bc35a6f38a0c2884353511ca31e7101e8d1220395ee0c12474ef45"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 5,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_5.jpg",
+      "sha256": "d483f18bd932e744d258be10c2213971cbee0cfb796617faa5fdc539f21e3a37"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 6,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_6.jpg",
+      "sha256": "7ee19c86bf01770d9010d0c624ea5cb3e6ae801384306da37895b9496643cac8"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 7,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_7.jpg",
+      "sha256": "5dbe88a6e13444a3fc50fb6beb960985f0febba903dc000a2e530225d033a134"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 8,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_8.jpg",
+      "sha256": "7d5c212fb5a41a798422af1858d6cc66dcf0a5986736ec78719f8711267c321a"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 9,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_9.jpg",
+      "sha256": "5e25b730bfe8c5a76cf724bef90169d50936ee1df7eca6999a075b86f2b2981c"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 10,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_10.jpg",
+      "sha256": "04698cfc63cab78639ba4ee3838f404fae194b2f6f7b7f0da4b4eff687362e3d"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 11,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_11.jpg",
+      "sha256": "afd989a4febd3fce4918c25bd96e1d1bbacff64cec02aa877b7a71719272abaa"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 12,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_12.jpg",
+      "sha256": "4dac3382185eda3bd7ddd14ddc636ba149cab88d0772f7b4e5654548f83b80f2"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 13,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_13.jpg",
+      "sha256": "9dedeed46905678cac36b8943b37935a19f56fdb00577e28b65fdc340797bf64"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 14,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_14.jpg",
+      "sha256": "33578c1a8ab3f1c5f865dc416be190d7615871c8e0426b9af39fd0c43bf42eef"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 15,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_15.jpg",
+      "sha256": "7945195312eb571b9cd101c683223a13f15a38bf4bdf86947cbd37d3fbbc4b8b"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 16,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_16.jpg",
+      "sha256": "edc87461ad88c112eb9f79f49415b3c16e3dea70f7f0f7d1d008016b6c19a063"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 17,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_17.jpg",
+      "sha256": "a9645d5fa81589036ac262f5cbd59e3125e114dade7f19df42c135e58619c947"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 18,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_18.jpg",
+      "sha256": "2adadf6d97e0de0841a4cac57d91a537b70e0c9463c9081a6f917ffde8f88553"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 19,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_19.jpg",
+      "sha256": "9ca71a6c4f2a69359279bfc1204d207c35a04e9be96d757cd0795b535da877d7"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 20,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_20.jpg",
+      "sha256": "ec8c7f1bd6740e3eeb58369612cb4fabeb5746a458e0f022645bd6be172cfc1d"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 21,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_21.jpg",
+      "sha256": "b5645e9983bdff9d49875ae7f6ffc328fe4fb25a88b0eec5185988b52628486a"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 22,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_22.jpg",
+      "sha256": "3a9fa0c2b14da7755ae723f01e9cbe5b39ff19e80ee6d8e900d0a55893c0b747"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 23,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_23.jpg",
+      "sha256": "8d7cdb0abc12dca17ddc4087cbbe58a892d13cdce499937be35ab1077231e5fe"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 24,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_24.jpg",
+      "sha256": "31b7dd32fa04622ed597fcb5b50445a4959d657860620a07fc622e5bbe300a26"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 25,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_25.jpg",
+      "sha256": "1fe12b19665577579acaaf0189cf419b494445043abbdbbebd2f3bfabef0febe"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 26,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_26.jpg",
+      "sha256": "aedcd50ababc776c4c9148d6d8a9aaccdcc10b2f5bd814765da5892da6bddd5a"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 27,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_27.jpg",
+      "sha256": "d6f3e22c3411b4a2e39e845225b3e0d4b559ed775472fbddb953b1559f0a2e47"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 28,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_28.jpg",
+      "sha256": "6d3d5fc81f8d0dff249ac65c3c2902fee20f2e19bdd3945d0926ff1f3bd7dce7"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 29,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_29.jpg",
+      "sha256": "628bce0c9f4beabfc4ee72cac7de5bfc8118aceba20e26de877f95e7670c79e9"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 30,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_30.jpg",
+      "sha256": "fadd901a02ea41d67fa634e0212afe20f5e339a7dd8a6348a3b53c6797b2e27e"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 31,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_31.jpg",
+      "sha256": "477d2dbc3fded9c37e72c6421f01e4b75b38f3af977bef87fe2e46e8eb1e0477"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 32,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_32.jpg",
+      "sha256": "dc4a6c5001c0ec985bf8c7f0d9272a930d50ec3472c40731994f450c6f09fba2"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 33,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_33.jpg",
+      "sha256": "51caf6821bf374464f8748082da4aadacc4ece48f52f55253e36ef62ab00d012"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 34,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_34.jpg",
+      "sha256": "b646b31d4804866e5f0d78f4db92275c38344d0ca03d2b73c94481ca614452d0"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 35,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_35.jpg",
+      "sha256": "bb9bc296e9ff85dcb25aad45aed19604847a6fee08ebb73a01767fd0f193c5be"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 36,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_36.jpg",
+      "sha256": "3842f57e3a726d1b0e5b508418db3273c6b508aa9b83aabe927e8d21eb6238d2"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 37,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_37.jpg",
+      "sha256": "d1778b0fd8eb3841edb2a93ffdaf5deefd6356cad5f3d2099e28114a558490e0"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 38,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_38.jpg",
+      "sha256": "bc3ef61e0d8157c45df883d1cd26f1f6e907cdc449184ed6c0566cc954af7af5"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 39,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_39.jpg",
+      "sha256": "fc1498689d982b88402c07013e90cbd47950792dc53901fcf5579fcbc088f12e"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 40,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_40.jpg",
+      "sha256": "64f4fdf6dfb7981e59594be84e9e059b679e16317440a1f01ebf25c6d48bbc79"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 41,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_41.jpg",
+      "sha256": "3cd4500390fca96425aacb91bfe9de1adb6188d1eb5bb9ae92f2fff003e3c710"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 42,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_42.jpg",
+      "sha256": "16ad36fc1c0185a303b86881ad2e3e01b0b72fb82e64d77c002026453a80de10"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 43,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_43.jpg",
+      "sha256": "4207d3bd47be660082023c8e9fc75ed587be71ef8dc1fd52615a70b8b059fa45"
+    },
+    {
+      "kind": "tribe_component",
+      "card_id": 44,
+      "url": "https://www.yucata.de/netimages/games/Targi/clancard1_44.jpg",
+      "sha256": "3d97eddab82254cf2e3d611bd1d18b24c124da2070c30ae0bea65d7e143b6fe8"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 1,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_1.png",
+      "sha256": "a39822ab0277613e3c3dc90fa6837e241476c71b11bb9226afff664bd6c85a1b"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 10,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_10.png",
+      "sha256": "843a693c6a382860020310fcc32d77c0377b73df4acbc698569ce609d07eba2f"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 11,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_11.png",
+      "sha256": "0d90119e6ab3f323eb80580d9344004c86378b62987db2c1a441e30667644260"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 12,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_12.png",
+      "sha256": "b30e87967caa30d04a1ae995dad4fced0d10a7ff45dc392ab8665a4a5eeb6e6f"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 13,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_13.png",
+      "sha256": "67c6cdbeb33ddc2ab8e12bd67871f815d5b3cf9bfe46e8edd8d8d942c2ffd48c"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 16,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_16.png",
+      "sha256": "d1d29686b3dd571710162257cdb63804d22577a8482d48048e1f14980e70de3c"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 19,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_19.png",
+      "sha256": "c8baa2db93835f59e02191573d36b9a87a1562161e650d993366504e6bff257a"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 3,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_3.png",
+      "sha256": "ba5d0f35e822340cdb4b25041d9d4dc0c6c6ae0e756ed4f647a3a1e1c4ef08ea"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 5,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_5.png",
+      "sha256": "24f152b09c09e9da1bed4634afa9d58729e54100fdf0420daff2260a9e43faec"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 7,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_7.png",
+      "sha256": "edeb147893aa0d8a0e7b6d5c4fbe03be9258b04f310ec6d3bb5425b5f164db5d"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 8,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_8.png",
+      "sha256": "7858d557135abde800b971574953529c75ede1044d14eb53a913f785972dfd27"
+    },
+    {
+      "kind": "goods_component",
+      "face_id": 9,
+      "url": "https://www.yucata.de/netimages/games/Targi/goodcard_9.png",
+      "sha256": "6408e2e57bbb89970e10a3293d8ccd86f1097a36d9cf99306d53745a674854f1"
+    },
+    {
+      "kind": "official_manual",
+      "edition": "2018 English, 691479-02-070318",
+      "url": "https://www.thamesandkosmos.co.uk/wp-content/uploads/2020/05/691479_Targi-Manual.pdf",
+      "sha256": "499462e863c1ba9ef3b9b2a6a07b86f1038765e732a4dda933ce834abb5ee727"
+    }
+  ],
+  "rules": [
+    "https://www.yucata.de/en/Rules/Targi",
+    "https://www.hall9000.de/html/spiel/targi",
+    "https://boardgamegeek.com/filepage/92247/faq-english"
+  ],
+  "independent_cross_check": "https://homeofmark.com/targi-card-game-review/",
+  "notes": [
+    "Original component facts independently transcribed; no third-party program or artwork redistributed.",
+    "Yucata goods sprites are deduplicated: IDs 1/2, 3/4, 5/6, 13/14/15, 16/17/18 share faces.",
+    "Card 38 uses original any ordinary good surcharge wording, as in designer FAQ; not later English required-type wording.",
+    "BGG API verifies designer FAQ provenance, but English V2 PDF download was unavailable. Hall9000 reproduces the original author FAQ."
+  ]
+}
