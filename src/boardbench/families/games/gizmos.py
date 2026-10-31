@@ -72,6 +72,9 @@ def payment_options(energy, converter_ids, color, cost):
 class Gizmos(DuoGame):
     game_id = 'gizmos'
     config_id = 'cmon_2018_duo'
+    rules_version = '2'
+    coverage_status = 'ready_with_rulings'
+    known_unresolved_edges = ('all_players_blocked_no_stalemate_ruling',)
 
     def _reset(self, first_player):
         decks, market, removed = [], [], ['g0-2', 'g0-3']
@@ -156,7 +159,11 @@ class Gizmos(DuoGame):
     def _legal_actions(self):
         s, p = self.state, self.current_player
         if s['phase'] == 'main':
-            return self._base_actions()
+            # The licensed BGA adaptation added "pass if no legal actions"
+            # (Fletcheese/gizmos bc8e07a, 2023-05-20). Its UI does not test
+            # Build affordability; here a pass requires all four to be absent.
+            # This explicit digital ruling is documented, not a publisher FAQ.
+            return self._base_actions() or [dict(type='forced_pass')]
         if s['phase'] == 'research_choose':
             actions = [dict(type='research_pass')]
             limits = self._limits(p)
@@ -267,7 +274,7 @@ class Gizmos(DuoGame):
         s, p = self.state, self.current_player
         typ = action['type']
         public = deepcopy(action)
-        if typ == 'end_turn':
+        if typ in ('end_turn', 'forced_pass'):
             self._end_turn()
         elif typ == 'activate':
             self._activate(action['card'])

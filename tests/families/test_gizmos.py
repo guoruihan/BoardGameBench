@@ -204,3 +204,144 @@ def test_complete_seeded_matches(seed):
         g.step(a);g.validate()
         if g.state['terminated']:break
     assert g.state['terminated'],(seed,step,g.scores())
+
+
+# Frozen dev regression: cem_r1/g011_gate.json row 18 (rules 1). No model
+# checkpoint is needed; these public linear weights reproduce the original path.
+CEM_DEADLOCK_WEIGHTS = [
+    [
+        1.0339469492693878, 0.06337439132822442, 0.1390475500509063,
+        0.012857256650012451, 0.20926113159657367, 0.013741093014958766,
+        -0.12748214094084587, -0.017744878069935386, 0.012163363447312451,
+        -0.010928349693898637, 0.05671507099039895, -0.16836332943044427,
+        0.13761782365633823, 0.11034552848530466, -0.012804960265985793,
+        0.14616212931619357, 0.16163133034868968, -0.23253057962381046,
+        -0.02765646842750674, -0.05951751051379024, 0.0886777414421023,
+        -0.10769978965170418, 0.20319023767280614, 0.1632056228892336,
+    ],
+    [
+        1.0506906618509777, -0.19094630660362394, 0.1300256060838756,
+        0.09698852712865746, 0.0982597873945096, 0.09367286267546396,
+        -0.18298701727190025, 0.002219230320013409, 0.026630068146046786,
+        0.031628172768096284, -0.09452896959696665, -0.19678054466427777,
+        0.2724167980747631, -0.05844121721614342, -0.031880492231250945,
+        0.2475805138851797, 0.2476858446678074, 0.03643516654187692,
+        0.07657427662560204, 0.06127125654697824, 0.35570697995362405,
+        0.09627364461713958, 0.2800385747008483, 0.048441289191692494,
+    ],
+]
+
+
+def deadlock_regression():
+    from boardbench.families.play import make_policy, policy_seed
+    g=game(11011009)
+    policies=[make_policy(Gizmos, dict(kind='linear', weights=w), policy_seed(11011009,p))
+              for p,w in enumerate(CEM_DEADLOCK_WEIGHTS)]
+    for _ in range(106):
+        p=g.current_player
+        g.step(policies[p].decide(g.observe(p),g.legal_actions()))
+    assert g.scores()==[24,16] and g.current_player==0
+    assert g.state['phase']=='main' and not g.state['terminated']
+    assert g.state['energy'][0]==[0,0,0,5]
+    assert g.state['archives'][0]==['g3-31'] and g._limits(0)['no_research']
+    assert g._base_actions()==[]
+    g.validate()
+    return g,policies
+
+
+def test_forced_pass_reproduces_real_full_storage_full_archive_no_research_deadlock():
+    g,_=deadlock_regression()
+    assert g.legal_actions()==[dict(type='forced_pass')]
+    features=g.features(g.observe(),dict(type='forced_pass'))
+    assert len(features)==24 and features==g.features(g.observe(),dict(type='end_turn'))
+    before=g.snapshot()
+    clone=Gizmos();clone.restore(json.loads(json.dumps(before)))
+    result=g.step(dict(type='forced_pass'))
+    assert clone.step(dict(type='forced_pass'))==result
+    assert clone.snapshot()==g.snapshot()
+    assert g.current_player==1 and not result['terminated']
+    assert g.state['turns']==[before['state']['turns'][0]+1,before['state']['turns'][1]]
+    assert g.rng.getstate()==before['rng']
+    for field in ('energy','energy_row','internal','market','decks','built','archives','vp'):
+        assert g.state[field]==before['state'][field]
+    assert g.state['pending']==[] and g.state['tasks']==[]
+    assert g.state['history'][-1]['action']==dict(type='forced_pass')
+    g.validate()
+
+
+def test_no_forced_pass_when_a_build_or_research_remains_available():
+    g,_=deadlock_regression()
+    old=g.state['archives'][0].pop()
+    g.state['decks'][CARDS[old]['level']-1].append(old)
+    target=next(c for c,d in CARDS.items() if d['level']==1 and d['color']==3
+                and d['cost']==1 and c not in sum(g.state['built'],[]))
+    move(g,target,'archives')
+    actions=g.legal_actions()
+    assert actions and all(a['type']=='build' for a in actions)
+    before=g.snapshot()
+    with pytest.raises(InvalidAction):g.step(dict(type='forced_pass'))
+    assert g.snapshot()==before
+    g.validate()
+    # A legal Research can always decline its cards; it must not become a pass.
+    for cid in list(g.state['built'][0]):
+        if CARDS[cid].get('no_research'):move(g,cid,'decks',CARDS[cid]['level']-1)
+    assert any(a['type']=='research' for a in g.legal_actions())
+    assert not any(a['type']=='forced_pass' for a in g.legal_actions())
+    g.validate()
+
+
+def test_forced_pass_finishes_the_last_seats_natural_final_turn():
+    g,_=deadlock_regression()
+    g.state['first_player']=1
+    g.state['turns']=[10,11]
+    g.state['final_round']=True
+    result=g.step(dict(type='forced_pass'))
+    assert result['terminated'] and g.state['turns']==[11,11]
+    assert g.state['end_reason']=='equal_turns_after_build_threshold'
+    g.validate()
+
+
+def test_original_cem_deadlock_game_now_reaches_natural_ending():
+    g,policies=deadlock_regression()
+    passes=0
+    for _ in range(500):
+        p=g.current_player
+        a=policies[p].decide(g.observe(p),g.legal_actions())
+        passes+=a['type']=='forced_pass'
+        g.step(a);g.validate()
+        if g.state['terminated']:break
+    assert g.state['terminated'] and passes>=1
+    assert g.state['end_reason']=='equal_turns_after_build_threshold'
+    old=g.snapshot();old['rules_version']='1'
+    with pytest.raises(ValueError,match='mismatch'):Gizmos().restore(old)
+
+
+def test_both_players_blocked_remains_external_truncation_not_a_draw(monkeypatch):
+    from boardbench.families import play
+    g,_=deadlock_regression()
+    # Both public engines have full black storage, full unaffordable archives,
+    # no Research and no converters; preserve every physical card and sphere.
+    for cid in list(g.state['built'][1]):
+        if CARDS[cid]['level']:
+            move(g,cid,'decks',CARDS[cid]['level']-1)
+    move(g,'g3-00',p=1)
+    for cid in list(g.state['archives'][1]):
+        move(g,cid,'decks',CARDS[cid]['level']-1)
+    target=next(c for c in g.state['decks'][0] if CARDS[c]['color']==0)
+    move(g,target,'archives',1)
+    give_energy(g,1,[0,0,0,5])
+    before=g.snapshot()
+    g.validate()
+    for _ in range(4):
+        assert g.legal_actions()==[dict(type='forced_pass')]
+        result=g.step(dict(type='forced_pass'));g.validate()
+        assert not result['terminated'] and result['info']['winners']==[]
+        assert g.rng.getstate()==before['rng']
+    class BlockedGizmos(Gizmos):
+        def reset(self,seed=0,first_player=0):
+            return self.restore(before)
+    monkeypatch.setattr(play,'game_class',lambda game_id:BlockedGizmos)
+    result=play.run_match('gizmos',[dict(kind='heuristic')]*2,max_decisions=6)
+    assert result['status']=='truncated' and result['decisions']==6
+    assert result['rewards'] is None and result['outcome']['winners']==[]
+    assert not result['outcome']['terminated']
