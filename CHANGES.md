@@ -1,5 +1,16 @@
 # Engineering changes
 
+## 2026-11-01 — Harmonies retrospective and family policy information audit
+
+- Reconstruct matched imitation/random-init PPO controls and distinguish verified
+  full-game gains from local skill improvements and unisolated historical changes.
+- Audit all 16 qualified families' player observations, candidate features and
+  actual opponent panels; identify compact-input limitations and the absence of
+  online multi-step search from the current comparison panels.
+- Record bounded reachable-state diagnostics, 28 passing targeted regressions,
+  and per-game input repairs and stronger-search reference designs. No game rules,
+  active experiments, model formats or deployed policies change in this review.
+
 ## 2026-11-01 — reward-intervention launch verification
 
 - Complete six two-update CUDA smoke conditions with identical first-batch
