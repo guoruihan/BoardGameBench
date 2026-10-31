@@ -1,0 +1,1589 @@
+{
+  "colors": [
+    "red",
+    "yellow",
+    "blue",
+    "black"
+  ],
+  "cards": [
+    {
+      "id": "g1-00",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "upgrade",
+      "source_locator": "tier1.jpg/left storage-file/3",
+      "storage": 1,
+      "file": 1
+    },
+    {
+      "id": "g1-01",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "upgrade",
+      "source_locator": "tier1.jpg/left storage-research/3",
+      "storage": 1,
+      "research": 1
+    },
+    {
+      "id": "g1-02",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "upgrade",
+      "source_locator": "tier1.jpg/left storage-file/2",
+      "storage": 1,
+      "file": 1
+    },
+    {
+      "id": "g1-03",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "upgrade",
+      "source_locator": "tier1.jpg/left storage-research/2",
+      "storage": 1,
+      "research": 1
+    },
+    {
+      "id": "g1-04",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "upgrade",
+      "source_locator": "tier1.jpg/left storage-file/1",
+      "storage": 1,
+      "file": 1
+    },
+    {
+      "id": "g1-05",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "upgrade",
+      "source_locator": "tier1.jpg/left storage-research/1",
+      "storage": 1,
+      "research": 1
+    },
+    {
+      "id": "g1-06",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "upgrade",
+      "source_locator": "tier1.jpg/left storage-file/0",
+      "storage": 1,
+      "file": 1
+    },
+    {
+      "id": "g1-07",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "upgrade",
+      "source_locator": "tier1.jpg/left storage-research/0",
+      "storage": 1,
+      "research": 1
+    },
+    {
+      "id": "g1-08",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "converter",
+      "source_locator": "tier1.jpg/converter cost3-input1",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 1
+        }
+      ]
+    },
+    {
+      "id": "g1-09",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "converter",
+      "source_locator": "tier1.jpg/converter cost3-input0",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 0
+        }
+      ]
+    },
+    {
+      "id": "g1-10",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "converter",
+      "source_locator": "tier1.jpg/converter cost2-input1",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 1
+        }
+      ]
+    },
+    {
+      "id": "g1-11",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "converter",
+      "source_locator": "tier1.jpg/converter cost2-input0",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 0
+        }
+      ]
+    },
+    {
+      "id": "g1-12",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "converter",
+      "source_locator": "tier1.jpg/converter cost1-input3",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 3
+        }
+      ]
+    },
+    {
+      "id": "g1-13",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "converter",
+      "source_locator": "tier1.jpg/converter cost1-input2",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 2
+        }
+      ]
+    },
+    {
+      "id": "g1-14",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "converter",
+      "source_locator": "tier1.jpg/converter cost0-input3",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 3
+        }
+      ]
+    },
+    {
+      "id": "g1-15",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "converter",
+      "source_locator": "tier1.jpg/converter cost0-input2",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 2
+        }
+      ]
+    },
+    {
+      "id": "g1-16",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/file-pick/0",
+      "trigger": "file",
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g1-17",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/file-pick/1",
+      "trigger": "file",
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g1-18",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/file-pick/3",
+      "trigger": "file",
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g1-19",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/file-pick/2",
+      "trigger": "file",
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g1-20",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/pick-random cost3-input2",
+      "trigger": "pick",
+      "colors": [
+        2
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g1-21",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/pick-random cost3-input1",
+      "trigger": "pick",
+      "colors": [
+        1
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g1-22",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/pick-random cost0-input2",
+      "trigger": "pick",
+      "colors": [
+        2
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g1-23",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/pick-random cost0-input1",
+      "trigger": "pick",
+      "colors": [
+        1
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g1-24",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/pick-random cost2-input3",
+      "trigger": "pick",
+      "colors": [
+        3
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g1-25",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/pick-random cost2-input0",
+      "trigger": "pick",
+      "colors": [
+        0
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g1-26",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/pick-random cost1-input3",
+      "trigger": "pick",
+      "colors": [
+        3
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g1-27",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/pick-random cost1-input0",
+      "trigger": "pick",
+      "colors": [
+        0
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g1-28",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/build-vp/3",
+      "trigger": "build",
+      "colors": [
+        0
+      ],
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g1-29",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/build-vp/2",
+      "trigger": "build",
+      "colors": [
+        3
+      ],
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g1-30",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/build-vp/1",
+      "trigger": "build",
+      "colors": [
+        2
+      ],
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g1-31",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/build-vp/0",
+      "trigger": "build",
+      "colors": [
+        1
+      ],
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g1-32",
+      "level": 1,
+      "color": 3,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/build-pick/3",
+      "trigger": "build",
+      "colors": [
+        2
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g1-33",
+      "level": 1,
+      "color": 2,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/build-pick/2",
+      "trigger": "build",
+      "colors": [
+        1
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g1-34",
+      "level": 1,
+      "color": 1,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/build-pick/1",
+      "trigger": "build",
+      "colors": [
+        0
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g1-35",
+      "level": 1,
+      "color": 0,
+      "cost": 1,
+      "points": 1,
+      "kind": "trigger",
+      "source_locator": "tier1.jpg/build-pick/0",
+      "trigger": "build",
+      "colors": [
+        3
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-00",
+      "level": 2,
+      "color": 3,
+      "cost": 3,
+      "points": 3,
+      "kind": "upgrade",
+      "source_locator": "tier2.jpg/left upgrade/3",
+      "storage": 2,
+      "file": 1,
+      "research": 2
+    },
+    {
+      "id": "g2-01",
+      "level": 2,
+      "color": 2,
+      "cost": 3,
+      "points": 3,
+      "kind": "upgrade",
+      "source_locator": "tier2.jpg/left upgrade/2",
+      "storage": 2,
+      "file": 1,
+      "research": 2
+    },
+    {
+      "id": "g2-02",
+      "level": 2,
+      "color": 1,
+      "cost": 3,
+      "points": 3,
+      "kind": "upgrade",
+      "source_locator": "tier2.jpg/left upgrade/1",
+      "storage": 2,
+      "file": 1,
+      "research": 2
+    },
+    {
+      "id": "g2-03",
+      "level": 2,
+      "color": 0,
+      "cost": 3,
+      "points": 3,
+      "kind": "upgrade",
+      "source_locator": "tier2.jpg/left upgrade/0",
+      "storage": 2,
+      "file": 1,
+      "research": 2
+    },
+    {
+      "id": "g2-04",
+      "level": 2,
+      "color": 3,
+      "cost": 3,
+      "points": 3,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/double input1-cost3",
+      "converters": [
+        {
+          "type": "double",
+          "source": 1
+        }
+      ]
+    },
+    {
+      "id": "g2-05",
+      "level": 2,
+      "color": 2,
+      "cost": 3,
+      "points": 3,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/double input1-cost2",
+      "converters": [
+        {
+          "type": "double",
+          "source": 1
+        }
+      ]
+    },
+    {
+      "id": "g2-06",
+      "level": 2,
+      "color": 3,
+      "cost": 3,
+      "points": 3,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/double input0-cost3",
+      "converters": [
+        {
+          "type": "double",
+          "source": 0
+        }
+      ]
+    },
+    {
+      "id": "g2-07",
+      "level": 2,
+      "color": 2,
+      "cost": 3,
+      "points": 3,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/double input0-cost2",
+      "converters": [
+        {
+          "type": "double",
+          "source": 0
+        }
+      ]
+    },
+    {
+      "id": "g2-08",
+      "level": 2,
+      "color": 1,
+      "cost": 3,
+      "points": 3,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/double input3-cost1",
+      "converters": [
+        {
+          "type": "double",
+          "source": 3
+        }
+      ]
+    },
+    {
+      "id": "g2-09",
+      "level": 2,
+      "color": 0,
+      "cost": 3,
+      "points": 3,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/double input3-cost0",
+      "converters": [
+        {
+          "type": "double",
+          "source": 3
+        }
+      ]
+    },
+    {
+      "id": "g2-10",
+      "level": 2,
+      "color": 1,
+      "cost": 3,
+      "points": 3,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/double input2-cost1",
+      "converters": [
+        {
+          "type": "double",
+          "source": 2
+        }
+      ]
+    },
+    {
+      "id": "g2-11",
+      "level": 2,
+      "color": 0,
+      "cost": 3,
+      "points": 3,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/double input2-cost0",
+      "converters": [
+        {
+          "type": "double",
+          "source": 2
+        }
+      ]
+    },
+    {
+      "id": "g2-12",
+      "level": 2,
+      "color": 3,
+      "cost": 2,
+      "points": 2,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/dual-wild/3",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 2
+        },
+        {
+          "type": "wild",
+          "source": 2
+        }
+      ]
+    },
+    {
+      "id": "g2-13",
+      "level": 2,
+      "color": 2,
+      "cost": 2,
+      "points": 2,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/dual-wild/2",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 3
+        },
+        {
+          "type": "wild",
+          "source": 3
+        }
+      ]
+    },
+    {
+      "id": "g2-14",
+      "level": 2,
+      "color": 1,
+      "cost": 2,
+      "points": 2,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/dual-wild/1",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 0
+        },
+        {
+          "type": "wild",
+          "source": 0
+        }
+      ]
+    },
+    {
+      "id": "g2-15",
+      "level": 2,
+      "color": 0,
+      "cost": 2,
+      "points": 2,
+      "kind": "converter",
+      "source_locator": "tier2.jpg/dual-wild/0",
+      "converters": [
+        {
+          "type": "wild",
+          "source": 1
+        },
+        {
+          "type": "wild",
+          "source": 1
+        }
+      ]
+    },
+    {
+      "id": "g2-16",
+      "level": 2,
+      "color": 3,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/pick-random/3",
+      "trigger": "pick",
+      "colors": [
+        1,
+        0
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g2-17",
+      "level": 2,
+      "color": 2,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/pick-random/2",
+      "trigger": "pick",
+      "colors": [
+        1,
+        3
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g2-18",
+      "level": 2,
+      "color": 0,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/pick-random/0",
+      "trigger": "pick",
+      "colors": [
+        2,
+        3
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g2-19",
+      "level": 2,
+      "color": 1,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/pick-random/1",
+      "trigger": "pick",
+      "colors": [
+        0,
+        2
+      ],
+      "effect": "random",
+      "amount": 1
+    },
+    {
+      "id": "g2-20",
+      "level": 2,
+      "color": 3,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-pick/3-0",
+      "trigger": "build",
+      "colors": [
+        0,
+        2
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-21",
+      "level": 2,
+      "color": 3,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-pick/3-1",
+      "trigger": "build",
+      "colors": [
+        1,
+        0
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-22",
+      "level": 2,
+      "color": 0,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-pick/0-0",
+      "trigger": "build",
+      "colors": [
+        2,
+        1
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-23",
+      "level": 2,
+      "color": 0,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-pick/0-1",
+      "trigger": "build",
+      "colors": [
+        2,
+        3
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-24",
+      "level": 2,
+      "color": 2,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-pick/2-0",
+      "trigger": "build",
+      "colors": [
+        1,
+        3
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-25",
+      "level": 2,
+      "color": 2,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-pick/2-1",
+      "trigger": "build",
+      "colors": [
+        1,
+        0
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-26",
+      "level": 2,
+      "color": 1,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-pick/1-0",
+      "trigger": "build",
+      "colors": [
+        3,
+        0
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-27",
+      "level": 2,
+      "color": 1,
+      "cost": 2,
+      "points": 2,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-pick/1-1",
+      "trigger": "build",
+      "colors": [
+        2,
+        3
+      ],
+      "effect": "pick",
+      "amount": 1
+    },
+    {
+      "id": "g2-28",
+      "level": 2,
+      "color": 3,
+      "cost": 3,
+      "points": 3,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-vp/3",
+      "trigger": "build",
+      "colors": [
+        2,
+        1
+      ],
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g2-29",
+      "level": 2,
+      "color": 0,
+      "cost": 3,
+      "points": 3,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-vp/0",
+      "trigger": "build",
+      "colors": [
+        1,
+        3
+      ],
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g2-30",
+      "level": 2,
+      "color": 2,
+      "cost": 3,
+      "points": 3,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-vp/2",
+      "trigger": "build",
+      "colors": [
+        3,
+        0
+      ],
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g2-31",
+      "level": 2,
+      "color": 1,
+      "cost": 3,
+      "points": 3,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/build-vp/1",
+      "trigger": "build",
+      "colors": [
+        0,
+        2
+      ],
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g2-32",
+      "level": 2,
+      "color": 3,
+      "cost": 3,
+      "points": 3,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/archive-build-two-pick/3",
+      "trigger": "build",
+      "source": "archive",
+      "effect": "pick",
+      "amount": 2
+    },
+    {
+      "id": "g2-33",
+      "level": 2,
+      "color": 0,
+      "cost": 3,
+      "points": 3,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/archive-build-two-pick/0",
+      "trigger": "build",
+      "source": "archive",
+      "effect": "pick",
+      "amount": 2
+    },
+    {
+      "id": "g2-34",
+      "level": 2,
+      "color": 2,
+      "cost": 3,
+      "points": 3,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/archive-build-two-pick/2",
+      "trigger": "build",
+      "source": "archive",
+      "effect": "pick",
+      "amount": 2
+    },
+    {
+      "id": "g2-35",
+      "level": 2,
+      "color": 1,
+      "cost": 3,
+      "points": 3,
+      "kind": "trigger",
+      "source_locator": "tier2.jpg/archive-build-two-pick/1",
+      "trigger": "build",
+      "source": "archive",
+      "effect": "pick",
+      "amount": 2
+    },
+    {
+      "id": "g3-00",
+      "level": 3,
+      "color": 3,
+      "cost": 4,
+      "points": 8,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/no-research/3",
+      "no_research": true
+    },
+    {
+      "id": "g3-01",
+      "level": 3,
+      "color": 1,
+      "cost": 4,
+      "points": 8,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/no-research/1",
+      "no_research": true
+    },
+    {
+      "id": "g3-02",
+      "level": 3,
+      "color": 2,
+      "cost": 4,
+      "points": 7,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/no-file/2",
+      "no_file": true
+    },
+    {
+      "id": "g3-03",
+      "level": 3,
+      "color": 0,
+      "cost": 4,
+      "points": 7,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/no-file/0",
+      "no_file": true
+    },
+    {
+      "id": "g3-04",
+      "level": 3,
+      "color": 3,
+      "cost": 6,
+      "points": 6,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/research-discount/3",
+      "discount_research": 1
+    },
+    {
+      "id": "g3-05",
+      "level": 3,
+      "color": 1,
+      "cost": 6,
+      "points": 6,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/research-discount/1",
+      "discount_research": 1
+    },
+    {
+      "id": "g3-06",
+      "level": 3,
+      "color": 2,
+      "cost": 5,
+      "points": 5,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/archive-discount/2",
+      "discount_archive": 1
+    },
+    {
+      "id": "g3-07",
+      "level": 3,
+      "color": 0,
+      "cost": 5,
+      "points": 5,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/archive-discount/0",
+      "discount_archive": 1
+    },
+    {
+      "id": "g3-08",
+      "level": 3,
+      "color": null,
+      "cost": 7,
+      "points": 0,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/rainbow-energy/0",
+      "award": "energy"
+    },
+    {
+      "id": "g3-09",
+      "level": 3,
+      "color": null,
+      "cost": 7,
+      "points": 0,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/rainbow-energy/1",
+      "award": "energy"
+    },
+    {
+      "id": "g3-10",
+      "level": 3,
+      "color": null,
+      "cost": 7,
+      "points": 0,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/rainbow-vp/0",
+      "award": "vp"
+    },
+    {
+      "id": "g3-11",
+      "level": 3,
+      "color": null,
+      "cost": 7,
+      "points": 0,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/rainbow-vp/1",
+      "award": "vp"
+    },
+    {
+      "id": "g3-12",
+      "level": 3,
+      "color": 3,
+      "cost": 4,
+      "points": 4,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/bottom-storage/3",
+      "storage": 4
+    },
+    {
+      "id": "g3-13",
+      "level": 3,
+      "color": 2,
+      "cost": 4,
+      "points": 4,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/bottom-storage/2",
+      "storage": 4
+    },
+    {
+      "id": "g3-14",
+      "level": 3,
+      "color": 3,
+      "cost": 5,
+      "points": 5,
+      "kind": "converter",
+      "source_locator": "tier3.jpg/dual-double/3",
+      "converters": [
+        {
+          "type": "double",
+          "source": 2
+        },
+        {
+          "type": "double",
+          "source": 1
+        }
+      ]
+    },
+    {
+      "id": "g3-15",
+      "level": 3,
+      "color": 2,
+      "cost": 5,
+      "points": 5,
+      "kind": "converter",
+      "source_locator": "tier3.jpg/dual-double/2",
+      "converters": [
+        {
+          "type": "double",
+          "source": 3
+        },
+        {
+          "type": "double",
+          "source": 0
+        }
+      ]
+    },
+    {
+      "id": "g3-16",
+      "level": 3,
+      "color": 1,
+      "cost": 4,
+      "points": 4,
+      "kind": "converter",
+      "source_locator": "tier3.jpg/any-to-any/1",
+      "converters": [
+        {
+          "type": "wild",
+          "source": null
+        }
+      ]
+    },
+    {
+      "id": "g3-17",
+      "level": 3,
+      "color": 0,
+      "cost": 4,
+      "points": 4,
+      "kind": "converter",
+      "source_locator": "tier3.jpg/any-to-any/0",
+      "converters": [
+        {
+          "type": "wild",
+          "source": null
+        }
+      ]
+    },
+    {
+      "id": "g3-18",
+      "level": 3,
+      "color": 3,
+      "cost": 4,
+      "points": 4,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/file-vp/3",
+      "trigger": "file",
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g3-19",
+      "level": 3,
+      "color": 0,
+      "cost": 4,
+      "points": 4,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/file-vp/0",
+      "trigger": "file",
+      "effect": "vp",
+      "amount": 1
+    },
+    {
+      "id": "g3-20",
+      "level": 3,
+      "color": 2,
+      "cost": 4,
+      "points": 4,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/file-random-three/2",
+      "trigger": "file",
+      "effect": "random",
+      "amount": 3
+    },
+    {
+      "id": "g3-21",
+      "level": 3,
+      "color": 1,
+      "cost": 4,
+      "points": 4,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/file-random-three/1",
+      "trigger": "file",
+      "effect": "random",
+      "amount": 3
+    },
+    {
+      "id": "g3-22",
+      "level": 3,
+      "color": 3,
+      "cost": 5,
+      "points": 5,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-file/3",
+      "trigger": "build",
+      "colors": [
+        2,
+        1
+      ],
+      "effect": "file",
+      "amount": 1
+    },
+    {
+      "id": "g3-23",
+      "level": 3,
+      "color": 1,
+      "cost": 5,
+      "points": 5,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-file/1",
+      "trigger": "build",
+      "colors": [
+        3,
+        0
+      ],
+      "effect": "file",
+      "amount": 1
+    },
+    {
+      "id": "g3-24",
+      "level": 3,
+      "color": 3,
+      "cost": 5,
+      "points": 5,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-two-vp/3",
+      "trigger": "build",
+      "colors": [
+        0,
+        2
+      ],
+      "effect": "vp",
+      "amount": 2
+    },
+    {
+      "id": "g3-25",
+      "level": 3,
+      "color": 0,
+      "cost": 5,
+      "points": 5,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-two-vp/0",
+      "trigger": "build",
+      "colors": [
+        1,
+        3
+      ],
+      "effect": "vp",
+      "amount": 2
+    },
+    {
+      "id": "g3-26",
+      "level": 3,
+      "color": 3,
+      "cost": 6,
+      "points": 6,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-level2-two-pick/3",
+      "trigger": "build",
+      "level_filter": 2,
+      "effect": "pick",
+      "amount": 2
+    },
+    {
+      "id": "g3-27",
+      "level": 3,
+      "color": 0,
+      "cost": 6,
+      "points": 6,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-level2-two-pick/0",
+      "trigger": "build",
+      "level_filter": 2,
+      "effect": "pick",
+      "amount": 2
+    },
+    {
+      "id": "g3-28",
+      "level": 3,
+      "color": 2,
+      "cost": 7,
+      "points": 7,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-research/2",
+      "trigger": "build",
+      "colors": [
+        1,
+        0
+      ],
+      "effect": "research",
+      "amount": 1
+    },
+    {
+      "id": "g3-29",
+      "level": 3,
+      "color": 0,
+      "cost": 7,
+      "points": 7,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-research/0",
+      "trigger": "build",
+      "colors": [
+        2,
+        3
+      ],
+      "effect": "research",
+      "amount": 1
+    },
+    {
+      "id": "g3-30",
+      "level": 3,
+      "color": 2,
+      "cost": 6,
+      "points": 6,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-free-level1/2",
+      "trigger": "build",
+      "colors": [
+        1,
+        0
+      ],
+      "effect": "free_build",
+      "amount": 1
+    },
+    {
+      "id": "g3-31",
+      "level": 3,
+      "color": 1,
+      "cost": 6,
+      "points": 6,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/build-free-level1/1",
+      "trigger": "build",
+      "colors": [
+        2,
+        3
+      ],
+      "effect": "free_build",
+      "amount": 1
+    },
+    {
+      "id": "g3-32",
+      "level": 3,
+      "color": 2,
+      "cost": 5,
+      "points": 5,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/level2-discount/2",
+      "discount_level2": 1
+    },
+    {
+      "id": "g3-33",
+      "level": 3,
+      "color": 1,
+      "cost": 5,
+      "points": 5,
+      "kind": "upgrade",
+      "source_locator": "tier3.jpg/level2-discount/1",
+      "discount_level2": 1
+    },
+    {
+      "id": "g3-34",
+      "level": 3,
+      "color": 1,
+      "cost": 5,
+      "points": 5,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/bottom-archive-two-vp/1",
+      "trigger": "build",
+      "source": "archive",
+      "effect": "vp",
+      "amount": 2
+    },
+    {
+      "id": "g3-35",
+      "level": 3,
+      "color": 0,
+      "cost": 5,
+      "points": 5,
+      "kind": "trigger",
+      "source_locator": "tier3.jpg/bottom-archive-two-vp/0",
+      "trigger": "build",
+      "source": "archive",
+      "effect": "vp",
+      "amount": 2
+    },
+    {
+      "id": "g0-0",
+      "level": 0,
+      "color": null,
+      "cost": 0,
+      "points": 0,
+      "kind": "trigger",
+      "trigger": "file",
+      "effect": "random",
+      "amount": 1,
+      "source_locator": "official rulebook starting Gizmo"
+    },
+    {
+      "id": "g0-1",
+      "level": 0,
+      "color": null,
+      "cost": 0,
+      "points": 0,
+      "kind": "trigger",
+      "trigger": "file",
+      "effect": "random",
+      "amount": 1,
+      "source_locator": "official rulebook starting Gizmo"
+    },
+    {
+      "id": "g0-2",
+      "level": 0,
+      "color": null,
+      "cost": 0,
+      "points": 0,
+      "kind": "trigger",
+      "trigger": "file",
+      "effect": "random",
+      "amount": 1,
+      "source_locator": "official rulebook starting Gizmo"
+    },
+    {
+      "id": "g0-3",
+      "level": 0,
+      "color": null,
+      "cost": 0,
+      "points": 0,
+      "kind": "trigger",
+      "trigger": "file",
+      "effect": "random",
+      "amount": 1,
+      "source_locator": "official rulebook starting Gizmo"
+    }
+  ],
+  "provenance": {
+    "checked_on": "2026-10-31",
+    "edition": "CMON 2018 base game",
+    "physical_inventory": "https://tck.mn/blog/gizmos-boardgame/",
+    "images": [
+      {
+        "url": "https://tck.mn/blog/gizmos-boardgame/tier1.jpg",
+        "sha256": "055254407c11ddff8e292c0259694c77c02d451c226b0f5b890b9ed4008a0243",
+        "count": 36
+      },
+      {
+        "url": "https://tck.mn/blog/gizmos-boardgame/tier2.jpg",
+        "sha256": "d1ccd0c21a07ce50065c7412ef6d1b46c4045ee2da354eb09d49c2fe10d596bf",
+        "count": 36
+      },
+      {
+        "url": "https://tck.mn/blog/gizmos-boardgame/tier3.jpg",
+        "sha256": "b0ad99f9ffa9de49d1126a070f7ec70be03d07526ed67cdd1b058606bf2d60b4",
+        "count": 36
+      }
+    ],
+    "rules": "https://www.cmon.com/wp-content/uploads/2023/06/Rulebook_Gizmos-1.pdf",
+    "effects": "https://www.cmon.com/wp-content/uploads/2023/06/GIZ_ListOfEffects_-_Web_Version.pdf",
+    "crosscheck": "https://github.com/krawthekrow/gizmosbot/blob/802a28cf46912a7235200fa2c23fef5663f82ff7/card_data.txt",
+    "crosscheck_scope": "Partial independent table: 28 tier1 non-converters and all36 tier2. Missing converters and tier3 were transcribed directly from complete physical photos. No third-party engine code copied.",
+    "excluded": "The image author discusses house rules later in the article; none are adopted. JGrzybowski test cards were not used as catalog data."
+  }
+}
