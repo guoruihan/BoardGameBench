@@ -1,5 +1,19 @@
 # Engineering changes
 
+## 2026-10-31 — 0.5.2 policy repetition handling and evaluation I/O
+
+- Add an explicit, portable New World bot guard for repeated public turn states.
+  Preserve original first-visit decisions and the unguarded policies; legal moves,
+  game rules and existing model parameters remain unchanged. No termination
+  guarantee is implied.
+- Summarize evaluation attempts from the writer's persisted in-memory mirror.
+  Keep per-attempt atomic records and complete disk-based recovery, avoiding a
+  redundant final scan of thousands of files on shared storage.
+- Document the retained Harmonies engine's candidate-order boundary under sorted
+  JSON snapshots; equal action sequences still reproduce full game state.
+- Verify the integrated runtime with 512 passing family tests, including failed
+  persistence cleanup, recovery and guarded-model package round trips.
+
 ## 2026-10-31 — 0.5.1 forced-pass boundary corrections
 
 - Long-run audits expose rare Splendor/Gizmos states with no normal main action.

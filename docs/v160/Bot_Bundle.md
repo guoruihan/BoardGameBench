@@ -64,8 +64,11 @@ games/<game>/dev_provenance.json
 
 单 bot JSON 仅保留推理必需字段：策略类型、游戏/config/rules 身份、24维线性
 权重或相对模型路径与 SHA256，以及神经策略的 `stochastic` 参数。
-显式推理字段 `decision_guard="targi_trader_acyclic_v1"` 只允许用于 Targi，
-原样保留；未知 guard 或用于其他游戏均拒绝，不会静默删掉改变策略行为。训练产物中
+显式推理字段 `decision_guard` 只接受两种已注册组合：Targi 的
+`targi_trader_acyclic_v1`，以及 Century: A New World 的
+`century_new_world_public_repeat_v1`。原样保留；未知 guard 或用于其他游戏均拒绝，
+不会静默删掉改变策略行为。后者仅规避部分公开局面重复，不保证自然终局，见
+[New World 诊断](NewWorld_Cycle_Diagnosis.md)。训练产物中
 额外的路径、主机和服务配置不复制。模型复制真实字节，不创建符号链接，也不
 跟随原训练目录的后续更新；同一游戏内相同模型按 SHA 去重。
 

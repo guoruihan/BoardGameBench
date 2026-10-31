@@ -1,5 +1,15 @@
 # Research milestones
 
+## V1.6.0 New World policy-cycle diagnosis — 2026-10-31
+
+- Reproduce 12 development truncations as legal policy cycles, including learned
+  candidates. Resource production and context-poor discard preferences can undo
+  each other; this is not an environment deadlock or a new terminal rule.
+- An explicit public-history guard finishes four of six affected diagnostic
+  games within the original cap. A discard-stage variant does not improve that
+  coverage and is not retained. New development comparisons are still required
+  before selecting guarded opponents; diagnostic scores are not strength claims.
+
 ## V1.6.0 long-run rule-boundary correction — 2026-10-31
 
 - Reopen the initial runtime freeze after historical training audits reveal rare
