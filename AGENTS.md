@@ -14,3 +14,11 @@
   the user explicitly requests a separate artifact release.
 - Update `CHANGES.md` for published engineering/documentation changes and
   `CHANGELOG.md` when the research method or evaluation milestone changes.
+
+## Private service integration
+
+- Keep service-specific endpoint addresses, authentication configuration,
+  invocation scripts and private instructions out of Git. Store them outside
+  the repository or in ignored local directories; never force-add them.
+- Public integration code may expose a generic interface. Check staged content
+  for private connection details before every related commit and push.

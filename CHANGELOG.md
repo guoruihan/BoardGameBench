@@ -1,5 +1,14 @@
 # Research milestones
 
+## V1.5.1 stage closure — 2026-10-31
+
+- Close the stage with a playable solo/duo Harmonies task, reproducible strategy
+  experiments and a separate direct-assistant play evaluation. Distinguish Codex
+  as the user-guided experiment developer from Codex as the in-game player.
+- Retain the animal/terrain tradeoff and negative total-score results; no claim
+  of optimal play, new baseline promotion or additional training in this snapshot.
+- Research tag `v1.5.1` preserves package 0.4.39 and links the stage summary.
+
 ## 0.4.39 / research V1.5.1 — 2026-10-27
 
 - Current conversational assistant explicitly plays 8 solo and 8 official duo

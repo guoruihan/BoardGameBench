@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-10-31 — V1.5.1 / 0.4.39 stage closure
+
+- Save the completed Harmonies task and guided strategy exploration as the
+  research-version snapshot `v1.5.1`, retaining package version 0.4.39.
+- Add a stage summary linking environment capabilities, retained experiments,
+  direct assistant play, reproducibility boundaries and unresolved findings.
+- Record the local-only handling of private service integration in repository
+  instructions. This update changes documentation only; no new experiment.
+
 ## 2026-10-27 — 0.4.39 / V151 direct assistant play
 
 - Add a recoverable public-observation CLI for explicit assistant moves against
