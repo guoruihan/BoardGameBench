@@ -1,0 +1,113 @@
+{
+  "game": "five_tribes",
+  "edition": "base_fakir_2016_help_sheet",
+  "checked": "2026-10-31",
+  "source": "https://cdn.svc.asmodee.net/production-daysofwonder/uploads/2024/07/ft_summary_2016-04_en.pdf",
+  "source_sha256": "327c57abd545dc496a75ae9a7473d237467048d0f51a046e5ce812e7f9f7b0ce",
+  "vp_evidence": "Page 2 rendered at 2200px; every card top-right printed VP visually transcribed. These digits are image-only and absent from pdftotext output.",
+  "djinn_vp": {
+    "al_amin": 5,
+    "anun_nak": 8,
+    "baal": 6,
+    "boaz": 6,
+    "bouraq": 6,
+    "echidna": 4,
+    "enki": 8,
+    "hagis": 10,
+    "haurvatat": 8,
+    "iblis": 8,
+    "jafaar": 6,
+    "kandicha": 6,
+    "kumarbi": 6,
+    "lamia": 10,
+    "leta": 4,
+    "marid": 6,
+    "monkir": 6,
+    "nekir": 6,
+    "shamhat": 6,
+    "sibittis": 4,
+    "sloar": 8,
+    "utug": 4
+  },
+  "meeples": {
+    "yellow": 16,
+    "white": 20,
+    "blue": 18,
+    "red": 18,
+    "green": 18
+  },
+  "resources": {
+    "ivory": 2,
+    "jewels": 2,
+    "gold": 2,
+    "papyrus": 4,
+    "silk": 4,
+    "spice": 4,
+    "fish": 6,
+    "wheat": 6,
+    "pottery": 6,
+    "fakir": 18
+  },
+  "tiles": [
+    [
+      "small_market",
+      "red",
+      6,
+      8
+    ],
+    [
+      "large_market",
+      "red",
+      4,
+      4
+    ],
+    [
+      "oasis",
+      "red",
+      8,
+      6
+    ],
+    [
+      "village",
+      "blue",
+      5,
+      5
+    ],
+    [
+      "sacred",
+      "blue",
+      6,
+      4
+    ],
+    [
+      "sacred",
+      "blue",
+      10,
+      1
+    ],
+    [
+      "sacred",
+      "blue",
+      12,
+      1
+    ],
+    [
+      "sacred",
+      "blue",
+      15,
+      1
+    ]
+  ],
+  "sale_values": [
+    0,
+    1,
+    3,
+    7,
+    13,
+    21,
+    30,
+    40,
+    50,
+    60
+  ]
+}
