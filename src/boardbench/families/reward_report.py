@@ -85,7 +85,7 @@ def report(directory):
         a,b = evaluations.get((game,condition)),evaluations.get((game,'win'))
         control = next(j for j in jobs if j['game']==game and j['condition']=='win')
         av,bv = row['validation'],control['validation']
-        if a and b:
+        if a and b and a['summary']['all_complete'] and b['summary']['all_complete']:
             comparisons.append(dict(game=game,condition=condition,
                 candidate_decisions=av['learner_decisions'],control_decisions=bv['learner_decisions'],
                 equal_decisions=av['learner_decisions']==bv['learner_decisions'],

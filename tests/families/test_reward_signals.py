@@ -183,3 +183,18 @@ def test_paired_score_report_preserves_seats_and_missing_game_denominators():
     assert paired['signals']['own_score']['mean']==5.
     assert paired['signals']['score_margin']['interval']==[5.,5.]
     assert not score_difference(candidates[:-1],controls)['complete']
+
+
+def test_report_does_not_compare_identical_but_incomplete_panels(tmp_path):
+    import json
+    from boardbench.families.play import write_json
+    from boardbench.families.reward_report import report
+    from boardbench.families.trajectory_io import write_compressed
+    r=result(); r.update(learner_seat=0,opponent_id='frozen')
+    for condition in ('win','aux'):
+        run=tmp_path/'runs'/'harmonies'/condition; run.mkdir(parents=True)
+        write_json(run/'config.json',dict(condition=condition,game='harmonies',max_decisions=100))
+        (run/'metrics.jsonl').write_text(json.dumps(dict(event='validation',candidate='update_1',
+                         learner_decisions=100))+'\n')
+        write_compressed(run/'evaluation'/'update_1.json.gz',dict(summary=dict(all_complete=False),games=[r]))
+    assert not report(tmp_path)['comparisons']

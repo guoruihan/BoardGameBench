@@ -10,6 +10,8 @@
   actor/critic diagnostics and paired development reports across qualified games.
 - Support smaller physical-core slots for bounded parallel remote pilots while
   retaining half-host quotas, fresh GPU checks and existing-process protections.
+- Require fully completed evaluation panels before cross-condition statistics;
+  equal partial subsets must not appear as complete paired comparisons.
 
 ## 2026-11-01 — reward-signal literature evidence
 
