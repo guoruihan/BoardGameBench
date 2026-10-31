@@ -1,5 +1,18 @@
 # Engineering changes
 
+## 2026-11-01 — 0.6.2 lossless sampling/storage pipeline
+
+- Buffer JSON encoding/compression, archive full episodes in CPU actors, and
+  send compact PPO records plus compressed bytes to the learner. Read both old
+  and new trajectory formats without dropping public observations or outcomes.
+- Replace worker-wave barriers with bounded rolling dispatch while preserving
+  job order, seeds and learner updates. Store immutable training context once.
+- Add cooperative pause requests and explicit remaining-budget resume preparation
+  in new directories. Preserve committed checkpoints on partial-update failures.
+- Verify identical trajectories and exact GPU model updates on paired replay:
+  representative batch speedups are 2.16–3.30x, excluding validation/checkpoint
+  work. Original pilot jobs remain paused; no performance claim for all games.
+
 ## 2026-11-01 — 0.6.1 scoreless-race evaluation and bounded repair
 
 - Preserve null victory-point scores in race games (Machi Koro and El Dorado)

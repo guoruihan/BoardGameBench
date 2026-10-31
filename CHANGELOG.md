@@ -1,5 +1,16 @@
 # Research milestones
 
+## V1.7.0 lossless pipeline performance check — 2026-11-01
+
+- Pause the policy-pool pilot at the user's request and retain all checkpoints.
+  Improve transport, serialization, scheduling and checkpoint storage without
+  changing the reward, model, game rules or learner's information boundary.
+- Paired replay of existing Harmonies, Patchwork and Cascadia batches preserves
+  complete trajectories and exact post-PPO tensors while reducing sampled
+  batch wall time. This is a performance result, not improved policy strength.
+- Full multi-game training stays paused pending an explicit resume; resource
+  allocation recommendations require measurement of the optimized pipeline.
+
 ## V1.7.0 unified policy-pool baseline pilot — 2026-11-01
 
 - Apply the same public-candidate actor-critic/PPO method to all 16 qualified

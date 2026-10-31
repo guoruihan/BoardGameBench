@@ -1,5 +1,6 @@
 """Paired fixed-panel evaluation and public-state behavior diagnostics."""
 import hashlib
+from concurrent.futures import FIRST_COMPLETED, wait
 import json
 import math
 import time
@@ -12,17 +13,30 @@ from .train import match_worker
 
 
 def bounded_jobs(executor, function, jobs, deadline, workers, stopped=lambda:False):
-    """Submit at most one worker-wave at a time; never queue hours past a cap."""
-    results = []
-    for start in range(0, len(jobs), workers):
-        remaining = deadline-time.time()
-        if stopped() or remaining < 3:
-            break
-        wave = [dict(j) for j in jobs[start:start+workers]]
-        for job in wave:
-            job['max_seconds'] = min(job.get('max_seconds', 120.), max(.1, remaining-2))
-        results.extend(executor.map(function, wave, chunksize=1))
-    return results
+    """Keep a bounded rolling window busy, returning original job order.
+
+    Slow games do not create a barrier for all other workers. At most `workers`
+    are in flight; stop/deadline prevents further submissions, but current games
+    finish under their per-game caps. No completion-order training randomness.
+    """
+    results, pending, next_index = {}, {}, 0
+    def fill():
+        nonlocal next_index
+        while next_index<len(jobs) and len(pending)<workers:
+            remaining=deadline-time.time()
+            if stopped() or remaining<3:break
+            job=dict(jobs[next_index])
+            job['max_seconds']=min(job.get('max_seconds',120.),max(.1,remaining-2))
+            pending[executor.submit(function,job)]=next_index
+            next_index+=1
+    fill()
+    while pending:
+        completed,_=wait(pending,return_when=FIRST_COMPLETED)
+        for future in completed:
+            index=pending.pop(future)
+            results[index]=future.result()
+        fill()
+    return [results[i] for i in range(next_index)]
 
 
 def paired_interval(values):

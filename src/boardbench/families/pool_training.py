@@ -29,6 +29,7 @@ from .pool_evaluator import (bounded_jobs, evaluate, fingerprint, paired_differe
                              public_fingerprint_states)
 from .ppo import update
 from .registry import game_class
+from .trajectory_io import compact_episode, json_default, write_compressed, write_episode_batch
 
 STOP = False
 MODEL_CACHE = {}
@@ -41,23 +42,6 @@ def request_stop(*_):
 
 def file_hash(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
-
-
-def json_default(x):
-    if isinstance(x, np.ndarray):
-        return x.tolist()
-    if isinstance(x, np.generic):
-        return x.item()
-    raise TypeError(type(x).__name__)
-
-
-def write_compressed(path, data):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix+'.part')
-    with gzip.open(temporary, 'wt', compresslevel=1) as handle:
-        json.dump(data, handle, default=json_default, allow_nan=False, separators=(',', ':'))
-    temporary.replace(path)
 
 
 def cached_model(path, cls):
@@ -131,6 +115,10 @@ def rollout(job):
     return dict(result=result, records=records, excluded_records=excluded)
 
 
+def compact_rollout(job):
+    return compact_episode(rollout(job))
+
+
 def audit_behavior(model, rows, device):
     if not rows:
         raise ValueError('No complete learner trajectories')
@@ -145,7 +133,7 @@ def audit_behavior(model, rows, device):
             errors.append(float((actual-expected).abs().max()))
         for row in batch:
             if (not row['legal_mask'][row['action']] or len(row['legal_mask'])!=len(row['x'])
-                    or len(row['legal_actions'])!=len(row['x'])):
+                    or row.get('legal_action_count',len(row.get('legal_actions',[])))!=len(row['x'])):
                 raise ValueError('Candidate/mask/action alignment failed')
     error = max(errors)
     if not np.isfinite(error) or error > 2e-4:
@@ -154,11 +142,20 @@ def audit_behavior(model, rows, device):
 
 
 def save_checkpoint(path, model, optimizer, rng, pool, state, config_hash, config):
-    payload = dict(format='boardbench_pool_training_v1', model=model.state_dict(),
+    # Fixed public states and initial evaluation rows never change during a run.
+    # Store them once rather than repickling megabytes after every PPO update.
+    stored_state=dict(state)
+    if state.get('baseline_rows') is not None and state.get('fingerprint_states') is not None:
+        if not state.get('static_data_ref'):
+            static=Path(path).parent/'static_training_state.json.gz'
+            write_compressed(static,{k:state[k] for k in ('baseline_rows','fingerprint_states')})
+            state['static_data_ref']=dict(path=str(static),sha256=file_hash(static))
+        stored_state={k:v for k,v in state.items() if k not in ('baseline_rows','fingerprint_states')}
+    payload = dict(format='boardbench_pool_training_v2', model=model.state_dict(),
         optimizer=optimizer.state_dict(), numpy_rng=rng.bit_generator.state,
         python_rng=random.getstate(), torch_rng=torch.get_rng_state(),
         cuda_rng=torch.cuda.get_rng_state_all() if torch.cuda.is_available() else [],
-        pool=pool.state, state=state, config_hash=config_hash, config=config)
+        pool=pool.state, state=stored_state, config_hash=config_hash, config=config)
     temporary = Path(path).with_suffix('.part')
     torch.save(payload, temporary)
     temporary.replace(path)
@@ -168,6 +165,12 @@ def restore_checkpoint(path, model, optimizer, rng, config_hash):
     payload = torch.load(path, map_location='cpu', weights_only=True)
     if payload['config_hash'] != config_hash:
         raise ValueError('Resume configuration/source/parent changed')
+    reference=payload['state'].get('static_data_ref')
+    if reference:
+        if file_hash(reference['path'])!=reference['sha256']:
+            raise ValueError('Fixed training-state artifact checksum mismatch')
+        with gzip.open(reference['path'],'rt') as handle:
+            payload['state'].update(json.load(handle))
     model.load_state_dict(payload['model'])
     optimizer.load_state_dict(payload['optimizer'])
     rng.bit_generator.state = payload['numpy_rng']
@@ -210,6 +213,9 @@ def main(argv=None):
         torch.cuda.synchronize()
     out = Path(cfg['output'])
     out.mkdir(parents=True, exist_ok=True)
+    def stopped():
+        return STOP or (out/'PAUSE').exists()
+    compact=cfg.get('pipeline','compact_v2')=='compact_v2'
     model, saved = load_model(cfg['initial_path'], game_class(cfg['game']), device)
     if file_hash(cfg['initial_path']) != cfg['initial_sha256']:
         raise ValueError('Initial checkpoint changed')
@@ -248,7 +254,8 @@ def main(argv=None):
     def assess(executor, candidate, count, split, label, deadline, record=False, panel=None):
         summary, rows = evaluate(executor, cfg['game'], candidate, panel or cfg['panel'], count,
             split, min(deadline, state['deadline']-15), cfg['workers'], cfg['max_match_seconds'],
-            record=record, stopped=lambda:STOP)
+            record=record, stopped=stopped)
+        summary['interrupted']=stopped()
         state['costs']['evaluation_seconds'] += summary['seconds']
         io = time.time()
         write_compressed(out/'evaluation'/f'{label}.json.gz', dict(summary=summary, games=rows))
@@ -256,6 +263,9 @@ def main(argv=None):
         return summary, rows
     model.eval()
     persist(state['phase'])
+    if stopped():
+        persist('stopped')
+        return
     try:
         with ProcessPoolExecutor(max_workers=cfg['workers'], mp_context=mp.get_context('spawn')) as executor:
             if not state.get('preflight'):
@@ -264,8 +274,11 @@ def main(argv=None):
                     opponent=dict(initial['spec'], stochastic=True), opponent_id='initial',
                     policy_version='initial', max_seconds=cfg['max_match_seconds'],
                     gae_lambda=cfg['gae_lambda'], validate=True) for i in range(2)]
-                samples = bounded_jobs(executor, rollout, jobs, state['deadline']-30, cfg['workers'], lambda:STOP)
+                samples = bounded_jobs(executor, rollout, jobs, state['deadline']-30, cfg['workers'], stopped)
                 write_compressed(out/'preflight.json.gz', samples)
+                if stopped():
+                    persist('stopped')
+                    return
                 if len(samples)!=2 or any(x['result']['status']!='complete' for x in samples):
                     raise RuntimeError('Preflight did not complete both seats; inspect preflight.json.gz')
                 rows = [r for x in samples for r in x['records']]
@@ -289,6 +302,9 @@ def main(argv=None):
                 budget = min(state['deadline']-time.time()-180, cfg['hours']*3600*.25)
                 summary, rows = assess(executor, initial['spec'], cfg['quick_seeds'], 'quick',
                                        'initial', time.time()+max(1., budget), record=True)
+                if stopped():
+                    persist('stopped')
+                    return
                 state['baseline'] = summary
                 state['fingerprint_states'] = public_fingerprint_states(rows)
                 write_compressed(out/'fingerprint_states.json.gz', state['fingerprint_states'])
@@ -307,11 +323,12 @@ def main(argv=None):
                 persist('training')
             reserve = min(900., max(120., state['baseline']['seconds']*1.3))
             for iteration in range(state['next_update'], cfg['max_updates']):
-                if STOP or time.time()+reserve+10 >= state['deadline'] or state['learner_decisions']>=cfg['max_decisions']:
+                if stopped() or time.time()+reserve+10 >= state['deadline'] or state['learner_decisions']>=cfg['max_decisions']:
                     break
                 path = out/'snapshots'/f'behavior_{iteration:05d}.pt'
                 save_model(path, model, game_class(cfg['game']), saved['prior_weights'],
                            dict(source_commit=cfg['source_commit'], learner_decisions=state['learner_decisions']))
+                policy_version=file_hash(path)
                 ids, probabilities = history.distribution()
                 self_games = int(cfg['games']*.25) if cfg['arm']=='A' else 0
                 jobs = []
@@ -324,15 +341,19 @@ def main(argv=None):
                         opponent = dict(kind='heuristic') if i%3==0 else dict(kind='linear', weights=saved['prior_weights'])
                     jobs.append(dict(game=cfg['game'], path=str(path), self_play=i<self_games,
                         learner_seat=i%2, seed=pool_seed('train', cfg['seed'], iteration, i),
-                        opponent=opponent, opponent_id=opponent_id, policy_version=file_hash(path),
+                        opponent=opponent, opponent_id=opponent_id, policy_version=policy_version,
                         max_seconds=cfg['max_match_seconds'], gae_lambda=cfg['gae_lambda']))
                 start = time.time()
-                played = bounded_jobs(executor, rollout, jobs, state['deadline']-reserve, cfg['workers'], lambda:STOP)
+                played = bounded_jobs(executor, compact_rollout if compact else rollout, jobs,
+                                      state['deadline']-reserve, cfg['workers'], stopped)
                 state['costs']['rollout_seconds'] += time.time()-start
                 io = time.time()
-                write_compressed(out/'trajectories'/f'batch_{iteration:05d}.json.gz',
-                    dict(policy_version=file_hash(path), opponent_ids=ids,
-                         sampling_probabilities=probabilities.tolist(), games=played))
+                metadata=dict(policy_version=policy_version,opponent_ids=ids,
+                              sampling_probabilities=probabilities.tolist())
+                if compact:
+                    write_episode_batch(out/'trajectories'/f'batch_{iteration:05d}.jsonl.gz',metadata,played)
+                else:
+                    write_compressed(out/'trajectories'/f'batch_{iteration:05d}.json.gz',dict(metadata,games=played))
                 state['costs']['io_seconds'] += time.time()-io
                 errors = [x for x in played if x['result']['status'] in ('error', 'no_legal_action')]
                 if errors:
@@ -365,32 +386,43 @@ def main(argv=None):
                     environment_decisions=state['environment_decisions'], games=len(played),
                     completed=sum(x['result']['status']=='complete' for x in played),
                     behavior_max_error=behavior_error, active_pool=len(history.state['active']),
-                    wall_seconds=time.time()-state['began_unix'], costs=deepcopy(state['costs']), unix=time.time())
+                    wall_seconds=time.time()-state['began_unix']+state.get('elapsed_before_resume',0.),
+                    costs=deepcopy(state['costs']), unix=time.time())
+                if compact:
+                    metric['archive_workers']={k:sum(x['archive_profile'][k] for x in played)
+                        for k in ('serialization_seconds','compression_seconds','uncompressed_bytes','compressed_bytes')}
                 log(metric)
                 persist('training')
                 if state['learner_decisions'] >= state['next_evaluation']:
-                    validate_candidate(executor, cfg, out, state, history, candidate_path, identity,
-                                       assess, persist, log, reserve, final=False)
-                    state['next_evaluation'] = state['learner_decisions']+cfg['eval_decisions']
+                    completed=validate_candidate(executor, cfg, out, state, history, candidate_path, identity,
+                                                 assess, persist, log, reserve, final=False)
+                    if completed:state['next_evaluation'] = state['learner_decisions']+cfg['eval_decisions']
                     persist('training')
-            if not STOP and state.get('last_snapshot') and time.time()+5 < state['deadline']:
+            if not stopped() and state.get('last_snapshot') and time.time()+5 < state['deadline']:
                 validate_candidate(executor, cfg, out, state, history, Path(state['last_snapshot']),
                     state['last_snapshot_id'], assess, persist, log, reserve, final=True)
-            persist('stopped' if STOP else 'budget_exhausted' if time.time()+reserve >= state['deadline'] else 'complete')
+            persist('stopped' if stopped() else 'budget_exhausted' if time.time()+reserve >= state['deadline'] else 'complete')
     except Exception as e:
         state['error'] = repr(e)
         state['traceback'] = traceback.format_exc()
-        persist('failed')
+        # Keep the last committed optimizer/RNG state. An error halfway through
+        # PPO must not overwrite it with a partial, unreplayable update.
+        state['phase']='failed'
+        write_json(out/'failure.json',dict(error=state['error'],traceback=state['traceback']))
+        write_json(out/'state.json',{k:v for k,v in state.items()
+                   if k not in ('baseline_rows','fingerprint_states')})
         raise
 
 
 def validate_candidate(executor, cfg, out, state, history, path, identity,
                        assess, persist, log, reserve, final=False):
     if identity in history.state['members']:
-        return
+        return True
     candidate = member(path, identity, state['learner_decisions'], source_commit=cfg['source_commit'])
     summary, rows = assess(executor, candidate['spec'], cfg['quick_seeds'], 'quick', identity,
                            state['deadline']-20 if final else min(state['deadline']-reserve, time.time()+reserve))
+    if summary.get('interrupted'):
+        return False
     start = time.time()
     candidate.update(quality=summary['quality'] if summary['all_complete'] else None,
         panel_vector=[x['completed_win_rate'] for x in summary['opponents'].values()
@@ -437,6 +469,7 @@ def validate_candidate(executor, cfg, out, state, history, path, identity,
     archive = out/'archive'
     archive.mkdir(exist_ok=True)
     shutil.copyfile(out/'checkpoint.pt', archive/f'{identity}_recovery.pt')
+    return True
 
 
 if __name__ == '__main__':

@@ -89,7 +89,8 @@ for i,job in enumerate(request['jobs']):
     config=json.loads((directory/'config.json').read_text())
     if config['source_commit']!=request['commit']:raise RuntimeError('Source identity mismatch')
     slot=slots[i];cpus=representatives[slot*7:(slot+1)*7]
-    config['deadline_unix']=min(time.time()+3600,config.get('budget_origin_deadline',float('inf')))
+    config['deadline_unix']=min(time.time()+min(3600,config['hours']*3600),
+                               config.get('budget_origin_deadline',float('inf')))
     remaining=int(config['deadline_unix']-time.time())
     if remaining<120:raise RuntimeError('Original experiment budget exhausted; do not renew automatically')
     temporary=directory/'config.json.part';temporary.write_text(json.dumps(config,indent=2));temporary.replace(directory/'config.json')

@@ -90,17 +90,18 @@ def test_scoreless_game_keeps_win_result_without_invented_numeric_scores():
 
 
 def test_deadline_never_submits_an_entire_long_queue():
+    from concurrent.futures import Future
     class Executor:
         calls=0
-        def map(self,fn,jobs,chunksize):
+        def submit(self,fn,job):
             self.calls+=1
-            return [fn(j) for j in jobs]
+            future=Future();future.set_result(fn(job));return future
     ex=Executor()
     def fn(job):
         assert job['max_seconds']<=8
         return job
-    rows=bounded_jobs(ex,fn,[{}]*20,time.time()+10,3,lambda:ex.calls>=1)
-    assert len(rows)==3 and ex.calls==1
+    rows=bounded_jobs(ex,fn,[{}]*20,time.time()+10,3,lambda:ex.calls>=3)
+    assert len(rows)==3 and ex.calls==3
 
 
 def test_real_rollout_update_frozen_opponent_and_exact_resume(tmp_path):
