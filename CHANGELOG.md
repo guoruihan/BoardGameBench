@@ -1,5 +1,10 @@
 # Research milestones
 
+## 2026-11-02 — direct-play comparison paused for cost
+
+- End new inference at explicit user request before the planned 432-game schedule completes; report only genuine terminal outcomes and retain all incomplete statuses.
+- Document the Claude session-limit classifier failure and the DeepSeek audit: 8640 recorded calls and 124,908,366 tokens, including 19,875,841 reasoning tokens.
+
 ## 2026-11-01 — V1.7.5 direct tool/model comparison protocol
 
 - Freeze a 432-game exploratory schedule: three tool/model combinations, 16 original two-player configurations, retained learned opponents plus one 900-second search per game, two seeds with both seats.

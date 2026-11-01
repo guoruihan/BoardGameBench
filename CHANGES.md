@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-02 — pause direct-play inference at user request
+
+- Stop the active queue and its CLI descendants; preserve completed records and original interrupted results, classify eight user-stopped games and cancel six pending games.
+- Publish the pause snapshot and recorded DeepSeek token categories; keep gateway prices, credentials and wiring private, and distinguish usage estimates from billing receipts.
+
 ## 2026-11-01 — V1.7.5 direct text play runner
 
 - Add public-observation direct decisions against frozen learned and 900-second search opponents, with lossless legal-action tables and printed component catalogues for all 16 games.
