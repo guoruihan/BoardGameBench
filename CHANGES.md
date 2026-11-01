@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-01 — controlled prior softening and repeated expert initialization
+
+- Allow explicit positive policy-prior scaling with identical scaling in expert replay and acting; preserve the greedy initial action and immutable datasets.
+- Support a new warm-start run that repeats imitation on expanded data, with strict frozen vocabulary and target-schema checks.
+- Verify scaling, no input mutation, and invalid-scale rejection; eleven guided tests pass.
+
 ## 2026-11-01 — asynchronous search checks and student-state expert labels
 
 - Add fixed-search versus immutable-student matches without pausing learners.

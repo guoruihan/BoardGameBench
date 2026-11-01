@@ -67,3 +67,7 @@ PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
 PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
   .venv-train/bin/python -m boardbench.families.guided_training --config /path/to/config.json
 ```
+
+### 第二轮的先验与数据
+
+新运行可设置 `anchor_scale`，对示范里的冻结先验和实际行动使用相同比例；零初始化的策略修正仍保持原模型的贪心动作。`warm_start_bc=true` 可以从明确指定的旧快照重新进行示范训练，词表、基础模型和目标标定必须一致。小开发面板的最优值仅用于发现候选；最终采用 32 个开发环境双座次选优，再用未参与选择的 64 个环境双座次确认。

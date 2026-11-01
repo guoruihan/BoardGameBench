@@ -55,6 +55,14 @@ def teacher_mode(rows, mode='soft'):
     return result
 
 
+def prepare_demos(dataset,cfg):
+    scale=cfg.get('anchor_scale',dataset['anchor_scale'])
+    if not np.isfinite(scale) or scale<=0:raise ValueError('Positive finite policy anchor scale required')
+    factor=scale/dataset['anchor_scale']
+    rows=dataset['rows'] if factor==1 else [dict(r,prior=r['prior']*factor) for r in dataset['rows']]
+    return teacher_mode(rows,cfg.get('teacher_mode','soft'))
+
+
 def rollout(job):
     torch.set_num_threads(1)
     game, path = job['game'], job['path']
@@ -194,8 +202,8 @@ def main():
     symbols=json.loads(vocabulary_path.read_text())['symbols'] if vocabulary_path.exists() else None
     encoder = PublicTreeEncoder(cfg['game'],symbols=symbols)
     if dataset['encoding']!=encoder.metadata: raise ValueError('Dataset/encoder mismatch')
-    demos = teacher_mode(dataset['rows'],cfg.get('teacher_mode','soft')); metadata = dict(game=cfg['game'], base_spec=dataset['base_spec'],
-        schema=dataset['schema'], anchor_scale=dataset['anchor_scale'], source_commit=cfg['source_commit'])
+    demos = prepare_demos(dataset,cfg); metadata = dict(game=cfg['game'], base_spec=dataset['base_spec'],
+        schema=dataset['schema'], anchor_scale=cfg.get('anchor_scale',dataset['anchor_scale']), source_commit=cfg['source_commit'])
     model = GuidedActorCritic(encoder.metadata['vocabulary_size'], cfg.get('hidden',64), len(dataset['schema']['names'])).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.get('learning_rate',2e-4))
     config_hash = hashlib.sha256(json.dumps(cfg,sort_keys=True).encode()).hexdigest()
@@ -212,10 +220,11 @@ def main():
             for k,x in v.items():
                 if isinstance(x,torch.Tensor):v[k]=x.to(device)
     elif cfg.get('warm_start'):
-        warm, _, meta = load_model(cfg['warm_start'], cfg['game'])
-        if meta['base_spec']!=metadata['base_spec'] or meta['schema']!=metadata['schema']:
+        warm, warm_encoder, meta = load_model(cfg['warm_start'], cfg['game'])
+        if (meta['base_spec']!=metadata['base_spec'] or meta['schema']!=metadata['schema']
+                or warm_encoder.metadata!=encoder.metadata):
             raise ValueError('Warm-start teacher/target schema changed')
-        model.load_state_dict(warm.state_dict()); state['phase']='ppo'
+        model.load_state_dict(warm.state_dict()); state['phase']='bc' if cfg.get('warm_start_bc') else 'ppo'
     def status(**extra):
         write_json(out/'status.json',dict(**state, observed_unix=time.time(), pid=os.getpid(),
                                        device=device, deadline_unix=cfg['deadline_unix'], **extra))
@@ -254,17 +263,17 @@ def main():
         item=json.loads(extra_manifest.read_text())
         extra=load_packet(item['path'],item['sha256'])
         if (extra['schema']!=dataset['schema'] or extra['encoding']!=encoder.metadata
-                or extra['base_spec']!=metadata['base_spec'] or extra['anchor_scale']!=metadata['anchor_scale']):
+                or extra['base_spec']!=metadata['base_spec'] or extra['anchor_scale']!=dataset['anchor_scale']):
             raise ValueError('New teacher schema or prior drift')
         return extra
-    if state['extra_loaded']: demos+=teacher_mode(read_extra()['rows'],cfg.get('teacher_mode','soft'))
+    if state['extra_loaded']: demos+=prepare_demos(read_extra(),cfg)
     model.eval(); save_state()
     with ProcessPoolExecutor(max_workers=cfg['workers'],mp_context=mp.get_context('spawn')) as executor:
         while not STOP and time.time()<cfg['deadline_unix']-30 and state['update']<cfg.get('max_updates',10000):
             if (out/'PAUSE').exists(): state['phase']='paused';break
             if not state['extra_loaded'] and extra_manifest.exists():
                 extra=read_extra()
-                demos+=teacher_mode(extra['rows'],cfg.get('teacher_mode','soft'));state['extra_loaded']=True;log(dict(phase='data',new_decisions=len(extra['rows'])))
+                demos+=prepare_demos(extra,cfg);state['extra_loaded']=True;log(dict(phase='data',new_decisions=len(extra['rows'])))
             current=out/f'behavior_{state["update"]:05d}.pt';save_model(current,model,encoder,metadata)
             digest=file_hash(current);jobs=[]
             for i in range(cfg['games']):

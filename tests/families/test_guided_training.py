@@ -157,3 +157,15 @@ def test_student_labeling_preserves_executed_trajectory(monkeypatch,tmp_path):
     assert [r['action'] for r in trace]==[r['action'] for r in expected['trajectory']]
     assert any(r['teacher_action']!=r['action'] for r in trace if r['player']==0)
     assert all(r['teacher_action'] in r['legal_actions'] for r in trace if r['player']==0)
+
+
+def test_anchor_temperature_is_aligned_and_does_not_mutate_dataset(sample):
+    from boardbench.families.guided_training import prepare_demos
+    row=sample[5];row=dict(row,action=int(row['prior'].argmax()),teacher_rounds=4)
+    before=row['prior'].copy()
+    data=dict(rows=[row],anchor_scale=1.)
+    new=prepare_demos(data,dict(anchor_scale=.25,teacher_mode='hard'))[0]
+    np.testing.assert_array_equal(new['prior'],before*.25)
+    np.testing.assert_array_equal(row['prior'],before)
+    assert new['prior'].argmax()==row['prior'].argmax()
+    with pytest.raises(ValueError):prepare_demos(data,dict(anchor_scale=0))
