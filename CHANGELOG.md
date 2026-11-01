@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-01 — V1.7.4 frozen joint-pool calibration closure
+
+- Preserve 16 games and 101 heuristic, learned and terminal-search configurations; use fixed learned anchors, paired seats and seed-level uncertainty for exploratory strength labels. Style is described against a common opponent, without a causal or global-ranking claim.
+- Stop the oversized calibration schedule following the user's scope correction. Retain existing outcomes, unknown/interrupted games and original schedule; cancel all proposed adaptive extensions. No extra games are required merely to complete tiers or narrow intervals.
+- Account for 151.60 single-worker wall hours, including interrupted work, separately from recorded match CPU time. No GPU or new training was used. Detailed completed scope and limitations are in docs/v174/Results_zh.md.
+
 ## 2026-11-01 — V1.7.3 independent eight-task confirmation
 
 - Freeze candidates before evaluating 256 fresh environments in both seats per task. Century Spice Road, Clever and Patchwork reach 56.05%, 58.01% and 58.98% versus retained RL; their nominal paired 95% intervals exceed 50%, without multiple-comparison correction.

@@ -1,5 +1,12 @@
 # Engineering changes
 
+## 2026-11-01 — V1.7.4 / 0.6.7 frozen mixed opponent pool
+
+- Export 101 immutable policy configurations across 16 fixed two-player games, including nested model dependencies, source archives, hashes and relocated loading.
+- Add common mixed-policy matches, explicit per-game search budgets, paired-seat reporting, descriptive style profiles and an opponent-role catalogue. Incomplete outcomes remain unknown; over-budget search members are excluded from qualified roles.
+- Preserve completed calibration evidence and stop all three queues after the user corrected the oversized schedule. Cancel unstarted supplemental panels; do not retry or resume the remaining matches.
+- Verify 132 targeted checks, 152 saved public trajectory replays, all 101 real opponent loading/action fingerprints, and the isolated 0.6.7 wheel payload. Report these engineering checks separately from new benchmark matches.
+
 ## 2026-11-01 — V1.7.3 bounded exploration delivery
 
 - Document eight-task frozen confirmation, long-budget search checks, retained model lineage, trajectories, resource accounting limits and recovery commands.
