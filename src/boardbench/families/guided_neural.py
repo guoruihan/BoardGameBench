@@ -4,6 +4,7 @@ The frozen policy and optional 24-dimensional features are advice, not a
 replacement for the complete public state/action tree. No engine is accepted.
 """
 import hashlib
+import json
 import math
 from pathlib import Path
 
@@ -77,6 +78,7 @@ def encode_record(game, encoder, base, observation, actions, anchor_scale=1.):
 def save_model(path, model, encoder, metadata):
     path = Path(path); path.parent.mkdir(parents=True, exist_ok=True)
     payload = dict(format=FORMAT, encoding=encoder.metadata, hidden=model.hidden,
+                   symbols=[k for k,v in sorted(encoder.symbols.items(),key=lambda x:x[1])],
                    auxiliary_count=model.auxiliary_count, metadata=metadata,
                    model={k:v.detach().cpu().clone() for k,v in model.state_dict().items()})
     temporary = path.with_suffix('.part'); torch.save(payload, temporary); temporary.replace(path)
@@ -87,7 +89,13 @@ def load_model(path, game, device='cpu', expected_hash=None):
     if expected_hash and hashlib.sha256(path.read_bytes()).hexdigest()!=expected_hash:
         raise ValueError('Guided model checksum mismatch')
     payload = torch.load(path, map_location='cpu', weights_only=True)
-    encoder = PublicTreeEncoder(game)
+    symbols=payload.get('symbols')
+    sidecar=path.parent/'vocabulary.json'
+    if symbols is None and sidecar.exists():
+        frozen=json.loads(sidecar.read_text())
+        if frozen['game']!=game:raise ValueError('Frozen vocabulary game mismatch')
+        symbols=frozen['symbols']
+    encoder = PublicTreeEncoder(game,symbols=symbols)
     if payload.get('format')!=FORMAT or payload.get('encoding')!=encoder.metadata:
         raise ValueError('Guided checkpoint game/rules/encoding mismatch')
     if any(v.dtype!=torch.float32 or not torch.isfinite(v).all() for v in payload['model'].values()):

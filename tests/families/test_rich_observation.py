@@ -101,3 +101,16 @@ def test_history_append_cache_rejects_mutated_prefix_and_episode_reset():
     obs['history'][0]['player']=1-obs['history'][0]['player']
     np.testing.assert_array_equal(enc.encode(obs),ref.encode(obs))
     obs=env.reset(17232);np.testing.assert_array_equal(enc.encode(obs),ref.encode(obs))
+
+
+def test_vocabulary_does_not_depend_on_import_path(monkeypatch,tmp_path):
+    import importlib
+    from pathlib import Path
+    from boardbench.families.rich_observation import vocabulary
+    module=importlib.import_module(game_class('splendor').__module__)
+    vocabulary.cache_clear();expected=vocabulary('splendor')
+    copy=tmp_path/'moved_game.py';copy.write_text(Path(module.__file__).read_text())
+    with monkeypatch.context() as context:
+        context.setattr(module,'__file__',str(copy));context.setattr(module,'__cached__',str(tmp_path/'cache.pyc'))
+        vocabulary.cache_clear();assert vocabulary('splendor')==expected
+    vocabulary.cache_clear()

@@ -61,8 +61,10 @@ def vocabulary(game):
         from boardbench.environments import harmonies, harmonies_duo
         for m in (harmonies,harmonies_duo):
             paths.append(Path(m.__file__))
-            for v in vars(m).values():_strings(v,found)
-    for v in vars(module).values():_strings(v,found)
+            for name,v in vars(m).items():
+                if not name.startswith('__'):_strings(v,found)
+    for name,v in vars(module).items():
+        if not name.startswith('__'):_strings(v,found)
     for path in paths:
         for node in ast.walk(ast.parse(path.read_text())):
             if isinstance(node,ast.Constant):_strings(node.value,found)
@@ -75,11 +77,17 @@ def vocabulary(game):
 
 
 class PublicTreeEncoder:
-    def __init__(self, game, *, cache=True):
+    def __init__(self, game, *, cache=True, symbols=None):
         if game not in STATIC_FIELDS:
             raise ValueError('Game not qualified for the rich observation interface')
         self.game = game
-        self.symbols,self.vocabulary_sha256 = vocabulary(game)
+        if symbols is None:
+            self.symbols,self.vocabulary_sha256 = vocabulary(game)
+        else:
+            if not isinstance(symbols,list) or not all(isinstance(x,str) for x in symbols) or sorted(set(symbols))!=symbols:
+                raise ValueError('Expected a sorted, unique frozen symbol list')
+            self.symbols={v:i+257 for i,v in enumerate(symbols)}
+            self.vocabulary_sha256=hashlib.sha256(json.dumps(symbols,ensure_ascii=False).encode()).hexdigest()
         self.cache = cache
         self._paths = {}
         self._static = {}

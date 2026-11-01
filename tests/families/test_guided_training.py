@@ -118,3 +118,19 @@ def test_selective_teacher_keeps_prior_unless_supported_override(sample):
     changed['teacher_rounds']=0
     np.testing.assert_allclose(teacher_mode([changed],'selective')[0]['teacher'],expected,rtol=1e-6)
     np.testing.assert_array_equal(r['teacher'],row['teacher'])
+
+
+def test_frozen_vocabulary_checkpoint_and_legacy_sidecar(sample,tmp_path):
+    import json
+    game,_,obs,actions,encoder,_,_,metadata=sample
+    symbols=sorted(list(encoder.symbols)+['/old/source/location/game.py'])
+    old=PublicTreeEncoder(game,symbols=symbols)
+    model=GuidedActorCritic(old.metadata['vocabulary_size'],16,2)
+    path=tmp_path/'old.pt';save_model(path,model,old,metadata)
+    restored,encoding,_=load_model(path,game)
+    np.testing.assert_array_equal(old.encode(obs),encoding.encode(obs))
+    payload=torch.load(path,weights_only=True);payload.pop('symbols');torch.save(payload,path)
+    with pytest.raises(ValueError):load_model(path,game)
+    (tmp_path/'vocabulary.json').write_text(json.dumps(dict(game=game,symbols=symbols)))
+    restored,encoding,_=load_model(path,game)
+    assert encoding.metadata==old.metadata

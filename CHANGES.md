@@ -1,5 +1,15 @@
 # Engineering changes
 
+## 2026-11-01 — freeze vocabulary identity across source snapshots
+
+- Exclude Python import metadata from default public vocabularies, preventing
+  source-directory strings from changing token IDs between identical releases.
+- Save explicit symbol tables with guided checkpoints and support validated
+  legacy sidecars. Training uses the dataset's frozen vocabulary; no checkpoint
+  mismatch check is bypassed and existing running jobs remain unchanged.
+- Verify moved-source invariance and legacy roundtrips; compare all eight
+  existing models' logits, values and component heads before/after compatibility.
+
 ## 2026-11-01 — selective expert supervision and prior retention
 
 - Add hard and selective expert targets: retain the frozen prior distribution

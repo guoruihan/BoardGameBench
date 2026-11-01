@@ -87,11 +87,11 @@ def read_result(path):
     return result_labels(result), trace
 
 
-def encode_experts(game, paths, base_spec, schema=None, anchor_scale=1.):
+def encode_experts(game, paths, base_spec, schema=None, anchor_scale=1., symbols=None):
     episodes = [read_result(p) for p in paths]
     if not episodes: raise ValueError('No teacher episodes')
     schema = schema or calibrate([r for r, _ in episodes])
-    encoder = PublicTreeEncoder(game); rows = []
+    encoder = PublicTreeEncoder(game,symbols=symbols); rows = []
     for result, trace in episodes:
         base = base_policy(game, base_spec, result['seed'])
         seat = result['search_seat']; label = targets(result, seat, schema)
@@ -128,15 +128,17 @@ def main():
     p.add_argument('--game', choices=GAMES, required=True); p.add_argument('--output', type=Path, required=True)
     p.add_argument('--extra-teacher', type=Path)
     a = p.parse_args(); paths, spec = initial_sources(a.game)
-    schema = None
+    schema = None;symbols=None
     if a.extra_teacher:
         original = json.loads((a.output/'dataset.json').read_text())
         schema = original['schema']; spec = original['base_spec']; paths = []
+        frozen=a.output/'vocabulary.json'
+        if frozen.exists():symbols=json.loads(frozen.read_text())['symbols']
         for path in (a.extra_teacher/'games'/a.game/'matches').glob('*.json'):
             if path.name.endswith(('.progress.json','.error.json')): continue
             result = json.loads(path.read_text())
             if result['status']=='complete' and result['search_seconds']<=result['budget']:paths.append(path)
-    packet = encode_experts(a.game, paths, spec, schema=schema)
+    packet = encode_experts(a.game, paths, spec, schema=schema, symbols=symbols)
     filename = 'extra_data.pkl.z' if a.extra_teacher else 'initial_data.pkl.z'
     sha = dump_packet(a.output/filename, packet)
     if a.extra_teacher:
@@ -147,6 +149,9 @@ def main():
     write_json(a.output/'dataset.json', dict(game=a.game, path=str((a.output/'initial_data.pkl.z').resolve()),
         sha256=sha, decisions=len(packet['rows']), episodes=packet['episodes'], schema=packet['schema'],
         sources=packet['sources'], base_spec=spec))
+    encoder=PublicTreeEncoder(a.game,symbols=symbols)
+    write_json(a.output/'vocabulary.json',dict(game=a.game,sha256=encoder.vocabulary_sha256,
+        symbols=[k for k,v in sorted(encoder.symbols.items(),key=lambda x:x[1])]))
     print(json.dumps(dict(game=a.game, decisions=len(packet['rows']), episodes=packet['episodes'])), flush=True)
 
 

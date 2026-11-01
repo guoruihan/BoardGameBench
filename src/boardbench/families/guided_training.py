@@ -190,7 +190,9 @@ def main():
         torch.backends.cuda.matmul.allow_tf32 = False
         torch.ones(32, device=device).sum().item(); torch.cuda.synchronize()
     info = json.loads(Path(cfg['dataset']).read_text()); dataset = load_packet(info['path'], info['sha256'])
-    encoder = PublicTreeEncoder(cfg['game'])
+    vocabulary_path=Path(cfg['dataset']).parent/'vocabulary.json'
+    symbols=json.loads(vocabulary_path.read_text())['symbols'] if vocabulary_path.exists() else None
+    encoder = PublicTreeEncoder(cfg['game'],symbols=symbols)
     if dataset['encoding']!=encoder.metadata: raise ValueError('Dataset/encoder mismatch')
     demos = teacher_mode(dataset['rows'],cfg.get('teacher_mode','soft')); metadata = dict(game=cfg['game'], base_spec=dataset['base_spec'],
         schema=dataset['schema'], anchor_scale=dataset['anchor_scale'], source_commit=cfg['source_commit'])
