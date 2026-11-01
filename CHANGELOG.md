@@ -1,5 +1,9 @@
 # Research milestones
 
+## 2026-11-01 — V1.7.3 actor-only demonstration replay diagnostic
+
+- Add a bounded diagnostic after PPO failed to retain the best Clever imitation candidate: replay expert actions while training the critic/score heads only on actual online outcomes. This tests a possible cross-policy value-target conflict; it is not yet evidence that this explains the regression.
+
 ## 2026-11-01 — V1.7.3 stochastic-behavior diagnosis
 
 - Paired greedy/stochastic probes show that training-time sampling can be much weaker than greedy deployment for the same snapshot. Add temperature-controlled on-policy exploration with matching behavior log-probabilities and PPO distributions.

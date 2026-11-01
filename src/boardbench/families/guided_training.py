@@ -142,7 +142,9 @@ def batches(rows, batch_size, rng, max_nodes=60000):
     if selected: yield selected
 
 
-def supervised_loss(model, rows, device, mode, game):
+def supervised_loss(model, rows, device, mode, game, *, value_coef=.25, auxiliary_coef=.1):
+    if any(not np.isfinite(v) or v<0 for v in (value_coef,auxiliary_coef)):
+        raise ValueError('Nonnegative finite supervision coefficients required')
     logits, values, auxiliary = model(rows, device)
     logp = torch.log_softmax(logits, -1)
     teacher = torch.zeros_like(logp)
@@ -154,7 +156,7 @@ def supervised_loss(model, rows, device, mode, game):
     labels = torch.as_tensor(np.stack([r['auxiliary_targets'] for r in rows]), device=device)
     mask = torch.as_tensor(np.stack([r['auxiliary_mask'] for r in rows]), device=device)
     aux = ((auxiliary-labels).square()*mask).sum()/mask.sum().clamp_min(1)
-    return ce+.25*value_loss+.1*aux, dict(bc=float(ce.detach()), value=float(value_loss.detach()), auxiliary=float(aux.detach()))
+    return ce+value_coef*value_loss+auxiliary_coef*aux, dict(bc=float(ce.detach()), value=float(value_loss.detach()), auxiliary=float(aux.detach()))
 
 
 def behavior_error(model, rows, device):
@@ -199,7 +201,8 @@ def ppo_update(model, optimizer, rows, demos, cfg, rng, device):
             anchor_kl=prior_policy_kl(behavior_logits(prior,batch),logits).mean()
             loss=loss+cfg.get('prior_kl_coef',0.)*anchor_kl
             demo_rows = [demos[int(i)] for i in rng.integers(len(demos), size=min(4,len(batch)))]
-            demo_loss, _ = supervised_loss(model, demo_rows, device, cfg['reward_mode'], cfg['game'])
+            demo_loss, _ = supervised_loss(model, demo_rows, device, cfg['reward_mode'], cfg['game'],
+                value_coef=cfg.get('replay_value_coef',.25),auxiliary_coef=cfg.get('replay_auxiliary_coef',.1))
             loss = loss+cfg.get('demo_coef', .2)*demo_loss
             if not torch.isfinite(loss): raise FloatingPointError('Nonfinite guided PPO loss')
             optimizer.zero_grad(set_to_none=True); loss.backward()

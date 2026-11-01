@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-01 — separate expert replay value supervision
+
+- Allow PPO expert replay to retain action imitation while disabling expert-policy terminal value and score-component targets; on-policy value learning and initial BC defaults remain intact.
+- Verify that actor-only replay has no direct gradient on critic/auxiliary heads and is invariant to expert return labels.
+
 ## 2026-11-01 — finite low-temperature prior KL
 
 - Compute the frozen-prior KL from finite log-probabilities on the shared legal support. Valid FP32 probabilities that underflow to zero no longer produce spurious infinite losses.

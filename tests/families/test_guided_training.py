@@ -274,3 +274,16 @@ def test_prior_kl_survives_low_temperature_underflow_and_padding():
     assert torch.isfinite(policy.grad).all() and policy.grad[0,2]==0
     torch.testing.assert_close(policy.grad,q.probs-p.probs,atol=1e-6,rtol=1e-5)
     with pytest.raises(ValueError):prior_policy_kl(prior,torch.zeros_like(prior))
+
+
+def test_actor_only_replay_does_not_fit_expert_values(sample):
+    game,_,_,_,_,row,model,_=sample
+    loss,_=supervised_loss(model,[row],'cpu','win',game,value_coef=0.,auxiliary_coef=0.)
+    changed=dict(row,win_target=-1.,auxiliary_targets=row['auxiliary_targets']+100.)
+    other,_=supervised_loss(model,[changed],'cpu','win',game,value_coef=0.,auxiliary_coef=0.)
+    torch.testing.assert_close(loss,other)
+    loss.backward()
+    assert model.core.actor[-1].weight.grad.abs().sum()>0
+    assert all(p.grad is None or not p.grad.count_nonzero() for p in model.core.critic.parameters())
+    assert all(p.grad is None or not p.grad.count_nonzero() for p in model.auxiliary.parameters())
+    with pytest.raises(ValueError):supervised_loss(model,[row],'cpu','win',game,value_coef=-1.)
