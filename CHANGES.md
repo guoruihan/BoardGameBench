@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-01 — close the authorized Toy Battle 32-game batch
+
+- Publish the completed one-wave 900-second search comparison, costs and role update. Preserve the earlier stopped-run report and attach explicit incremental evidence to the updated local opponent catalogue.
+- Verify all 32 result hashes and frozen policy identities; every game terminates within budget. No game rules, models or search settings changed; no other queue resumed.
+
 ## 2026-11-01 — V1.7.4 / 0.6.7 frozen mixed opponent pool
 
 - Export 101 immutable policy configurations across 16 fixed two-player games, including nested model dependencies, source archives, hashes and relocated loading.

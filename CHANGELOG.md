@@ -1,5 +1,10 @@
 # Research milestones
 
+## 2026-11-01 — Toy Battle long-search calibration completed
+
+- The explicitly reauthorized original 16 environments with swapped seats complete as one wave of 32 single-core jobs in 15.11 minutes. Search wins 27/32 (84.375%) versus retained RL; the existing exploratory paired interval is 60.41%–95.03%.
+- This meets the existing above-anchor criterion, adding a measured higher opponent for Toy Battle. All 32 games complete without timeout or budget violation, using 7.80 worker-wall core-hours. Other incomplete comparisons stay unchanged.
+
 ## 2026-11-01 — V1.7.4 frozen joint-pool calibration closure
 
 - Preserve 16 games and 101 heuristic, learned and terminal-search configurations; use fixed learned anchors, paired seats and seed-level uncertainty for exploratory strength labels. Style is described against a common opponent, without a causal or global-ranking claim.
