@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-11-01 — 0.6.6 search-initialized full-state RL
+
+- Add a full-public-tree actor/critic with a frozen-policy prior, expert soft
+  targets, terminal-value/component initialization and complete-game PPO.
+- Preserve complete trajectories, exclude truncated returns, audit behavior
+  likelihoods and publish immutable checkpoints for a separate CPU evaluator.
+- Support bounded deadlines, exact optimizer/RNG recovery and asynchronous new
+  teacher data; keep legacy models and game rules unchanged.
+
 ## 2026-11-01 — publish V1.7.2 paired search references
 
 - Publish all-family 30/180/900-second comparisons, targeted continuation and

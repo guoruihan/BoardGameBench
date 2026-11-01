@@ -1,0 +1,56 @@
+# V1.7.3：八任务搜索示范与完整局面 RL
+
+本轮用户授权三小时自主探索，窗口为 2026-11-01 00:18:13 至 03:18:13 UTC。
+训练在结束前预留确认评估时间。覆盖 Century A New World、Century Spice Road、Clever、
+Patchwork、Splendor、Stone Age、Harmonies、Toy Battle。游戏、公开信息权限和官方计分不变。
+
+## 方法与对照
+
+- 复用 V1.7.2 完整玩家观察／动作树、静态公开组件信息和等价模拟内核。
+- 新 actor-critic 同时读取完整局面、动作和旧候选特征；冻结旧 RL 作为加性策略先验。
+  初始残差为零，保留旧策略的贪心选择，不从随机玩法重新发现基本能力。
+- 使用有效的高预算搜索轨迹做行为模仿、终局价值和计分分项初始化。搜索有至少四次
+  完整候选评估时，混合实际专家动作与候选软标签；低样本动作降低监督权重。
+- 完整对局 PPO 使用同一玩家的决策链、gamma=1、实际行为概率和裁剪目标。
+  专家数据只进入监督损失，不冒充 on-policy 样本；不完整对局保存但不产生终局学习标签。
+- 首轮比较胜负目标与胜负／终局分差混合目标，二者都有计分分项辅助头与示范回放。
+  Toy Battle 的勋章不是唯一胜负条件，因此两个配置都保留真实胜负目标。
+- 每个任务独立策略；不要求全部任务使用同一个最优超参数。后续变体由实际结果决定。
+
+方法参考：[PPO](https://arxiv.org/abs/1707.06347) 的策略更新、
+[Expert Iteration](https://arxiv.org/abs/1705.08439) 的搜索与快速策略分工。
+[DAgger](https://proceedings.mlr.press/v15/ross11a.html) 提醒我们还需检查学生实际局面的分布偏移；
+本轮初始教师补数是新专家对局，不能将它称为已经实现 DAgger。
+
+## 数据和评估
+
+上一轮四个开发环境产生的专家轨迹现在属于训练数据，不能再用于独立确认。
+后台另外生成 128 个高预算教师对局，模型训练不等待其完成；新数据编码后加入监督回放。
+所有校准尺度从训练轨迹固定，评估分数不能反过来修改标签尺度。
+
+训练模型按版本输出不可变快照。独立 CPU 评估进程对固定旧 RL 进行新环境、双座位比较，
+同时记录官方总分、计分分项、完整率和实际时间。快速开发选择与最终确认使用不同种子区间；
+正式 test 不参与任何调参。较短预算的搜索对照作为异步诊断，不能代替高预算教师的强度证据。
+
+训练和评估分别记录配置、源码、模型哈希、轨迹、损失和成本。内部编码缓存使用本机产生的
+压缩 pickle，不接受外部不可信文件；公开策略接口只接收观察和合法动作。
+
+## 资源与恢复
+
+每台机器的自身分配不超过物理 CPU 核的一半，a 系机器同时不超过 128 核。
+训练使用空闲 GPU；只在确认容量后叠加本项目任务。b35 用于 CPU 教师搜索。
+每个训练进程及采样子进程限制在分配的 CPU affinity 内，PyTorch／BLAS 单线程。
+CUDA 必须通过真实运算检查，不允许请求 GPU 后静默降级。
+
+本地实验根为 `outputs/v173/search_guided_rl_20261101/`，权重、轨迹、机器配置不进入 Git。
+训练恢复使用原配置与 `checkpoint.pt`，校验配置哈希并恢复优化器／随机数状态；不得以恢复名义
+延长原截止时间。已有模型始终保留，开发集优胜不自动替换已发布 baseline。
+
+```bash
+PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+  .venv-train/bin/python -m pytest -q tests/families/test_guided_training.py
+
+# 在已分配资源的远端运行，config 指向对应任务的不可变配置。
+PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+  .venv-train/bin/python -m boardbench.families.guided_training --config /path/to/config.json
+```

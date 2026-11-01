@@ -52,7 +52,10 @@ def make_policy(cls, spec, seed=0):
                       'century_a_new_world': 'century_new_world_public_repeat_v1'}
     if guard is not None and guard != allowed_guards.get(cls.game_id):
         raise ValueError('Unsupported decision guard/game combination')
-    if spec.get('kind') == 'neural':
+    if spec.get('kind') == 'guided_rich':
+        from .guided_neural import GuidedPolicy
+        policy = GuidedPolicy(cls.game_id, spec, seed)
+    elif spec.get('kind') == 'neural':
         from .neural import NeuralPolicy
         policy = NeuralPolicy(cls, spec, seed)
     elif spec.get('kind') == 'harmonies_rl':

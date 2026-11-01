@@ -1,5 +1,16 @@
 # Research milestones
 
+## V1.7.3 eight-family search-guided learning — 2026-11-01
+
+- Begin a user-authorized three-hour comparison for eight families where a
+  900-second reference exposed a development gap. Initialize full-public-state
+  models with expert policy/value labels, then compare win and score-margin PPO.
+- Existing search-panel trajectories become training data; new development and
+  confirmation seeds remain separate. Generate new expert games and evaluate
+  frozen snapshots asynchronously without blocking the learner.
+- This records the experiment design, not a claimed strength improvement or
+  independent confirmation of all previously selected search teachers.
+
 ## V1.7.2 completed long-search comparison — 2026-11-01
 
 - Complete 456 valid paired development matches across 16 families, retaining
