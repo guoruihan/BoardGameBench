@@ -1,5 +1,14 @@
 # Engineering changes
 
+## 2026-11-01 — asynchronous search checks and student-state expert labels
+
+- Add fixed-search versus immutable-student matches without pausing learners.
+- Add label mode that executes the student action while storing a separate
+  teacher action and candidate estimates. Actual terminal returns remain those
+  of the executed trajectory; counterfactual teacher rewards are not fabricated.
+- Verify that teacher labeling leaves the student's complete trajectory and
+  outcome unchanged, and keeps suggested actions aligned with legal candidates.
+
 ## 2026-11-01 — freeze vocabulary identity across source snapshots
 
 - Exclude Python import metadata from default public vocabularies, preventing

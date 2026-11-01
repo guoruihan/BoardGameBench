@@ -98,9 +98,11 @@ def encode_experts(game, paths, base_spec, schema=None, anchor_scale=1., symbols
         for item in trace:
             if item['player']!=seat: continue
             legal = item['legal_actions']; detail = item['search']
+            chosen=item.get('teacher_action') or item['action']
             row = encode_record(game, encoder, base, item['observation'], legal, anchor_scale)
-            row.update(label, teacher=teacher_distribution(legal, item['action'], detail, result['objective']),
-                       action=legal.index(item['action']), seed=result['seed'], seat=seat,
+            row.update(label, teacher=teacher_distribution(legal, chosen, detail, result['objective']),
+                       action=legal.index(chosen), behavior_action=legal.index(item['action']),
+                       seed=result['seed'], seat=seat,
                        teacher_rounds=detail['completed_rounds'],
                        teacher_weight=1. if detail['completed_rounds']>=4 else .25)
             rows.append(row)

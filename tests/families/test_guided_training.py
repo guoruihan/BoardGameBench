@@ -134,3 +134,26 @@ def test_frozen_vocabulary_checkpoint_and_legacy_sidecar(sample,tmp_path):
     (tmp_path/'vocabulary.json').write_text(json.dumps(dict(game=game,symbols=symbols)))
     restored,encoding,_=load_model(path,game)
     assert encoding.metadata==old.metadata
+
+
+def test_student_labeling_preserves_executed_trajectory(monkeypatch,tmp_path):
+    import gzip,json
+    from boardbench.families import guided_search_evaluation as module
+    from boardbench.families.play import run_match
+    class FakeTeacher:
+        def __init__(self,*args,**kwargs):self.spent=0.;self.total_steps=0;self.total_rounds=0;self.last={}
+        def decide(self,env):
+            actions=env.legal_actions();self.total_rounds+=1
+            self.last=dict(completed_rounds=4,candidates=[dict(action=a,samples=4,mean=float(i==len(actions)-1)) for i,a in enumerate(actions)])
+            return actions[-1]
+    monkeypatch.setattr(module,'TerminalReference',FakeTeacher)
+    reference=dict(rl_spec={'kind':'heuristic'},objective='win',continuation='portfolio')
+    cfg=dict(game='splendor',seed=17391,search_seat=0,mode='label',reference=reference,
+             candidate={'kind':'heuristic'},budget=1,output=str(tmp_path/'label.json'),source_commit='test')
+    result=module.run(cfg)
+    expected=run_match('splendor',[{'kind':'heuristic'}]*2,seed=cfg['seed'],record=True,record_legal=True)
+    assert result['status']=='complete' and result['outcome']==expected['outcome']
+    with gzip.open(tmp_path/'label.trajectory.json.gz','rt') as f:trace=json.load(f)['trajectory']
+    assert [r['action'] for r in trace]==[r['action'] for r in expected['trajectory']]
+    assert any(r['teacher_action']!=r['action'] for r in trace if r['player']==0)
+    assert all(r['teacher_action'] in r['legal_actions'] for r in trace if r['player']==0)
