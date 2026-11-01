@@ -40,6 +40,12 @@ def stop(*_):
 def file_hash(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def phase_learning_rate(cfg,phase):
+    value=float(cfg.get(phase+'_learning_rate',cfg.get('learning_rate',2e-4)))
+    if not np.isfinite(value) or value<=0:raise ValueError('Positive finite phase learning rate required')
+    return value
+
+
 def teacher_mode(rows, mode='soft'):
     if mode=='soft': return rows
     if mode not in ('hard','selective'):raise ValueError('Unknown expert target mode')
@@ -205,7 +211,8 @@ def main():
     demos = prepare_demos(dataset,cfg); metadata = dict(game=cfg['game'], base_spec=dataset['base_spec'],
         schema=dataset['schema'], anchor_scale=cfg.get('anchor_scale',dataset['anchor_scale']), source_commit=cfg['source_commit'])
     model = GuidedActorCritic(encoder.metadata['vocabulary_size'], cfg.get('hidden',64), len(dataset['schema']['names'])).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.get('learning_rate',2e-4))
+    bc_lr,ppo_lr=phase_learning_rate(cfg,'bc'),phase_learning_rate(cfg,'ppo')
+    optimizer = torch.optim.Adam(model.parameters(), lr=bc_lr)
     config_hash = hashlib.sha256(json.dumps(cfg,sort_keys=True).encode()).hexdigest()
     state = dict(bc_epoch=0, update=0, learner_decisions=0, episodes=0, excluded_episodes=0,
                  phase='bc', extra_loaded=False, started_unix=time.time(), candidates=[])
@@ -257,6 +264,7 @@ def main():
         log(dict(phase='bc',epoch=state['bc_epoch'],minibatches=len(metrics),
                  metrics={k:float(np.mean([m[k] for m in metrics])) for k in metrics[0]} if metrics else {}))
         publish(f'bc_{state["bc_epoch"]:03d}')
+    for group in optimizer.param_groups:group['lr']=ppo_lr
     if state['phase']=='bc':state['phase']='ppo';publish('bc_final')
     extra_manifest=Path(cfg['dataset']).parent/'extra_dataset.json'
     def read_extra():

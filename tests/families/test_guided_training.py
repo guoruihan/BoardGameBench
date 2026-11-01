@@ -228,3 +228,13 @@ def test_residual_shrink_preserves_prior_values_and_source(sample):
     torch.testing.assert_close(model.core.actor[-1].weight,before)
     torch.testing.assert_close(shrink_residual(model,0)([row])[0],prior)
     with pytest.raises(ValueError):shrink_residual(model,1.1)
+
+
+def test_imitation_and_ppo_learning_rates_are_explicit():
+    from boardbench.families.guided_training import phase_learning_rate
+    cfg=dict(learning_rate=.001,bc_learning_rate=.0005,ppo_learning_rate=.00005)
+    assert phase_learning_rate(cfg,'bc')==.0005
+    assert phase_learning_rate(cfg,'ppo')==.00005
+    assert phase_learning_rate(dict(learning_rate=.001),'ppo')==.001
+    with pytest.raises(ValueError):phase_learning_rate(dict(ppo_learning_rate=-1),'ppo')
+    with pytest.raises(ValueError):phase_learning_rate(dict(bc_learning_rate=float('nan')),'bc')

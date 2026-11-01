@@ -85,3 +85,5 @@ PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
 ### 保守的策略修正强度
 
 `python -m boardbench.families.guided_variants --game GAME --source MODEL --output NEW_MODEL --scale 0.5` 将两个 actor 输出层同时乘以给定比例，因此实际 logits 为“原冻结先验 + 比例 × 已学修正”；critic 与辅助头保持不变。它产生独立文件和父模型哈希，用于检验过大的策略修正是否导致退化，不声称是额外训练或对局搜索。
+
+可分别配置 `bc_learning_rate` 与 `ppo_learning_rate`，让示范拟合与后续在线改进采用不同步长；未配置时均沿用 `learning_rate`。本轮后续纠正数据试验采用较快的示范拟合与更小的 PPO 步长，检验在线更新是否过度改变已学策略。

@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-01 — distinct imitation and PPO update rates
+
+- Allow separately validated learning rates for expert initialization and PPO, retaining the original single-rate default.
+- Switch optimizer groups at the phase boundary while keeping optimizer state and resume configuration checks.
+
 ## 2026-11-01 — immutable residual-strength policy variants
 
 - Add a checkpoint utility that scales only learned actor corrections while retaining the frozen prior, encoder, critic and auxiliary heads.
