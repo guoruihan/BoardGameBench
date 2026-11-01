@@ -70,4 +70,10 @@ PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
 
 ### 第二轮的先验与数据
 
-新运行可设置 `anchor_scale`，对示范里的冻结先验和实际行动使用相同比例；零初始化的策略修正仍保持原模型的贪心动作。`warm_start_bc=true` 可以从明确指定的旧快照重新进行示范训练，词表、基础模型和目标标定必须一致。小开发面板的最优值仅用于发现候选；最终采用 32 个开发环境双座次选优，再用未参与选择的 64 个环境双座次确认。
+新运行可设置 `anchor_scale`，对示范里的冻结先验和实际行动使用相同比例；零初始化的策略修正仍保持原模型的贪心动作。`warm_start_bc=true` 可以从明确指定的旧快照重新进行示范训练，词表、基础模型和目标标定必须一致。小开发面板的最优值仅用于发现候选；最终采用 32 个开发环境双座次选优，再用未参与选择的 256 个环境双座次确认。
+
+### 可恢复的异步评估
+
+运行 `python -m boardbench.families.guided_evaluation --root RUN_ROOT --workers 32 --deadline-unix END --confirm-at FREEZE --development-split wide --development-seeds 32 --development-seed-start 173050000 --confirmation-split wide_confirmation --confirmation-seed-start 173060000 --confirm-seeds 256 --poll-seconds 600`。开发与确认种子不能重叠，已有输出不能静默更改环境数；确认前写入冻结的 `wide_confirmation_selection.json`。它不阻塞训练。8 环境的快速面板仅用于发现候选，不能作为提升证据。
+
+浮点注意：缩放先验保留其 logit 排序，但 FP32 `log_softmax` 在接近并列的动作上可能引入相同数值，因此不能声称每条完整轨迹严格保持原模型。本轮检查发现 Clever/New World 有约 3e-8 至 6e-8 的差值被舍入；原始初始模型与缩放初始模型均保留，所有胜率来自实际配对对局。

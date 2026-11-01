@@ -67,7 +67,7 @@ def evaluate_many(root, requests, workers, deadline, seeds=8, seed_start=1730200
     return summaries
 
 
-def collect(root):
+def collect(root, split='quick'):
     requests=[]
     for path in sorted((root/'runs').glob('*/*/config.json')):
         cfg=json.loads(path.read_text());manifest=path.parent/'candidates.json'
@@ -79,14 +79,15 @@ def collect(root):
         for item in selected:
             if item['name'] in seen:continue
             seen.add(item['name'])
-            dest=root/'evaluations'/'quick'/cfg['game']/cfg['arm']/(item['name']+'.json')
-            if not dest.exists():requests.append((cfg,item))
+            dest=root/'evaluations'/split/cfg['game']/cfg['arm']/(item['name']+'.json')
+            if not dest.exists() or not json.loads(dest.read_text())['summary']['all_complete']:
+                requests.append((cfg,item))
     return requests
 
 
-def best_candidates(root):
+def best_candidates(root, split='quick'):
     best={}
-    for p in (root/'evaluations'/'quick').glob('*/*/*.json'):
+    for p in (root/'evaluations'/split).glob('*/*/*.json'):
         item=json.loads(p.read_text());s=item['summary']
         if not s['all_complete']:continue
         # Official wins first, genuine score difference second; no hidden labels.
@@ -101,22 +102,37 @@ def main():
     p.add_argument('--workers',type=int,default=24);p.add_argument('--deadline-unix',type=float,required=True)
     p.add_argument('--confirm-at',type=float,required=True);p.add_argument('--confirm-seeds',type=int,default=64)
     p.add_argument('--poll-seconds',type=float,default=30.)
+    p.add_argument('--development-split',default='quick');p.add_argument('--development-seeds',type=int,default=8)
+    p.add_argument('--development-seed-start',type=int,default=173020000)
+    p.add_argument('--confirmation-split',default='confirmation');p.add_argument('--confirmation-seed-start',type=int,default=173030000)
     a=p.parse_args();a.root=a.root.resolve()
+    if min(a.workers,a.development_seeds,a.confirm_seeds)<1:raise ValueError('Positive workers and environment counts required')
+    if not (a.development_seed_start+a.development_seeds<=a.confirmation_seed_start
+            or a.confirmation_seed_start+a.confirm_seeds<=a.development_seed_start):
+        raise ValueError('Development and confirmation seed ranges overlap')
+    if a.development_split==a.confirmation_split:raise ValueError('Separate development and confirmation outputs required')
+    for path in (a.root/'evaluations'/a.development_split).glob('*/*/*.json'):
+        cached=json.loads(path.read_text())
+        if cached['seed_start']!=a.development_seed_start or cached['summary']['scheduled']!=2*a.development_seeds:
+            raise ValueError('Existing development panel differs; use a new split to preserve its results')
+    prefix='' if a.development_split=='quick' else a.development_split+'_'
+    best_path=a.root/('best_development.json' if not prefix else 'best_'+prefix+'development.json')
     while time.time()<a.confirm_at:
-        requests=collect(a.root)
-        if requests:evaluate_many(a.root,requests,a.workers,a.confirm_at,seeds=8)
-        best=best_candidates(a.root);write_json(a.root/'best_development.json',best)
-        write_json(a.root/'evaluation_status.json',dict(phase='quick',observed_unix=time.time(),games=len(best)))
+        requests=collect(a.root,a.development_split)
+        if requests:evaluate_many(a.root,requests,a.workers,a.confirm_at,seeds=a.development_seeds,
+                                  seed_start=a.development_seed_start,split=a.development_split)
+        best=best_candidates(a.root,a.development_split);write_json(best_path,best)
+        write_json(a.root/(prefix+'evaluation_status.json'),dict(phase=a.development_split,observed_unix=time.time(),games=len(best)))
         time.sleep(min(a.poll_seconds,max(0.,a.confirm_at-time.time())))
-    best=best_candidates(a.root);requests=[]
-    write_json(a.root/'confirmation_selection.json',best)
+    best=best_candidates(a.root,a.development_split);requests=[]
+    write_json(a.root/(prefix+'confirmation_selection.json'),best)
     for game,item in best.items():
         cfg=json.loads((a.root/'runs'/game/item['arm']/'config.json').read_text())
         requests.append((cfg,item['candidate']))
     if requests:
         evaluate_many(a.root,requests,a.workers,a.deadline_unix,seeds=a.confirm_seeds,
-                      seed_start=173030000,split='confirmation')
-    write_json(a.root/'evaluation_status.json',dict(phase='complete',observed_unix=time.time(),games=len(best)))
+                      seed_start=a.confirmation_seed_start,split=a.confirmation_split)
+    write_json(a.root/(prefix+'evaluation_status.json'),dict(phase='complete',observed_unix=time.time(),games=len(best)))
 
 
 if __name__=='__main__':main()

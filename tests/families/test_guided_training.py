@@ -169,3 +169,19 @@ def test_anchor_temperature_is_aligned_and_does_not_mutate_dataset(sample):
     np.testing.assert_array_equal(row['prior'],before)
     assert new['prior'].argmax()==row['prior'].argmax()
     with pytest.raises(ValueError):prepare_demos(data,dict(anchor_scale=0))
+
+
+def test_wide_selection_is_separate_and_retries_incomplete(tmp_path):
+    import json
+    from boardbench.families.guided_evaluation import best_candidates,collect
+    root=tmp_path;directory=root/'runs'/'splendor'/'win';directory.mkdir(parents=True)
+    (directory/'config.json').write_text(json.dumps(dict(game='splendor',arm='win')))
+    candidate=dict(name='bc_final',path='/model',sha256='abc')
+    (directory/'candidates.json').write_text(json.dumps([candidate]))
+    for split,complete,rate in [('quick',True,1.),('wide',False,.9)]:
+        p=root/'evaluations'/split/'splendor'/'win'/'bc_final.json';p.parent.mkdir(parents=True)
+        p.write_text(json.dumps(dict(game='splendor',arm='win',candidate=candidate,
+          summary=dict(all_complete=complete,all_scheduled_win_rate=rate,own_score=15,opponent_score=10))))
+    assert best_candidates(root)['splendor']['summary']['all_scheduled_win_rate']==1.
+    assert best_candidates(root,'wide')=={}
+    assert collect(root)==[] and len(collect(root,'wide'))==1

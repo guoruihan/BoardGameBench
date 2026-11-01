@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-01 — configurable paired development and confirmation panels
+
+- Parameterize asynchronous evaluation seeds/counts/output splits, reject overlapping development/confirmation seeds and incompatible cached panels, and retry incomplete candidates.
+- Keep quick-panel and wider-panel selection independent; selected weights remain frozen before fresh confirmation.
+- Add regression coverage for selection isolation and missing-result recovery.
+
 ## 2026-11-01 — controlled prior softening and repeated expert initialization
 
 - Allow explicit positive policy-prior scaling with identical scaling in expert replay and acting; preserve the greedy initial action and immutable datasets.
