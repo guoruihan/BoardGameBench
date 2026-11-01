@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-01 — immutable residual-strength policy variants
+
+- Add a checkpoint utility that scales only learned actor corrections while retaining the frozen prior, encoder, critic and auxiliary heads.
+- Preserve source checkpoints and record source hashes/scales; verify exact residual scaling and unchanged value outputs.
+
 ## 2026-11-01 — bounded teacher/student mixture data collection
 
 - Extend expert labeling with an explicit seeded teacher execution probability, preserving default pure-student trajectories and recording which policy actually acted.

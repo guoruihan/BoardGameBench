@@ -212,3 +212,19 @@ def test_mixed_teacher_execution_keeps_actual_returns(monkeypatch,tmp_path):
     assert all(r['behavior_policy']=='teacher' and r['action']==r['teacher_action'] for r in trace if r['player']==0)
     with pytest.raises(ValueError):module.run(dict(cfg,mode='match'))
     with pytest.raises(ValueError):module.run(dict(cfg,teacher_execute_probability=1.1))
+
+
+def test_residual_shrink_preserves_prior_values_and_source(sample):
+    from boardbench.families.guided_variants import shrink_residual
+    row,model=sample[5],sample[6]
+    with torch.no_grad():
+        model.core.actor[-1].weight.fill_(.13)
+        model.feature_actor[-1].bias.fill_(.27)
+    before=model.core.actor[-1].weight.detach().clone()
+    logits,value,aux=model([row]);scaled=shrink_residual(model,.25)
+    after,v,a=scaled([row]);prior=torch.as_tensor(row['prior'])[None]
+    torch.testing.assert_close(after-prior,.25*(logits-prior),atol=2e-6,rtol=1e-5)
+    torch.testing.assert_close(v,value);torch.testing.assert_close(a,aux)
+    torch.testing.assert_close(model.core.actor[-1].weight,before)
+    torch.testing.assert_close(shrink_residual(model,0)([row])[0],prior)
+    with pytest.raises(ValueError):shrink_residual(model,1.1)

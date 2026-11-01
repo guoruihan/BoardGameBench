@@ -81,3 +81,7 @@ PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
 ### 学生局面纠正数据
 
 `guided_search_evaluation` 的 `mode=label` 默认执行学生动作，同时保存教师建议；可显式设置 `teacher_execute_probability`，用独立策略随机数选择是否执行教师动作。每条记录保留实际行动来源，终局价值标签来自实际混合轨迹，而不是假设教师全部执行后的回报。带动作历史保护器的游戏暂不支持该混合模式，以免保护器记忆与实际执行不一致。示范只进入监督损失，不冒充 PPO 的 on-policy 样本。
+
+### 保守的策略修正强度
+
+`python -m boardbench.families.guided_variants --game GAME --source MODEL --output NEW_MODEL --scale 0.5` 将两个 actor 输出层同时乘以给定比例，因此实际 logits 为“原冻结先验 + 比例 × 已学修正”；critic 与辅助头保持不变。它产生独立文件和父模型哈希，用于检验过大的策略修正是否导致退化，不声称是额外训练或对局搜索。
