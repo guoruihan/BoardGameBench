@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-01 — finite low-temperature prior KL
+
+- Compute the frozen-prior KL from finite log-probabilities on the shared legal support. Valid FP32 probabilities that underflow to zero no longer produce spurious infinite losses.
+- Check padded-action exclusion, support mismatches, gradients and agreement with a double-precision reference; preserve the real nonfinite-loss guard.
+
 ## 2026-11-01 — aligned stochastic-policy temperatures
 
 - Add positive sampling temperatures to guided actor rollouts; record each behavior temperature and apply it to PPO probabilities, entropy and prior KL.

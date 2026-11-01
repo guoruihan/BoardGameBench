@@ -256,3 +256,21 @@ def test_sampling_temperature_and_ppo_probabilities_agree(sample):
     a=GuidedPolicy(game,dict(sampling_temperature=.25),19,model,encoder,metadata).decide(obs,actions)
     b=GuidedPolicy(game,dict(sampling_temperature=1),19,model,encoder,metadata).decide(obs,actions)
     assert a==b
+
+
+def test_prior_kl_survives_low_temperature_underflow_and_padding():
+    from boardbench.families.guided_training import prior_policy_kl
+    prior=torch.tensor([[0.,-10.,-torch.inf],[0.,-2.,-3.]])
+    policy=torch.tensor([[0.,-120.,-torch.inf],[-120.,0.,-130.]],requires_grad=True)
+    p=torch.distributions.Categorical(logits=prior)
+    q=torch.distributions.Categorical(logits=policy)
+    assert not torch.isfinite(torch.distributions.kl_divergence(p,q)).all()
+    expected=torch.distributions.kl_divergence(
+        torch.distributions.Categorical(logits=prior.double()),
+        torch.distributions.Categorical(logits=policy.double()))
+    actual=prior_policy_kl(prior,policy)
+    torch.testing.assert_close(actual.double(),expected,atol=1e-5,rtol=1e-5)
+    actual.sum().backward()
+    assert torch.isfinite(policy.grad).all() and policy.grad[0,2]==0
+    torch.testing.assert_close(policy.grad,q.probs-p.probs,atol=1e-6,rtol=1e-5)
+    with pytest.raises(ValueError):prior_policy_kl(prior,torch.zeros_like(prior))

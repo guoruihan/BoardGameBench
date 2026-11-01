@@ -53,6 +53,22 @@ def behavior_logits(logits,rows):
     return logits/temperature[:,None]
 
 
+def prior_policy_kl(prior_logits, policy_logits):
+    """Forward KL on the shared legal support, without probability-zero tests.
+
+    Low temperatures can underflow a valid FP32 probability to zero even though
+    its log-probability is finite. Categorical KL then reports infinity. Compute
+    directly in log space and exclude only the explicit padded actions.
+    """
+    legal = prior_logits != -torch.inf
+    if not torch.equal(legal, policy_logits != -torch.inf):
+        raise ValueError('Prior and policy legal supports differ')
+    prior_logp = torch.log_softmax(prior_logits, -1)
+    policy_logp = torch.log_softmax(policy_logits, -1)
+    difference = prior_logp.masked_fill(~legal, 0.)-policy_logp.masked_fill(~legal, 0.)
+    return (prior_logp.exp()*difference).sum(-1)
+
+
 def teacher_mode(rows, mode='soft'):
     if mode=='soft': return rows
     if mode not in ('hard','selective'):raise ValueError('Unknown expert target mode')
@@ -180,8 +196,7 @@ def ppo_update(model, optimizer, rows, demos, cfg, rng, device):
             loss = policy_loss+.5*value_loss+.1*aux-cfg.get('entropy_coef', .005)*entropy
             prior=torch.full_like(logits,-torch.inf)
             for i,r in enumerate(batch):prior[i,:len(r['prior'])]=torch.as_tensor(r['prior'],device=device)
-            anchor=torch.distributions.Categorical(logits=behavior_logits(prior,batch))
-            anchor_kl=torch.distributions.kl_divergence(anchor,dist).mean()
+            anchor_kl=prior_policy_kl(behavior_logits(prior,batch),logits).mean()
             loss=loss+cfg.get('prior_kl_coef',0.)*anchor_kl
             demo_rows = [demos[int(i)] for i in rng.integers(len(demos), size=min(4,len(batch)))]
             demo_loss, _ = supervised_loss(model, demo_rows, device, cfg['reward_mode'], cfg['game'])
