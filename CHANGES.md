@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-01 — V1.7.5 direct text play runner
+
+- Add public-observation direct decisions against frozen learned and 900-second search opponents, with lossless legal-action tables and printed component catalogues for all 16 games.
+- Add a bounded per-provider parallel queue, isolated process groups, paired seats, explicit incomplete statuses, rate-limit checkpoint recovery, raw call/trajectory evidence and live summaries. Private CLI/API wiring stays outside Git.
+- Preserve the paused controlled-GT platform work. Verify public input boundaries, full simulator matches, schedule alignment, rate-limit recovery and subprocess timeout cleanup.
+
 ## 2026-11-01 — close the authorized Toy Battle 32-game batch
 
 - Publish the completed one-wave 900-second search comparison, costs and role update. Preserve the earlier stopped-run report and attach explicit incremental evidence to the updated local opponent catalogue.

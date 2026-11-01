@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-01 — V1.7.5 direct tool/model comparison protocol
+
+- Freeze a 432-game exploratory schedule: three tool/model combinations, 16 original two-player configurations, retained learned opponents plus one 900-second search per game, two seeds with both seats.
+- Compare direct legal-action responses with public rules/components and a bounded private note. No model-side search, training or strategy-program development; report tool/model combinations rather than attributing differences solely to models.
+- Keep transport failures, truncations and budget violations separate from completed-game outcomes. Four games per opponent are preliminary evidence, not calibrated strength estimates.
+
 ## 2026-11-01 — Toy Battle long-search calibration completed
 
 - The explicitly reauthorized original 16 environments with swapped seats complete as one wave of 32 single-core jobs in 15.11 minutes. Search wins 27/32 (84.375%) versus retained RL; the existing exploratory paired interval is 60.41%–95.03%.
