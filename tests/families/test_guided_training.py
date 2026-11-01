@@ -238,3 +238,21 @@ def test_imitation_and_ppo_learning_rates_are_explicit():
     assert phase_learning_rate(dict(learning_rate=.001),'ppo')==.001
     with pytest.raises(ValueError):phase_learning_rate(dict(ppo_learning_rate=-1),'ppo')
     with pytest.raises(ValueError):phase_learning_rate(dict(bc_learning_rate=float('nan')),'bc')
+
+
+def test_sampling_temperature_and_ppo_probabilities_agree(sample):
+    from boardbench.families.guided_training import behavior_logits
+    game,_,obs,actions,encoder,_,model,metadata=sample
+    policy=GuidedPolicy(game,dict(stochastic=True,sampling_temperature=.25),19,model,encoder,metadata,record=True)
+    actual=policy.decide(obs,actions);row=policy.records[0]
+    assert row['sampling_temperature']==.25 and actions[row['action']]==actual
+    assert behavior_error(model,[row],'cpu')<1e-6
+    logits,_,_=model([row]);expected=torch.log_softmax(logits/.25,-1)[0,row['action']]
+    assert row['old_logp']==pytest.approx(float(expected),abs=1e-6)
+    torch.testing.assert_close(behavior_logits(logits,[row]),logits/.25)
+    with pytest.raises(ValueError):behavior_logits(logits,[dict(row,sampling_temperature=0)])
+    with pytest.raises(ValueError):GuidedPolicy(game,dict(sampling_temperature=-1),19,model,encoder,metadata)
+    # Temperature affects only stochastic behavior, not the greedy deployed policy.
+    a=GuidedPolicy(game,dict(sampling_temperature=.25),19,model,encoder,metadata).decide(obs,actions)
+    b=GuidedPolicy(game,dict(sampling_temperature=1),19,model,encoder,metadata).decide(obs,actions)
+    assert a==b

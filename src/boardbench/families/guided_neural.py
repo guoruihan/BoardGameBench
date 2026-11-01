@@ -114,6 +114,9 @@ class GuidedPolicy:
         self.base = base_policy(game, metadata['base_spec'], seed)
         self.rng = np.random.default_rng(seed)
         self.stochastic = spec.get('stochastic', False)
+        self.sampling_temperature=float(spec.get('sampling_temperature',metadata.get('sampling_temperature',1.)))
+        if not math.isfinite(self.sampling_temperature) or self.sampling_temperature<=0:
+            raise ValueError('Positive finite sampling temperature required')
         self.record, self.records = record, []
 
     def decide(self, observation, actions):
@@ -121,12 +124,14 @@ class GuidedPolicy:
                             self.metadata.get('anchor_scale', 1.))
         with torch.inference_mode():
             logits, values, _ = self.model([row])
-            logp = torch.log_softmax(logits[0], -1).numpy()
+            temperature=self.sampling_temperature if self.stochastic else 1.
+            logp = torch.log_softmax(logits[0]/temperature, -1).numpy()
         if self.stochastic:
             probabilities = np.exp(logp.astype(np.float64)); probabilities /= probabilities.sum()
             index = int(self.rng.choice(len(actions), p=probabilities))
         else: index = int(logp.argmax())
         if self.record:
-            row.update(action=index, old_logp=float(logp[index]), value=float(values[0]))
+            row.update(action=index, old_logp=float(logp[index]), value=float(values[0]),
+                       sampling_temperature=temperature)
             self.records.append(row)
         return actions[index]

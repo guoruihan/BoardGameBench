@@ -1,5 +1,9 @@
 # Research milestones
 
+## 2026-11-01 — V1.7.3 stochastic-behavior diagnosis
+
+- Paired greedy/stochastic probes show that training-time sampling can be much weaker than greedy deployment for the same snapshot. Add temperature-controlled on-policy exploration with matching behavior log-probabilities and PPO distributions.
+
 ## 2026-11-01 — V1.7.3 coverage-driven imitation iteration
 
 - After longer imitation improved training-action agreement but hurt fresh games, add teacher/student mixture trajectories for corrective labels on encountered states. Use actual mixture returns only as supervised targets, never as on-policy PPO samples.

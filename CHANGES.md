@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-01 — aligned stochastic-policy temperatures
+
+- Add positive sampling temperatures to guided actor rollouts; record each behavior temperature and apply it to PPO probabilities, entropy and prior KL.
+- Keep greedy evaluation and supervised expert targets unchanged, and preserve default-temperature checkpoints.
+- Verify sampled-action likelihoods against recomputed PPO likelihoods and unchanged greedy behavior.
+
 ## 2026-11-01 — distinct imitation and PPO update rates
 
 - Allow separately validated learning rates for expert initialization and PPO, retaining the original single-rate default.

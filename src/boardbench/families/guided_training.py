@@ -46,6 +46,13 @@ def phase_learning_rate(cfg,phase):
     return value
 
 
+def behavior_logits(logits,rows):
+    temperature=torch.tensor([r.get('sampling_temperature',1.) for r in rows],dtype=logits.dtype,device=logits.device)
+    if not torch.isfinite(temperature).all() or not (temperature>0).all():
+        raise ValueError('Positive finite behavior temperatures required')
+    return logits/temperature[:,None]
+
+
 def teacher_mode(rows, mode='soft'):
     if mode=='soft': return rows
     if mode not in ('hard','selective'):raise ValueError('Unknown expert target mode')
@@ -139,6 +146,7 @@ def behavior_error(model, rows, device):
     with torch.inference_mode():
         for start in range(0, min(32, len(rows)), 4):
             batch = rows[start:start+4]; logits, _, _ = model(batch, device)
+            logits=behavior_logits(logits,batch)
             indices = torch.tensor([r['action'] for r in batch], device=device)
             logp = torch.log_softmax(logits, -1).gather(1, indices[:,None]).squeeze(1)
             expected = torch.tensor([r['old_logp'] for r in batch], device=device)
@@ -156,6 +164,7 @@ def ppo_update(model, optimizer, rows, demos, cfg, rng, device):
         for batch in batches(rows, cfg['batch_size'], rng):
             if STOP or time.time()>=cfg['deadline_unix']-10: stopped_early = True; break
             logits, values, auxiliary = model(batch, device)
+            logits=behavior_logits(logits,batch)
             dist = torch.distributions.Categorical(logits=logits)
             chosen = torch.tensor([r['action'] for r in batch], device=device)
             old = torch.tensor([r['old_logp'] for r in batch], device=device)
@@ -171,7 +180,7 @@ def ppo_update(model, optimizer, rows, demos, cfg, rng, device):
             loss = policy_loss+.5*value_loss+.1*aux-cfg.get('entropy_coef', .005)*entropy
             prior=torch.full_like(logits,-torch.inf)
             for i,r in enumerate(batch):prior[i,:len(r['prior'])]=torch.as_tensor(r['prior'],device=device)
-            anchor=torch.distributions.Categorical(logits=prior)
+            anchor=torch.distributions.Categorical(logits=behavior_logits(prior,batch))
             anchor_kl=torch.distributions.kl_divergence(anchor,dist).mean()
             loss=loss+cfg.get('prior_kl_coef',0.)*anchor_kl
             demo_rows = [demos[int(i)] for i in rng.integers(len(demos), size=min(4,len(batch)))]
@@ -209,7 +218,10 @@ def main():
     encoder = PublicTreeEncoder(cfg['game'],symbols=symbols)
     if dataset['encoding']!=encoder.metadata: raise ValueError('Dataset/encoder mismatch')
     demos = prepare_demos(dataset,cfg); metadata = dict(game=cfg['game'], base_spec=dataset['base_spec'],
-        schema=dataset['schema'], anchor_scale=cfg.get('anchor_scale',dataset['anchor_scale']), source_commit=cfg['source_commit'])
+        schema=dataset['schema'], anchor_scale=cfg.get('anchor_scale',dataset['anchor_scale']), source_commit=cfg['source_commit'],
+        sampling_temperature=float(cfg.get('sampling_temperature',1.)))
+    if not np.isfinite(metadata['sampling_temperature']) or metadata['sampling_temperature']<=0:
+        raise ValueError('Positive finite sampling temperature required')
     model = GuidedActorCritic(encoder.metadata['vocabulary_size'], cfg.get('hidden',64), len(dataset['schema']['names'])).to(device)
     bc_lr,ppo_lr=phase_learning_rate(cfg,'bc'),phase_learning_rate(cfg,'ppo')
     optimizer = torch.optim.Adam(model.parameters(), lr=bc_lr)
