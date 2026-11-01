@@ -1,5 +1,13 @@
 # Engineering changes
 
+## 2026-11-01 — selective expert supervision and prior retention
+
+- Add hard and selective expert targets: retain the frozen prior distribution
+  when the teacher keeps its action or has insufficient candidate samples.
+- Add optional PPO KL regularization toward the frozen policy, keeping the
+  original soft-target runs unchanged through their immutable source releases.
+- Check target alignment, prior retention and candidate overrides explicitly.
+
 ## 2026-11-01 — 0.6.6 search-initialized full-state RL
 
 - Add a full-public-tree actor/critic with a frozen-policy prior, expert soft

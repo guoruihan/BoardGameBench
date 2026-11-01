@@ -17,6 +17,11 @@ Patchwork、Splendor、Stone Age、Harmonies、Toy Battle。游戏、公开信�
   Toy Battle 的勋章不是唯一胜负条件，因此两个配置都保留真实胜负目标。
 - 每个任务独立策略；不要求全部任务使用同一个最优超参数。后续变体由实际结果决定。
 
+首轮快速评估后，针对退化／停滞任务增加选择性监督：教师保留旧动作或候选样本不足时，
+保留旧策略的完整动作概率；有足够样本支持改动作时才使用硬动作标签。同时测试更长的
+模仿阶段和 PPO 的旧策略 KL 约束。首轮运行从原始源码快照继续，配置和结果不被覆盖。
+Toy Battle 的第二个首轮分支增加熵探索并减小示范正则，仍使用纯胜负奖励。
+
 方法参考：[PPO](https://arxiv.org/abs/1707.06347) 的策略更新、
 [Expert Iteration](https://arxiv.org/abs/1705.08439) 的搜索与快速策略分工。
 [DAgger](https://proceedings.mlr.press/v15/ross11a.html) 提醒我们还需检查学生实际局面的分布偏移；

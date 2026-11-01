@@ -104,3 +104,17 @@ def test_evaluation_denominator_and_score_components():
     assert result['all_scheduled_win_rate']==.5 and not result['all_complete']
     assert result['own_score']==20 and result['opponent_score']==10
     assert result['own_components']['animals']==8
+
+
+def test_selective_teacher_keeps_prior_unless_supported_override(sample):
+    from boardbench.families.guided_training import teacher_mode
+    row=sample[5];base=int(row['prior'].argmax())
+    r=dict(row,action=base,teacher_rounds=100)
+    target=teacher_mode([r],'selective')[0]['teacher']
+    expected=np.exp(row['prior']-row['prior'].max());expected/=expected.sum()
+    np.testing.assert_allclose(target,expected,rtol=1e-6)
+    changed=dict(r,action=(base+1)%len(target))
+    assert teacher_mode([changed],'selective')[0]['teacher'][changed['action']]==1.
+    changed['teacher_rounds']=0
+    np.testing.assert_allclose(teacher_mode([changed],'selective')[0]['teacher'],expected,rtol=1e-6)
+    np.testing.assert_array_equal(r['teacher'],row['teacher'])

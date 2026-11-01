@@ -40,6 +40,21 @@ def stop(*_):
 def file_hash(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def teacher_mode(rows, mode='soft'):
+    if mode=='soft': return rows
+    if mode not in ('hard','selective'):raise ValueError('Unknown expert target mode')
+    result=[]
+    for row in rows:
+        r=dict(row);prior=row['prior'].astype(np.float64)
+        probabilities=np.exp(prior-prior.max());probabilities/=probabilities.sum()
+        if mode=='selective' and (row['action']==int(prior.argmax()) or row.get('teacher_rounds',0)<4):
+            r['teacher']=probabilities.astype(np.float32)
+        else:
+            r['teacher']=np.zeros(len(prior),np.float32);r['teacher'][row['action']]=1.
+        result.append(r)
+    return result
+
+
 def rollout(job):
     torch.set_num_threads(1)
     game, path = job['game'], job['path']
@@ -140,6 +155,11 @@ def ppo_update(model, optimizer, rows, demos, cfg, rng, device):
             aux = ((auxiliary-labels).square()*mask).sum()/mask.sum().clamp_min(1)
             entropy = dist.entropy().mean()
             loss = policy_loss+.5*value_loss+.1*aux-cfg.get('entropy_coef', .005)*entropy
+            prior=torch.full_like(logits,-torch.inf)
+            for i,r in enumerate(batch):prior[i,:len(r['prior'])]=torch.as_tensor(r['prior'],device=device)
+            anchor=torch.distributions.Categorical(logits=prior)
+            anchor_kl=torch.distributions.kl_divergence(anchor,dist).mean()
+            loss=loss+cfg.get('prior_kl_coef',0.)*anchor_kl
             demo_rows = [demos[int(i)] for i in rng.integers(len(demos), size=min(4,len(batch)))]
             demo_loss, _ = supervised_loss(model, demo_rows, device, cfg['reward_mode'], cfg['game'])
             loss = loss+cfg.get('demo_coef', .2)*demo_loss
@@ -150,7 +170,7 @@ def ppo_update(model, optimizer, rows, demos, cfg, rng, device):
             kl = float(((ratio-1)-(actual-old)).mean().detach())
             metrics.append(dict(loss=float(loss.detach()), policy=float(policy_loss.detach()),
                                 value=float(value_loss.detach()), aux=float(aux.detach()),
-                                kl=kl, entropy=float(entropy.detach()), grad=float(grad)))
+                                kl=kl, anchor_kl=float(anchor_kl.detach()), entropy=float(entropy.detach()), grad=float(grad)))
             if kl>.04: stopped_early = True; break
         if stopped_early: break
     result = {k:float(np.mean([r[k] for r in metrics])) for k in metrics[0]} if metrics else {}
@@ -172,7 +192,7 @@ def main():
     info = json.loads(Path(cfg['dataset']).read_text()); dataset = load_packet(info['path'], info['sha256'])
     encoder = PublicTreeEncoder(cfg['game'])
     if dataset['encoding']!=encoder.metadata: raise ValueError('Dataset/encoder mismatch')
-    demos = dataset['rows']; metadata = dict(game=cfg['game'], base_spec=dataset['base_spec'],
+    demos = teacher_mode(dataset['rows'],cfg.get('teacher_mode','soft')); metadata = dict(game=cfg['game'], base_spec=dataset['base_spec'],
         schema=dataset['schema'], anchor_scale=dataset['anchor_scale'], source_commit=cfg['source_commit'])
     model = GuidedActorCritic(encoder.metadata['vocabulary_size'], cfg.get('hidden',64), len(dataset['schema']['names'])).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.get('learning_rate',2e-4))
@@ -235,14 +255,14 @@ def main():
                 or extra['base_spec']!=metadata['base_spec'] or extra['anchor_scale']!=metadata['anchor_scale']):
             raise ValueError('New teacher schema or prior drift')
         return extra
-    if state['extra_loaded']: demos+=read_extra()['rows']
+    if state['extra_loaded']: demos+=teacher_mode(read_extra()['rows'],cfg.get('teacher_mode','soft'))
     model.eval(); save_state()
     with ProcessPoolExecutor(max_workers=cfg['workers'],mp_context=mp.get_context('spawn')) as executor:
         while not STOP and time.time()<cfg['deadline_unix']-30 and state['update']<cfg.get('max_updates',10000):
             if (out/'PAUSE').exists(): state['phase']='paused';break
             if not state['extra_loaded'] and extra_manifest.exists():
                 extra=read_extra()
-                demos+=extra['rows'];state['extra_loaded']=True;log(dict(phase='data',new_decisions=len(extra['rows'])))
+                demos+=teacher_mode(extra['rows'],cfg.get('teacher_mode','soft'));state['extra_loaded']=True;log(dict(phase='data',new_decisions=len(extra['rows'])))
             current=out/f'behavior_{state["update"]:05d}.pt';save_model(current,model,encoder,metadata)
             digest=file_hash(current);jobs=[]
             for i in range(cfg['games']):

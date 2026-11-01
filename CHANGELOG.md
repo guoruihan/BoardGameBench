@@ -1,5 +1,14 @@
 # Research milestones
 
+## V1.7.3 first adaptive diagnosis — 2026-11-01
+
+- Early fresh-development checks show positive signals in Clever/Century/Toy
+  Battle, but Stone Age imitation degrades. On its expert training states the
+  old policy matches 94.5% of teacher actions, versus 88.9% after soft-target BC.
+- Test selective/hard supervision, longer imitation and frozen-prior retention
+  on the lagging tasks. This diagnoses harmful overwrites and incomplete expert
+  fitting, without changing the already-running first comparison.
+
 ## V1.7.3 eight-family search-guided learning — 2026-11-01
 
 - Begin a user-authorized three-hour comparison for eight families where a
