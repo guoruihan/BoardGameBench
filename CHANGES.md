@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-01 — bounded teacher/student mixture data collection
+
+- Extend expert labeling with an explicit seeded teacher execution probability, preserving default pure-student trajectories and recording which policy actually acted.
+- Keep terminal returns tied to the executed mixture and reject mixed execution with action-history guards or evaluation-match mode.
+- Check that a 100% teacher mixture reproduces the teacher trajectory and real outcome.
+
 ## 2026-11-01 — configurable paired development and confirmation panels
 
 - Parameterize asynchronous evaluation seeds/counts/output splits, reject overlapping development/confirmation seeds and incompatible cached panels, and retry incomplete candidates.

@@ -1,5 +1,10 @@
 # Research milestones
 
+## 2026-11-01 — V1.7.3 coverage-driven imitation iteration
+
+- After longer imitation improved training-action agreement but hurt fresh games, add teacher/student mixture trajectories for corrective labels on encountered states. Use actual mixture returns only as supervised targets, never as on-policy PPO samples.
+- Separate 32-environment development selection from 256-environment paired confirmation; retain original references and failed variants.
+
 ## V1.7.3 first adaptive diagnosis — 2026-11-01
 
 - Early fresh-development checks show positive signals in Clever/Century/Toy

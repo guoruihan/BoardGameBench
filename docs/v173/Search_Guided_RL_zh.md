@@ -77,3 +77,7 @@ PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
 运行 `python -m boardbench.families.guided_evaluation --root RUN_ROOT --workers 32 --deadline-unix END --confirm-at FREEZE --development-split wide --development-seeds 32 --development-seed-start 173050000 --confirmation-split wide_confirmation --confirmation-seed-start 173060000 --confirm-seeds 256 --poll-seconds 600`。开发与确认种子不能重叠，已有输出不能静默更改环境数；确认前写入冻结的 `wide_confirmation_selection.json`。它不阻塞训练。8 环境的快速面板仅用于发现候选，不能作为提升证据。
 
 浮点注意：缩放先验保留其 logit 排序，但 FP32 `log_softmax` 在接近并列的动作上可能引入相同数值，因此不能声称每条完整轨迹严格保持原模型。本轮检查发现 Clever/New World 有约 3e-8 至 6e-8 的差值被舍入；原始初始模型与缩放初始模型均保留，所有胜率来自实际配对对局。
+
+### 学生局面纠正数据
+
+`guided_search_evaluation` 的 `mode=label` 默认执行学生动作，同时保存教师建议；可显式设置 `teacher_execute_probability`，用独立策略随机数选择是否执行教师动作。每条记录保留实际行动来源，终局价值标签来自实际混合轨迹，而不是假设教师全部执行后的回报。带动作历史保护器的游戏暂不支持该混合模式，以免保护器记忆与实际执行不一致。示范只进入监督损失，不冒充 PPO 的 on-policy 样本。

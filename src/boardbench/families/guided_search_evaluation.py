@@ -1,13 +1,15 @@
 """Frozen search matches or expert labels on a student's actual trajectory.
 
-Label mode executes the student's action and stores the teacher's suggestion
-separately. Its terminal return belongs to the executed student trajectory.
+Label mode stores the teacher's suggestion separately. It executes the student
+by default or an explicitly requested mixture. Returns belong to the actual
+executed trajectory.
 """
 import argparse
 import gzip
 import hashlib
 import json
 from pathlib import Path
+import random
 import time
 
 from .play import make_policy, policy_seed, write_json
@@ -20,6 +22,11 @@ def run(cfg):
     game=cfg['game'];cls=game_class(game);env=cls();env.reset(cfg['seed'],first_player=0)
     reference=cfg['reference'];search_seat=cfg['search_seat'];label=cfg['mode']=='label'
     if cfg['mode'] not in ('label','match'):raise ValueError('Unknown search evaluation mode')
+    beta=float(cfg.get('teacher_execute_probability',0.))
+    if not 0<=beta<=1 or (beta and not label):raise ValueError('Teacher execution probability belongs to label mode')
+    if beta and game in ('century_a_new_world','targi'):
+        raise ValueError('Mixed execution requires a policy with no action-history guard')
+    mixture=random.Random(cfg['seed']^173143)
     student_seat=search_seat if label else 1-search_seat
     candidate=make_policy(cls,guarded_spec(game,cfg['candidate']),policy_seed(cfg['seed'],student_seat))
     opponent=make_policy(cls,guarded_spec(game,reference['rl_spec']),policy_seed(cfg['seed'],1-student_seat))
@@ -38,10 +45,13 @@ def run(cfg):
             teacher_action=search.decide(env);detail=copy_data(search.last)
         if seat==student_seat:
             t=time.monotonic();action=candidate.decide(obs,legal);student_seconds+=time.monotonic()-t
-        elif not label: action=teacher_action
-        else: action=opponent.decide(obs,legal)
+            behavior='student'
+            if label and beta and mixture.random()<beta:action=teacher_action;behavior='teacher'
+        elif not label: action=teacher_action;behavior='teacher'
+        else: action=opponent.decide(obs,legal);behavior='opponent'
         trace.append(dict(player=seat,observation=copy_data(obs),legal_actions=copy_data(legal),
-                          action=copy_data(action),teacher_action=copy_data(teacher_action),search=detail))
+                          action=copy_data(action),teacher_action=copy_data(teacher_action),search=detail,
+                          behavior_policy=behavior))
         env.step(action);count+=1
         if time.monotonic()-last>10:
             write_json(path.with_suffix('.progress.json'),dict(game=game,decisions=count,
@@ -51,6 +61,7 @@ def run(cfg):
     result=dict(game=game,config=cls.config_id,rules_version=cls.rules_version,seed=cfg['seed'],
         first_player=0,search_seat=search_seat,learner_seat=student_seat,budget=cfg['budget'],
         objective=reference['objective'],status=status,mode=cfg['mode'],candidate=cfg['candidate'],
+        teacher_execute_probability=beta,
         reference=reference,source_commit=cfg['source_commit'],outcome=outcome,
         score_breakdown=env.score_breakdown(),decisions=count,search_seconds=search.spent,
         student_seconds=student_seconds,cpu_seconds=time.process_time()-cpu,wall_seconds=time.monotonic()-began,

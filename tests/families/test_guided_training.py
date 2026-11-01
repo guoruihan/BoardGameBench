@@ -185,3 +185,30 @@ def test_wide_selection_is_separate_and_retries_incomplete(tmp_path):
     assert best_candidates(root)['splendor']['summary']['all_scheduled_win_rate']==1.
     assert best_candidates(root,'wide')=={}
     assert collect(root)==[] and len(collect(root,'wide'))==1
+
+
+def test_mixed_teacher_execution_keeps_actual_returns(monkeypatch,tmp_path):
+    import gzip,json
+    from boardbench.families import guided_search_evaluation as module
+    from boardbench.families.play import make_policy,run_match
+    class Teacher:
+        def __init__(self,cls,*args,**kwargs):
+            self.policy=make_policy(cls,{'kind':'heuristic'},0)
+            self.spent=0.;self.total_steps=0;self.total_rounds=0;self.last={}
+        def decide(self,env):
+            actions=env.legal_actions();self.total_rounds+=1
+            self.last=dict(completed_rounds=4,candidates=[])
+            return self.policy.decide(env.observe(env.current_player),actions)
+    monkeypatch.setattr(module,'TerminalReference',Teacher)
+    reference=dict(rl_spec={'kind':'heuristic'},objective='win',continuation='portfolio')
+    cfg=dict(game='toy_battle',seed=173143,search_seat=0,mode='label',reference=reference,
+             candidate={'kind':'random'},budget=1,output=str(tmp_path/'mixed.json'),source_commit='test',
+             teacher_execute_probability=1.)
+    result=module.run(cfg)
+    expected=run_match('toy_battle',[{'kind':'heuristic'}]*2,seed=cfg['seed'],record=True)
+    assert result['status']=='complete' and result['outcome']==expected['outcome']
+    with gzip.open(tmp_path/'mixed.trajectory.json.gz','rt') as f:trace=json.load(f)['trajectory']
+    assert [r['action'] for r in trace]==[r['action'] for r in expected['trajectory']]
+    assert all(r['behavior_policy']=='teacher' and r['action']==r['teacher_action'] for r in trace if r['player']==0)
+    with pytest.raises(ValueError):module.run(dict(cfg,mode='match'))
+    with pytest.raises(ValueError):module.run(dict(cfg,teacher_execute_probability=1.1))
