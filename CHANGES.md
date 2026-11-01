@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-01 — V1.7.3 bounded exploration delivery
+
+- Document eight-task frozen confirmation, long-budget search checks, retained model lineage, trajectories, resource accounting limits and recovery commands.
+- Keep original baselines and failed runs; expose experimental retained candidates through a separate local manifest rather than overwriting the released policy pool.
+- Verify 65 related tests and real CUDA behavior/update contracts; clarify Harmonies' action-only prior adapter and optional actor-only expert replay.
+
 ## 2026-11-01 — separate expert replay value supervision
 
 - Allow PPO expert replay to retain action imitation while disabling expert-policy terminal value and score-component targets; on-policy value learning and initial BC defaults remain intact.

@@ -1,6 +1,16 @@
 # BoardGameBench
 
-## 当前：V1.7.2 / 0.6.5 完整输入与独立搜索参考
+## 当前：V1.7.3 / 0.6.6 搜索示范与 RL 自主探索
+
+针对八个与强搜索有差距的双人任务，完成三小时内的搜索示范、学生局面补数、
+完整公开输入 actor-critic 与多轮 PPO 探索。256 个新环境、双座位确认支持
+Century Spice Road、Clever、Patchwork 的初步提升；其余五项未得到可靠胜率增益，
+继续保留旧 baseline。Clever 的有效候选来自模仿初始化，后续 PPO 未稳定超过它。
+
+[方法与恢复](docs/v173/Search_Guided_RL_zh.md) ·
+[独立确认、900 秒搜索对照与成本](docs/v173/Search_Guided_RL_Results_zh.md)
+
+## 前一阶段：V1.7.2 / 0.6.5 完整输入与独立搜索参考
 
 为 16 个合格双人任务增加完整公开局面／动作编码、上下文 actor-critic、
 隐藏状态重采样和累计决策预算下的真实终局 rollout。旧规则和 RL 权重保留；

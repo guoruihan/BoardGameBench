@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-01 — V1.7.3 independent eight-task confirmation
+
+- Freeze candidates before evaluating 256 fresh environments in both seats per task. Century Spice Road, Clever and Patchwork reach 56.05%, 58.01% and 58.98% versus retained RL; their nominal paired 95% intervals exceed 50%, without multiple-comparison correction.
+- Five tasks lack reliable win-rate gains; New World has one incomplete validation match. Retain old baselines and all candidates. Clever's retained gain comes from imitation initialization, not a later PPO improvement.
+- Preserve 871 valid expert-labeled episodes and all online trajectories, plus separate fresh-environment 900-second reference checks. Report sampled CPU lower bounds separately from unique physical-GPU occupancy.
+
 ## 2026-11-01 — V1.7.3 actor-only demonstration replay diagnostic
 
 - Add a bounded diagnostic after PPO failed to retain the best Clever imitation candidate: replay expert actions while training the critic/score heads only on actual online outcomes. This tests a possible cross-policy value-target conflict; it is not yet evidence that this explains the regression.
