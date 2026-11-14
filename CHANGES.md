@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-14 — historical direct-play resource accounting
+
+- Reconcile all 432 scheduled V175 matches and 17,091 response records, separating inclusive cache/reasoning fields, missing usage, incomplete matches, parent CPU time, search time and API waiting.
+- Add a read-only audit script and accounting regressions; cross-check the existing final summary and saved DeepSeek totals. Document per-tool settings and per-game consumption for future benchmark budgets.
+- Keep private prices and historical monetary estimates in ignored local output, with no connection details in the public report. No new inference, training or queue resumption.
+
 ## 2026-11-14 — fixed game settings and proposed variant evaluation
 
 - Document the exact configuration/rules identities, setup, actions, scoring, information boundaries and coverage limits of all 17 two-player implementations; distinguish the 16-game opponent pool from research-only Five Tribes.
