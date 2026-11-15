@@ -1,5 +1,10 @@
 # Research milestones
 
+## 2026-11-15 — c3 preflight envelope calibration
+
+- c2 completed one development game (83:91), then stopped at serialized-input preflight with no valid checkpoint and no tests: 55,913 estimated tokens required 70,148 reservation against a 65,536 ceiling.
+- c3 uses a 131,072 conservative preflight envelope and unchanged 32K client compaction/cumulative budgets. Keep the failed configuration trial and its cost separate from the forthcoming fixed-submission comparison.
+
 ## 2026-11-15 — native context calibration c1 to c2
 
 - c1 produced a first development win (87:82), then repeated read/compaction cycles: 17 compactions in 62 generations, no valid checkpoint and no test matches. Stop via the trusted gateway and retain full cost, rather than treating this as strategy evaluation.

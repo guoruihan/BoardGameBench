@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-15 — pilot c3 serialized-input calibration
+
+- Preserve c2 no-valid-submission evidence and resource usage after conservative preflight rejected a context expansion.
+- Raise the uniform per-request preflight ceiling to 128K while retaining 32K native compaction, cumulative per-task budgets and the original deadline; start from a fresh blank workspace, with no strategy inherited from calibration trials.
+
 ## 2026-11-15 — pilot c2 context calibration and development handoff
 
 - Retain the stopped c1 configuration trial and all usage; raise the native compaction threshold from 20K to 32K before a fresh full cohort, with unchanged per-task cumulative quotas and overall deadline.

@@ -32,7 +32,7 @@ class Budget:
     cpu_cores: int
     cpu_core_seconds: int
     memory_gib: int
-    max_input_tokens_per_request: int = 65536
+    max_input_tokens_per_request: int = 131072
     request_timeout_seconds: int = 120
     decision_timeout_seconds: int = 120
     gpu_enabled: bool = False
@@ -56,7 +56,7 @@ class PilotConfig:
     seed_namespace: str = "harmonies-pilot-v2-20261115"
     model_id: str = "gpt-6-astra"
     reasoning_effort: str = "medium"
-    protocol_version: str = "pilot_v2_20261115_c2"
+    protocol_version: str = "pilot_v2_20261115_c3"
     game_config: str = "side_a_base32_no_spirits_duo"
     test_concurrency: int = 4
     calibration_seeds: tuple[int, ...] = ()

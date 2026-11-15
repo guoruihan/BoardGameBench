@@ -324,7 +324,13 @@ def test_shared_wall_deadline_count_plus_slow_stream(gateway,tmp_path,monkeypatc
         elapsed=time.monotonic()-started
         assert status==200 and b'response.output_text.delta' in data
         assert .12<elapsed<.6
+        # The watchdog closes the client before the handler's finally block
+        # reconciles its conservative reservation. Await that bounded cleanup.
+        settled_deadline=time.monotonic()+1
         report=gateway.status('a')
+        while not report['frozen'] and time.monotonic()<settled_deadline:
+            time.sleep(.005)
+            report=gateway.status('a')
         assert report['frozen'] and report['first_binding_limit']=='request_timeout'
         assert report['unknown_requests']==1 and report['usage']['calls']==1
         assert report['usage']['output_tokens']==100
