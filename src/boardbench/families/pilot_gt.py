@@ -49,7 +49,10 @@ def connect(root):
         db.close()
 
 
-def initialize(root, pool, opponent='legacy'):
+def initialize(root, pool, opponent='legacy', *, seed_key=None):
+    if seed_key is not None and (not isinstance(seed_key,str) or len(seed_key)!=64
+                                 or any(c not in '0123456789abcdef' for c in seed_key)):
+        raise ValueError('Invalid trusted seed key')
     manifest = verify_pool(pool)
     game = manifest['games']['harmonies']
     member = game['members'][opponent]
@@ -58,7 +61,7 @@ def initialize(root, pool, opponent='legacy'):
     root = Path(root); root.mkdir(mode=0o700, parents=True, exist_ok=False)
     config = dict(pool=str(Path(pool).resolve()), pool_sha256=manifest['manifest_sha256'],
                   opponent=opponent, policy_id=member['policy_id'], weights_sha256=member['spec']['sha256'],
-                  config_id=CONFIG, rules_version=game['rules_version'], seed_key=secrets.token_hex(32),
+                  config_id=CONFIG, rules_version=game['rules_version'], seed_key=seed_key or secrets.token_hex(32),
                   environment_source_sha256=code_identity()['content_sha256'],
                   inference=dict(device='cpu',policy='frozen_pool_loader',threads=1))
     (root/'private.json').write_text(json.dumps(config)); (root/'private.json').chmod(0o600)
@@ -73,8 +76,11 @@ def initialize(root, pool, opponent='legacy'):
 def create_run(root, phase='development', pair_index=0, seat=0, budget=None):
     if phase not in DOMAINS or type(seat) is not int or seat not in (0,1) or type(pair_index) is not int or pair_index < 0:
         raise ValueError('Invalid trusted schedule')
+    game_limit=(budget or {}).get('max_gt_games',10 if phase=='development' else 1)
+    if type(game_limit) is not int or game_limit<1 or (phase!='development' and game_limit!=1):
+        raise ValueError('Invalid trusted GT game limit')
     run_id=secrets.token_hex(12); token=secrets.token_urlsafe(32)
-    data=dict(phase=phase,pair_index=pair_index,seat=seat,budget=budget or {},generation=1,
+    data=dict(gt_game_limit=game_limit,phase=phase,pair_index=pair_index,seat=seat,budget=budget or {},generation=1,
               source='agent',games=0,status='ready',version=0,steps=0,errors=0,decision_errors=0,
               sources={},outcomes=[],closed=False,service_wall_seconds=0.,opponent_seconds=0.)
     with connect(root) as db:
@@ -234,7 +240,7 @@ class PilotService:
                 if method=='new_game':
                     if set(body)-{'method','generation'}: raise Rejected('fixed_schedule')
                     if rid in self.live: raise Rejected('active_game_limit')
-                    if d['games'] >= (10 if d['phase']=='development' else 1): raise Rejected('game_limit')
+                    if d['games'] >= d.get('gt_game_limit',10 if d['phase']=='development' else 1): raise Rejected('game_limit')
                     index=d['games'] if d['phase']=='development' else d['pair_index']
                     seat=d['games']%2 if d['phase']=='development' else d['seat']
                     seed=private_seed(self.config['seed_key'],d['phase'],index)

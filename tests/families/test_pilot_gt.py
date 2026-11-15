@@ -148,3 +148,29 @@ def test_forced_actions_do_not_use_controller(service,monkeypatch):
     c=gt.create_run(service.root,phase='smoke'); result=call(service,c,'new_game')
     assert result['status']=='complete'
     assert result['sources']=={'forced':6,'opponent':6}
+
+
+def test_trusted_configured_gt_quota_survives_budget_display_update(service):
+    c=gt.create_run(service.root,budget={'max_gt_games':12})
+    service.update_budget(c['run_id'],{'limits':{'max_gt_games':999}})
+    for _ in range(12):
+        assert call(service,c,'new_game')['ok']
+        assert call(service,c,'abort')['ok']
+    assert call(service,c,'new_game')['error']=='game_limit'
+    assert service.report(c['run_id'])['games']==12
+
+
+def test_small_development_quota_and_nondev_limit(service):
+    c=gt.create_run(service.root,budget={'max_gt_games':1})
+    assert call(service,c,'new_game')['ok'];call(service,c,'abort')
+    assert call(service,c,'new_game')['error']=='game_limit'
+    with pytest.raises(ValueError):gt.create_run(service.root,phase='calibration',budget={'max_gt_games':2})
+
+
+def test_trusted_shared_seed_keys_are_not_exported(service,tmp_path):
+    key='ab'*32
+    identity=gt.initialize(tmp_path/'paired',tmp_path/'pool',seed_key=key)
+    assert 'seed_key' not in identity
+    saved=json.loads((tmp_path/'paired/private.json').read_text())
+    assert saved['seed_key']==key
+    assert gt.private_seed(key,'development',0)!=gt.private_seed(key,'calibration',0)

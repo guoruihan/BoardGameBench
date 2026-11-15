@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-16 — resource scaling calibration design
+
+- Preregister four joint development resource bundles (15/30/60/120 minutes), three independent GPT-5.6-sol medium developments per bundle, and 16 fresh paired evaluation seeds against the frozen RL opponent.
+- c6 six snapshot hashes encode three distinct strategies; retain the alias map and evaluate equivalent JSON-format variants once. Historical resource sampling was unavailable, so use version order only.
+- Hold deployment at L20/C120/G0; this phase measures joint development resources, not isolated CPU/GPU/API scaling, and does not choose strategies using hidden test scores.
+
 ## 2026-11-16 — c6 transport-only calibration repair
 
 - c5 stopped after seven settled generations and two GT actions because the next token preflight failed DNS resolution; no valid strategy or evaluation scores exist.

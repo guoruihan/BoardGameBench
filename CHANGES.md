@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-16 — preregistered development resource study
+
+- Parameterize development budgets, paired evaluation size and control inclusion while preserving pilot defaults; enforce GT game limits in immutable trusted run fields.
+- Add explicit archived-snapshot evaluation with source/hash checks, paired private seed schedules, and resource samples at publication.
+- Add a bounded study queue for three unique historical strategies and twelve fresh developments, with disjoint CPU slots, fixed L20 evaluation and no hidden-score selection.
+
 ## 2026-11-16 — bounded token-preflight transport recovery
 
 - Retry only token-count transport failures up to three attempts with 0.5/1 second backoff, under the same request deadline and preflight lease; preserve each failed-attempt diagnostic.

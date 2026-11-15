@@ -61,6 +61,10 @@ class PilotConfig:
     test_concurrency: int = 4
     calibration_seeds: tuple[int, ...] = ()
     deployment_profiles: tuple[str, ...] = ("L10", "L20", "L40")
+    calibration_pairs: int = 5
+    include_controls: bool = True
+    development_only: bool = False
+    development_budget: Budget = DEVELOPMENT_BUDGET
 
     def __post_init__(self):
         if (not isinstance(self.deployment_profiles, tuple) or not self.deployment_profiles
@@ -69,8 +73,18 @@ class PilotConfig:
             raise ValueError("deployment_profiles must be a nonempty unique tuple of L10/L20/L40")
         if not 1 <= self.test_concurrency <= 4:
             raise ValueError("test concurrency must be between one and four")
-        if self.calibration_seeds and (len(self.calibration_seeds) != 5 or len(set(self.calibration_seeds)) != 5):
-            raise ValueError("exactly five distinct calibration seeds required")
+        if type(self.calibration_pairs) is not int or not 1 <= self.calibration_pairs <= 1024:
+            raise ValueError("invalid calibration pair count")
+        if self.calibration_seeds and (len(self.calibration_seeds) != self.calibration_pairs or len(set(self.calibration_seeds)) != self.calibration_pairs):
+            raise ValueError("distinct calibration seeds must match pair count")
+        if not isinstance(self.development_budget, Budget):
+            raise ValueError("development_budget must be a Budget")
+        for key in ('max_gt_games','max_model_requests','max_input_tokens','max_output_tokens',
+                    'max_output_tokens_per_request','active_wall_seconds','cpu_cores','cpu_core_seconds','memory_gib'):
+            if type(getattr(self.development_budget,key)) is not int or getattr(self.development_budget,key)<1:
+                raise ValueError("development budgets must be positive integers")
+        if self.development_budget.gpu_enabled:
+            raise ValueError("GPU training requires a separate validated protocol")
         for value in (self.opponent_id, self.environment_revision, self.codex_version):
             if not value or "REQUIRED" in value:
                 raise ValueError("provenance must be resolved before preparing the pilot")
@@ -100,7 +114,8 @@ def default_queue(config: PilotConfig) -> list[MatchSpec]:
     return [MatchSpec(f"{arm}-{profile}-s{i}-p{seat}", profile,
                       (config.calibration_seeds[i] if config.calibration_seeds else seed_for(config.seed_namespace, "calibration", i)), seat, arm == "control")
             for arm, profiles in (("developed", config.deployment_profiles), ("control", ("L20",)))
-            for profile in profiles for i in range(5) for seat in range(2)]
+            if arm != "control" or config.include_controls
+            for profile in profiles for i in range(config.calibration_pairs) for seat in range(2)]
 
 
 def _write_json(path: Path, value: Any):
@@ -316,6 +331,8 @@ class PilotRunner:
                             self.checkpoints if development else None)
 
     def _run_tests(self, frozen: Path):
+        if self.config.development_only:
+            return
         from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
         pending = iter(m for m in default_queue(self.config) if m.match_id not in self.state['matches'])
         active = {}
@@ -411,6 +428,34 @@ class PilotRunner:
                         evaluation_only=True)
             return self._run()
 
+    def run_archived_snapshot(self, source_experiment: Path, sha256: str) -> dict:
+        """Explicit new experiment over a completed development's saved artifact.
+
+        This evaluates the caller's preregistered version, never selects by scores.
+        Existing run_frozen deadline rules remain unchanged.
+        """
+        import fcntl
+        with (self.root/'runner.lock').open('a') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            if self.state_path.exists() or (self.root/'phases').exists() or any(self.checkpoints.root.iterdir()):
+                raise ValueError('archived evaluation requires a fresh root')
+            if len(sha256)!=64 or any(c not in '0123456789abcdef' for c in sha256):
+                raise ValueError('invalid snapshot hash')
+            source_experiment=Path(source_experiment)
+            state=json.loads((source_experiment/'state.json').read_text())
+            if state.get('status')!='complete':
+                raise ValueError('archived source must be complete')
+            source=source_experiment/'checkpoints'/sha256
+            validate_submission(source)
+            if tree_hash(source)!=sha256:
+                raise ValueError('archived snapshot hash mismatch')
+            if self.checkpoints.checkpoint(source)!=sha256:
+                raise ValueError('archived snapshot changed during copy')
+            frozen=self.checkpoints.freeze()
+            self.state.update(development='reused_archived',frozen_submission=str(frozen))
+            self._event('archived_snapshot_imported',source_experiment=str(source_experiment),sha256=sha256)
+            return self._run()
+
     def run(self) -> dict:
         import fcntl
         with (self.root / 'runner.lock').open('a') as lock:
@@ -437,7 +482,7 @@ class PilotRunner:
             if self.state["development"] == "pending":
                 self.state["development"] = "running"
                 self._event("development_start")
-                context = self._context("development", DEVELOPMENT_BUDGET, None, True)
+                context = self._context("development", self.config.development_budget, None, True)
                 session, empty, gt_progress = None, 0, 0
                 while self.clock() < context.deadline_unix:
                     before = _workspace_progress(context.workspace)
@@ -643,6 +688,14 @@ stream_max_retries = 0
         socket_directory = Path(tempfile.mkdtemp(prefix="pilot-control-"))
         socket_path = socket_directory / "control.sock"
 
+        def journal_publication(digest):
+            entry = {'time':time.time(), 'sha256':digest,
+                     'sequence':json.loads((context.checkpoints.root/'latest.json').read_text())['sequence'],
+                     'compute_sample':record.get('compute_sample',{}),
+                     'model':adapter.gateway_status(context.phase_id) if hasattr(adapter,'gateway_status') else {}}
+            with (context.workspace.parent/'publications.jsonl').open('a') as stream:
+                stream.write(json.dumps(entry)+'\n');stream.flush();os.fsync(stream.fileno())
+
         class Handler(http.server.BaseHTTPRequestHandler):
             def setup(self):
                 super().setup()
@@ -694,11 +747,14 @@ stream_max_retries = 0
                         digest = context.checkpoints.publish(context.workspace / directory,
                             body.get('entrypoint'), adapter.installed_dependencies,
                             lambda: record['publish_admissible'](time.thread_time()-control_started))
+                        journal_publication(digest)
                         result = dict(ok=True, sha256=digest)
                     elif method == 'checkpoint' and context.checkpoints is not None:
                         digest = context.checkpoints.publish(context.workspace / 'submission',
                             installed_dependencies=adapter.installed_dependencies,
                             admissible=lambda: record.get('publish_admissible',lambda *_: True)(time.thread_time()-control_started))
+                        if hasattr(adapter, 'gateway_status'):
+                            journal_publication(digest)
                         result = {"ok": True, "sha256": digest}
                     elif method == 'finish' and context.checkpoints is not None:
                         record['finished'] = True
@@ -745,6 +801,7 @@ stream_max_retries = 0
                     and live['cpu'] + record.get('control_cpu_seconds',0.)-control_cpu_before + inflight_cpu < context.budget.cpu_core_seconds
                     and live['rss'] < context.budget.memory_gib*1024**3)
         record['publish_admissible'] = admissible
+        record['compute_sample'] = live
         manager = None
         if context.checkpoints is not None:
             number = record.get('job_queue_number',0)
