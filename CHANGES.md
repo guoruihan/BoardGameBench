@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-15 — V2 isolated native Codex pilot c1
+
+- Add persistent GT/model ledgers, public SDK, namespace sandbox and monitored process-tree resource termination; keep private routes and experiment data outside Git.
+- Add one-development/frozen-submission paired calibration queue, independent test workspaces, bounded continuation, safe snapshots and optional C/C++ runtime.
+- Validate real native multi-action execution and checkpoint completion; expose estimated-input counting and sampled CPU/RSS limitations. Calibrate a uniform 64K per-request input ceiling before experiments; retain cumulative budgets.
+
 ## 2026-11-15 — close V1 and open V2 preparation
 
 - Add the V1 delivery index, explicit rule/evaluation limits, frozen-source retrieval instructions and V2 handoff; publish the annotated `v1-final` tag.

@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-15 — V2 Harmonies native development pilot c1
+
+- Define a clean GPT-6-Astra medium / Codex 0.167.0 development task against one frozen RL opponent, followed by L10/L20/L40 paired deployment and L20 no-development controls.
+- Keep notes-only and program submissions valid; no extra neural policy/value training, inherited research history or test-to-development feedback.
+- Record pre-experiment input-limit calibration (32K to 64K) and separate infrastructure acceptance from strategy results; do not claim rankings from five paired seeds.
+
 ## 2026-11-15 — V1 closed; V2 preparation begins
 
 - Close the fixed-setting environment, reference-policy and direct-play exploration phase at the user's request, retaining 17 implementations, 16 formal pool tasks and all disclosed limitations.
