@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-15 — close V1 and open V2 preparation
+
+- Add the V1 delivery index, explicit rule/evaluation limits, frozen-source retrieval instructions and V2 handoff; publish the annotated `v1-final` tag.
+- Preserve uncommitted platform/version drafts and local artifacts; distinguish tracked package 0.6.7 from the research-stage label. No rules, models or experiment queues changed.
+
 ## 2026-11-14 — historical direct-play resource accounting
 
 - Reconcile all 432 scheduled V175 matches and 17,091 response records, separating inclusive cache/reasoning fields, missing usage, incomplete matches, parent CPU time, search time and API waiting.

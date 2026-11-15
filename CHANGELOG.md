@@ -1,5 +1,10 @@
 # Research milestones
 
+## 2026-11-15 — V1 closed; V2 preparation begins
+
+- Close the fixed-setting environment, reference-policy and direct-play exploration phase at the user's request, retaining 17 implementations, 16 formal pool tasks and all disclosed limitations.
+- Freeze the delivered source/documentation as `v1-final`; define V2 around rule variants and resource-controlled agent strategy development. Proposed variants and paused GT infrastructure remain unfinished, with no new experiment results claimed.
+
 ## 2026-11-02 — direct-play comparison paused for cost
 
 - End new inference at explicit user request before the planned 432-game schedule completes; report only genuine terminal outcomes and retain all incomplete statuses.
