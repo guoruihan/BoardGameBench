@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-15 — first valid native-agent development comparison
+
+- c4 independently seeded L20 evaluation finished: frozen developed program 10/10 wins, mean 90.7 versus 69.4; no-prior-development native controls 0/10 wins, mean 32.5 versus 62.4.
+- Controls hit model input quotas and used random fallback for 67.07% of own actions including forced advances; the +58.2 paired score difference includes budgeted controller-delivery ability and is not a pure playing-skill contrast.
+- Across the two disjoint calibration cohorts the same program won 18/20 games. Retain one-development/small-seed limitations and all calibration costs; no additional GPU or formal-test runs were started.
+
 ## 2026-11-15 — c3 frozen program calibration and control-path diagnosis
 
 - The valid frozen C++ turn-search program scored 97.8 versus 73.6, winning 8/10 calibration games in each of L10/L20/L40, with identical paired results and no online LLM calls.

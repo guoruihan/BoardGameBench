@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-15 — pilot result and resource delivery
+
+- Publish the c3/c4 result report with source/runtime/submission provenance, valid paired comparisons, retained infrastructure failures and bounded resource-accounting claims.
+- Verify all 20 c4 matches completed naturally, all model requests settled, per-match quotas held and controllers cleaned up; retain full ignored runtime artifacts and private service material outside Git.
+
 ## 2026-11-15 — pilot c4 timeout settlement and frozen evaluation
 
 - Drain an existing upstream generation after a local controller disconnect, within the original request deadline; wait for preflight and usage settlement before resuming, charging the wait to the same wall ledger.

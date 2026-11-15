@@ -3,6 +3,8 @@
 2026-11-15：V1 已收尾，V2 进入受控原生 Agent 开发试跑。
 基线为 [`v1-final` 冻结说明](../V1_Closeout_zh.md)。新增 [Harmonies 原生 Codex pilot c4](pilot/README_zh.md)；校准试跑不代表正式排名。
 
+首轮已交付 [Harmonies 开发与部署结果](pilot/Results_20261115_zh.md)，包含有效冻结提交、独立配对对照、失败校准与资源成本。
+
 ## 目标
 
 测试 agent 读取规则、修改代码、设计策略、训练和分析实验的能力，
