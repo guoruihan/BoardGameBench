@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-16 — observable pilot development walkthrough
+
+- Document the participant's stepwise c3 development using native event IDs, code snapshots, completed and unfinished simulator comparisons, validation outputs and ten GT games.
+- Distinguish the early frozen submission from later unsubmitted changes, and participant strategy work from external infrastructure calibration; no experiments or strategies changed.
+
 ## 2026-11-15 — pilot result and resource delivery
 
 - Publish the c3/c4 result report with source/runtime/submission provenance, valid paired comparisons, retained infrastructure failures and bounded resource-accounting claims.
