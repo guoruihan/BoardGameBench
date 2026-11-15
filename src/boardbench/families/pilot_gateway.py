@@ -272,8 +272,29 @@ class Gateway:
         canonical=self.canonical_count_payload(body)
         trace_id=getattr(self.diagnostic_context,'trace_id',None)
         if trace_id: self._diagnostic(trace_id,'canonical_count_payload.json',canonical)
-        with self._open_endpoint(canonical,'input_tokens') as response:
-            payload=json.loads(response.read(1024*1024))
+        # Only this side-effect-free preflight may retry transport failures.
+        # The same preflight lease and original request deadline cover all attempts.
+        for attempt in range(1, 4):
+            if deadline: deadline.remaining()
+            try:
+                with self._open_endpoint(canonical,'input_tokens') as response:
+                    payload=json.loads(response.read(1024*1024))
+                break
+            except urllib.error.HTTPError:
+                raise  # HTTP rejection, quota and authentication are not transient transport.
+            except (OSError, urllib.error.URLError) as exc:
+                cause=exc.reason if isinstance(exc,urllib.error.URLError) else exc
+                code='upstream_dns_failure' if isinstance(cause,socket.gaierror) else 'input_count_transport_failure'
+                delay=(.5,1.)[attempt-1] if attempt<3 else 0.
+                remaining=deadline.remaining() if deadline else None
+                retry=attempt<3 and (remaining is None or remaining>delay)
+                if trace_id:
+                    self._diagnostic(trace_id,f'input_tokens_attempt_{attempt}_error.json',dict(
+                        kind=type(exc).__name__,cause=type(cause).__name__,code=code,
+                        attempt=attempt,retry=retry,backoff_seconds=delay if retry else 0.,
+                        remaining_seconds=remaining,time=time.time()))
+                if not retry: raise GatewayError(code,502) from exc
+                time.sleep(delay)
         if trace_id: self._diagnostic(trace_id,'input_tokens_response.json',payload)
         if deadline: deadline.remaining()
         count=payload.get('input_tokens')
@@ -373,7 +394,8 @@ class Gateway:
         request=urllib.request.Request(endpoint,data=_json(body).encode(),headers={
             'Authorization':'Bearer '+self.config['api_key'],'Content-Type':'application/json',
             'Accept':'text/event-stream' if body.get('stream') and operation=='generate' else 'application/json'})
-        # No redirects, retries, credential forwarding or alternate endpoints.
+        # No redirects, credential forwarding or alternate endpoints.
+        # One HTTP attempt here; only count_upstream may retry pure preflight.
         trace_id=getattr(self.diagnostic_context,'trace_id',None)
         if trace_id is None: trace_id=self._begin_diagnostic(body)
         self._diagnostic(trace_id,operation+'_payload.json',body)

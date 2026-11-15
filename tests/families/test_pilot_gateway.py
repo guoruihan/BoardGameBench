@@ -445,3 +445,94 @@ def test_close_during_preflight_cannot_admit_generation(gateway,monkeypatch):
     with pytest.raises(gw.GatewayError,match='model_closed'):
         gateway.reserve(account['token'],BODY)
     assert gateway.status('closing')['usage']['calls']==0
+
+
+def test_count_dns_retry_keeps_one_reservation(gateway,monkeypatch):
+    import socket,urllib.error
+    account=gateway.create_account('retry',LIMITS);attempts=[];sleeps=[]
+    monkeypatch.setattr(gateway,'count_upstream',gw.Gateway.count_upstream.__get__(gateway))
+    def endpoint(body,operation):
+        attempts.append(operation)
+        if len(attempts)<3:raise urllib.error.URLError(socket.gaierror(-2,'injected DNS failure'))
+        return Reply(b'{"input_tokens":100}', 'application/json')
+    monkeypatch.setattr(gateway,'_open_endpoint',endpoint)
+    monkeypatch.setattr(gw.time,'sleep',sleeps.append)
+    key,_=gateway.reserve(account['token'],BODY)
+    assert attempts==['input_tokens']*3 and sleeps==[.5,1.]
+    assert gateway.status('retry')['usage']['calls']==1
+    assert gateway.status('retry')['pending_reservations']['calls']==1
+    assert len(list((gateway.root/'requests'/key).glob('input_tokens_attempt_*_error.json')))==2
+    gateway.settle(key,dict(input_tokens=100,output_tokens=1))
+
+
+def test_count_dns_exhaustion_never_reserves_generation(gateway,monkeypatch):
+    import socket,urllib.error
+    account=gateway.create_account('retry',LIMITS);attempts=[]
+    monkeypatch.setattr(gateway,'count_upstream',gw.Gateway.count_upstream.__get__(gateway))
+    def endpoint(*args):
+        attempts.append(1);raise urllib.error.URLError(socket.gaierror(-2,'injected'))
+    monkeypatch.setattr(gateway,'_open_endpoint',endpoint)
+    monkeypatch.setattr(gw.time,'sleep',lambda _:None)
+    with pytest.raises(gw.GatewayError,match='upstream_dns_failure'):
+        gateway.reserve(account['token'],BODY)
+    assert len(attempts)==3
+    status=gateway.status('retry')
+    assert status['usage']['calls']==0 and status['pending_reservations']['calls']==0
+    assert not status['preflighting']
+
+
+def test_count_retry_does_not_extend_original_deadline(gateway,monkeypatch):
+    import socket,urllib.error
+    attempts=[];sleeps=[]
+    class Deadline:
+        def remaining(self):return .2
+    gateway.diagnostic_context.deadline=Deadline()
+    def endpoint(*args):
+        attempts.append(1);raise urllib.error.URLError(socket.gaierror(-2,'injected'))
+    monkeypatch.setattr(gateway,'_open_endpoint',endpoint)
+    monkeypatch.setattr(gw.time,'sleep',sleeps.append)
+    with pytest.raises(gw.GatewayError,match='upstream_dns_failure'):
+        gw.Gateway.count_upstream(gateway,dict(BODY,model='pinned'))
+    assert len(attempts)==1 and not sleeps
+
+
+def test_generation_dns_failure_is_never_retried(gateway,monkeypatch):
+    import socket,urllib.error
+    attempts=[]
+    class Opener:
+        def open(self,*args,**kwargs):
+            attempts.append(1);raise urllib.error.URLError(socket.gaierror(-2,'injected'))
+    monkeypatch.setattr(gw.urllib.request,'build_opener',lambda *args:Opener())
+    with pytest.raises(urllib.error.URLError):gateway.open_upstream(BODY)
+    assert len(attempts)==1
+
+
+@pytest.mark.parametrize('failure',['http','malformed'])
+def test_count_nontransport_failure_not_retried(gateway,monkeypatch,failure):
+    import urllib.error
+    calls=[]
+    def endpoint(*args):
+        calls.append(1)
+        if failure=='http':raise urllib.error.HTTPError('http://test.invalid',429,'quota',{},io.BytesIO(b'quota'))
+        return Reply(b'not json','application/json')
+    monkeypatch.setattr(gateway,'_open_endpoint',endpoint)
+    with pytest.raises((urllib.error.HTTPError,ValueError)):
+        gw.Gateway.count_upstream(gateway,dict(BODY,model='pinned'))
+    assert len(calls)==1
+
+
+def test_count_deadline_expiring_during_backoff_prevents_second_attempt(gateway,monkeypatch):
+    import socket,urllib.error
+    calls=[];expired=[]
+    class Deadline:
+        def remaining(self):
+            if expired:raise gw.GatewayError('request_timeout',504)
+            return 1.
+    gateway.diagnostic_context.deadline=Deadline()
+    def endpoint(*args):
+        calls.append(1);raise urllib.error.URLError(socket.gaierror(-2,'injected'))
+    monkeypatch.setattr(gateway,'_open_endpoint',endpoint)
+    monkeypatch.setattr(gw.time,'sleep',lambda _:expired.append(True))
+    with pytest.raises(gw.GatewayError,match='request_timeout'):
+        gw.Gateway.count_upstream(gateway,dict(BODY,model='pinned'))
+    assert len(calls)==1

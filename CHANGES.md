@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-16 — bounded token-preflight transport recovery
+
+- Retry only token-count transport failures up to three attempts with 0.5/1 second backoff, under the same request deadline and preflight lease; preserve each failed-attempt diagnostic.
+- Report exhausted DNS failures explicitly. HTTP rejections, invalid responses, model generations and experiment failures are not automatically retried.
+- Preserve failed c5 accounting and prepare fresh c6 development under the existing overall deadline.
+
 ## 2026-11-16 — managed pilot jobs and atomic submission
 
 - Add a trusted namespace job broker: packaging and experiment jobs survive native-controller exit in the same metered sandbox; close job/model admission, drain existing jobs, and enforce aggregate CPU/RSS/wall limits.

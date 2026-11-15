@@ -1,5 +1,10 @@
 # Research milestones
 
+## 2026-11-16 — c6 transport-only calibration repair
+
+- c5 stopped after seven settled generations and two GT actions because the next token preflight failed DNS resolution; no valid strategy or evaluation scores exist.
+- c6 repeats clean development with the same GPT-5.6-sol medium, task budgets and original overall deadline, adding bounded pure-preflight transport recovery only; retain c5 costs separately.
+
 ## 2026-11-16 — c5 fresh-development protocol
 
 - Prepare a clean GPT-5.6-sol medium development and 40-match calibration run, retaining original per-task GT/model/compute budgets and the frozen RL opponent.
