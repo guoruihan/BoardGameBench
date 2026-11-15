@@ -23,7 +23,16 @@ def main():
     parser.add_argument('--rules', type=Path, required=True)
     parser.add_argument('--deadline', type=float, required=True)
     parser.add_argument('--acceptance', action='store_true')
+    parser.add_argument('--frozen-submission', type=Path,
+                        help='Evaluate this existing trusted frozen checkpoint without development')
+    parser.add_argument('--deployment-profiles', nargs='+', choices=('L10', 'L20', 'L40'),
+                        default=('L10', 'L20', 'L40'))
+    parser.add_argument('--protocol-version')
     args = parser.parse_args()
+    if args.acceptance and args.frozen_submission:
+        parser.error('--acceptance and --frozen-submission are mutually exclusive')
+    if len(set(args.deployment_profiles)) != len(args.deployment_profiles):
+        parser.error('--deployment-profiles must be unique')
     root = args.root.resolve()
     root.mkdir(parents=True, exist_ok=False, mode=0o700)
     if time.time() >= args.deadline:
@@ -84,10 +93,15 @@ def main():
             else:
                 config = PilotConfig(opponent_id=identity['policy_id'],opponent_sha256=identity['weights_sha256'],
                                      environment_revision=identity['environment_source_sha256'],codex_version='0.167.0',
-                                     deadline_unix=args.deadline,calibration_seeds=tuple(
+                                     deadline_unix=args.deadline,
+                                     deployment_profiles=tuple(args.deployment_profiles),
+                                     **({'protocol_version': args.protocol_version} if args.protocol_version else {}),
+                                     calibration_seeds=tuple(
                                          pilot_gt.private_seed(gt.config['seed_key'],'calibration',i) for i in range(5)))
                 print(json.dumps({'event':'pilot_start','deadline_unix':args.deadline,'opponent_id':identity['policy_id']}),flush=True)
-                result = PilotRunner(root/'experiment',config,adapter).run()
+                runner = PilotRunner(root/'experiment',config,adapter)
+                result = (runner.run_frozen(args.frozen_submission) if args.frozen_submission
+                          else runner.run())
                 print(json.dumps(result),flush=True)
                 from report_harmonies_pilot import summarize
                 rows, summary = summarize(root/"experiment")

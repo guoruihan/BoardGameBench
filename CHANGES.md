@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-15 — pilot c4 timeout settlement and frozen evaluation
+
+- Drain an existing upstream generation after a local controller disconnect, within the original request deadline; wait for preflight and usage settlement before resuming, charging the wait to the same wall ledger.
+- Add explicit fresh-cohort evaluation of a hash-verified frozen submission, configurable deployment profiles, and preserved original deadline; never reset old match states or budgets.
+- Add cross-run resource auditing, including failed trials, standalone transport probes, unsettled reservations, resource overshoot and cleanup evidence.
+
 ## 2026-11-15 — pilot c3 serialized-input calibration
 
 - Preserve c2 no-valid-submission evidence and resource usage after conservative preflight rejected a context expansion.

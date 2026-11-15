@@ -361,3 +361,63 @@ def test_count_stage_deadline_freezes_without_forwarding_generation(gateway,tmp_
         assert report['frozen'] and report['first_binding_limit']=='request_timeout_during_count'
         assert report['usage']['calls']==0 and not forwarded
     finally: server.shutdown(); server.server_close(); thread.join()
+
+
+@pytest.mark.parametrize('before_headers', [False, True])
+def test_disconnected_controller_drains_existing_generation(gateway,tmp_path,monkeypatch,before_headers):
+    import socket
+    import time
+    released=threading.Event(); entered=threading.Event(); forwarded=[]
+    class Stream:
+        headers={'Content-Type':'text/event-stream'}
+        def __enter__(self): return self
+        def __exit__(self,*args): pass
+        def __iter__(self):
+            yield b'data: {"type":"response.output_text.delta","delta":"start"}\n'
+            yield b'\n'
+            assert released.wait(2)
+            for _ in range(3):
+                yield b'data: {"type":"response.output_text.delta","delta":"later"}\n'
+                yield b'\n'
+            yield b'data: {"type":"response.completed","response":{"usage":{"input_tokens":10,"output_tokens":5}}}\n'
+            yield b'\n'
+    def upstream(body):
+        forwarded.append(body);entered.set()
+        if before_headers: assert released.wait(2)
+        return Stream()
+    monkeypatch.setattr(gateway,'open_upstream',upstream)
+    account=gateway.create_account('a',LIMITS)
+    sock=tmp_path/'disconnect.sock';server=gw.make_server(gateway,unix_socket=sock)
+    thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+    client=socket.socket(socket.AF_UNIX);client.settimeout(2);client.connect(str(sock))
+    body=json.dumps(dict(BODY,stream=True)).encode()
+    headers=('POST /v1/responses HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer '+account['token']+
+             '\r\nContent-Length: '+str(len(body))+'\r\n\r\n').encode()
+    try:
+        client.sendall(headers+body);assert entered.wait(2)
+        if not before_headers: assert client.recv(4096)
+        client.shutdown(socket.SHUT_RDWR);client.close();released.set()
+        until=time.monotonic()+2
+        while gateway.status('a')['pending_reservations']['calls'] and time.monotonic()<until:time.sleep(.005)
+        status=gateway.status('a')
+        assert status['usage']==dict(calls=1,input_tokens=10,output_tokens=5)
+        assert not status['frozen'] and status['unknown_requests']==0 and status['settled_requests']==1
+        assert len(forwarded)==1
+        assert list((gateway.root/'requests').glob('*/client_disconnect.json'))
+        key,_=gateway.reserve(account['token'],BODY)
+        gateway.settle(key,dict(input_tokens=10,output_tokens=5))
+    finally:
+        released.set();client.close();server.shutdown();server.server_close();thread.join()
+
+
+def test_status_exposes_preflight_before_generation_reservation(gateway,monkeypatch):
+    account=gateway.create_account('a',LIMITS);observed=[]
+    def counter(body):
+        status=gateway.status('a')
+        observed.append(status)
+        return 10,'local_estimate'
+    monkeypatch.setattr(gateway,'count_upstream',counter)
+    key,_=gateway.reserve(account['token'],BODY)
+    assert observed[0]['preflighting'] and observed[0]['pending_reservations']['calls']==0
+    assert not gateway.status('a')['preflighting'] and gateway.status('a')['pending_reservations']['calls']==1
+    gateway.settle(key,dict(input_tokens=10,output_tokens=5))

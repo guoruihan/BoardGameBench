@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-15 — c3 frozen program calibration and control-path diagnosis
+
+- The valid frozen C++ turn-search program scored 97.8 versus 73.6, winning 8/10 calibration games in each of L10/L20/L40, with identical paired results and no online LLM calls.
+- Later development improvements were not checkpointed before the input quota; evaluation correctly retained the earlier explicit submission, not the final mutable workspace.
+- Seven no-development controls were affected by a timeout/usage-settlement defect before the queue paused; do not interpret their incomplete records as a strategy win-rate comparison. Preserve their costs and prepare an independently seeded c4 L20 comparison after real timeout-resume acceptance.
+
 ## 2026-11-15 — c3 preflight envelope calibration
 
 - c2 completed one development game (83:91), then stopped at serialized-input preflight with no valid checkpoint and no tests: 55,913 estimated tokens required 70,148 reservation against a 65,536 ceiling.

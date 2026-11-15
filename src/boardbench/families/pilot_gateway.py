@@ -191,6 +191,7 @@ class Gateway:
             d=self._account(db,account_id)
             rows=db.execute("SELECT input_reserved,output_reserved FROM requests WHERE account=? AND state='pending'",(account_id,)).fetchall()
             d['pending_reservations']=dict(calls=len(rows),input_tokens=sum(r[0] for r in rows),output_tokens=sum(r[1] for r in rows))
+            d['preflighting']=account_id in self.preflighting
             d['remaining']={k:max(0,d['limits'][k]-d['usage'][k]) for k in ('calls','input_tokens','output_tokens')}
             return dict(account_id=account_id,**d)
 
@@ -416,9 +417,19 @@ def make_server(gateway,host='127.0.0.1',port=0,unix_socket=None,request_timeout
                     deadline.remaining()
                     content_type=upstream.headers.get('Content-Type','application/json')
                     if body.get('stream') and 'text/event-stream' in content_type:
-                        self.send_response(200); self.send_header('Content-Type','text/event-stream')
-                        self.send_header('Cache-Control','no-cache'); self.send_header('Connection','close')
-                        self.end_headers(); headers_sent=True; self.close_connection=True
+                        client_connected=True
+                        def disconnected():
+                            nonlocal client_connected
+                            client_connected=False
+                            gateway._diagnostic(request_id,'client_disconnect.json',dict(time=time.time(),
+                                action='drain_existing_generation_until_terminal_or_original_deadline'))
+                        headers_sent=True; self.close_connection=True
+                        try:
+                            self.send_response(200); self.send_header('Content-Type','text/event-stream')
+                            self.send_header('Cache-Control','no-cache'); self.send_header('Connection','close')
+                            self.end_headers()
+                        except OSError:
+                            disconnected()
                         event_lines=[]
                         def emit_event(lines):
                             nonlocal usage
@@ -434,7 +445,15 @@ def make_server(gateway,host='127.0.0.1',port=0,unix_socket=None,request_timeout
                                     # exposing completion. A native client can submit
                                     # its next generation as soon as it sees this event.
                                     gateway.settle(request_id,usage)
-                            self.wfile.write(b''.join(lines)); self.wfile.flush()
+                            if client_connected:
+                                try:
+                                    self.wfile.write(b''.join(lines)); self.wfile.flush()
+                                except OSError:
+                                    # A killed local controller does not cancel the
+                                    # upstream charge. Drain this SAME request to
+                                    # settle usage, without retrying or extending its
+                                    # original count+generation deadline.
+                                    disconnected()
                             return terminal
                         for line in upstream:
                             deadline.remaining()

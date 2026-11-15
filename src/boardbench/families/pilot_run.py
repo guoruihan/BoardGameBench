@@ -56,12 +56,17 @@ class PilotConfig:
     seed_namespace: str = "harmonies-pilot-v2-20261115"
     model_id: str = "gpt-6-astra"
     reasoning_effort: str = "medium"
-    protocol_version: str = "pilot_v2_20261115_c3"
+    protocol_version: str = "pilot_v2_20261115_c4"
     game_config: str = "side_a_base32_no_spirits_duo"
     test_concurrency: int = 4
     calibration_seeds: tuple[int, ...] = ()
+    deployment_profiles: tuple[str, ...] = ("L10", "L20", "L40")
 
     def __post_init__(self):
+        if (not isinstance(self.deployment_profiles, tuple) or not self.deployment_profiles
+                or any(not isinstance(profile, str) or profile not in DEPLOYMENT_BUDGETS for profile in self.deployment_profiles)
+                or len(set(self.deployment_profiles)) != len(self.deployment_profiles)):
+            raise ValueError("deployment_profiles must be a nonempty unique tuple of L10/L20/L40")
         if not 1 <= self.test_concurrency <= 4:
             raise ValueError("test concurrency must be between one and four")
         if self.calibration_seeds and (len(self.calibration_seeds) != 5 or len(set(self.calibration_seeds)) != 5):
@@ -94,7 +99,7 @@ class MatchSpec:
 def default_queue(config: PilotConfig) -> list[MatchSpec]:
     return [MatchSpec(f"{arm}-{profile}-s{i}-p{seat}", profile,
                       (config.calibration_seeds[i] if config.calibration_seeds else seed_for(config.seed_namespace, "calibration", i)), seat, arm == "control")
-            for arm, profiles in (("developed", ("L10", "L20", "L40")), ("control", ("L20",)))
+            for arm, profiles in (("developed", config.deployment_profiles), ("control", ("L20",)))
             for profile in profiles for i in range(5) for seat in range(2)]
 
 
@@ -330,6 +335,59 @@ class PilotRunner:
                         self.state['status'] = 'infrastructure_failure'
                         exhausted = True
                         self._event('queue_paused_no_retry', match_id=match.match_id)
+
+    def run_frozen(self, frozen_submission: Path) -> dict:
+        """Evaluate an existing trusted frozen checkpoint in a fresh cohort only.
+
+        This imports bytes, never develops or selects a strategy. Existing run
+        state, phase ledgers and checkpoint history cannot be reset by this API;
+        ordinary ``run()`` remains the recovery/read-only resume entry point.
+        """
+        import fcntl
+        with (self.root / 'runner.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            if (self.state_path.exists() or (self.root / 'phases').exists()
+                    or (self.root / 'results.jsonl').exists()
+                    or (self.root / 'events.jsonl').exists()
+                    or any(self.checkpoints.root.iterdir())):
+                raise ValueError("frozen evaluation requires a fresh cohort; existing state cannot be reset")
+            source = Path(os.path.abspath(frozen_submission))
+            marker = source.parent / 'frozen.json'
+            if marker.is_symlink() or not marker.is_file():
+                raise ValueError("source must be an existing trusted frozen checkpoint")
+            record = json.loads(marker.read_text())
+            expected = record.get('sha256')
+            if (not isinstance(expected, str) or len(expected) != 64
+                    or any(c not in '0123456789abcdef' for c in expected)
+                    or source.name != expected):
+                raise ValueError("source checkpoint path does not match its frozen hash")
+            source_config = source.parent.parent / 'config.json'
+            if source_config.exists():
+                previous = json.loads(source_config.read_text())
+                if previous.get('deadline_unix') != self.config.deadline_unix:
+                    raise ValueError("frozen cohort must preserve the original deadline")
+            validate_submission(source)
+            if tree_hash(source) != expected:
+                raise ValueError("source frozen checkpoint content changed")
+            try:
+                copied_hash = self.checkpoints.checkpoint(source)
+                if copied_hash != expected:
+                    raise ValueError("source changed while importing frozen checkpoint")
+                local = self.checkpoints.freeze()
+            except BaseException:
+                # The lock and fresh-cohort gate establish sole ownership of
+                # this previously empty destination; source remains untouched.
+                shutil.rmtree(self.checkpoints.root)
+                self.checkpoints.root.mkdir()
+                raise
+            self.state['development'] = 'reused_frozen'
+            self.state['frozen_submission'] = str(local)
+            self.state['frozen_submission_sha256'] = expected
+            self.state['source_frozen_submission'] = str(source)
+            self._event('frozen_submission_reused', sha256=expected,
+                        source_checkpoint=str(source), source_frozen_record=str(marker),
+                        evaluation_only=True)
+            return self._run()
 
     def run(self) -> dict:
         import fcntl
@@ -673,7 +731,70 @@ stream_max_retries = 0
             ledger['cpu_seconds'] = ledger.get('cpu_seconds', 0.) + control_cpu
             ledger['control_cpu_seconds'] = ledger.get('control_cpu_seconds', 0.) + control_cpu
             _write_json(context.ledger_path, ledger)
+        settlement_reason = self._await_gateway_settlement(context, result.reason)
+        if settlement_reason is not None:
+            result.reason = settlement_reason
         return result
+
+    def _await_gateway_settlement(self, context: PhaseContext, controller_reason: str) -> str | None:
+        """Wait after the supervised process exits, without resending generation.
+
+        Pending reservations belong to the old controller even after its socket
+        disconnects. Only this post-process drain wait is added to the cumulative
+        wall ledger; supervised live-process time has already been charged.
+        """
+        gateway = self.gateway_status(context.phase_id)
+
+        def pending(status):
+            reservations = status.get('pending_reservations', {})
+            calls = reservations.get('calls', 0) if isinstance(reservations, dict) else reservations
+            return max(calls or 0, int(bool(status.get('preflighting'))))
+
+        def unknown(status):
+            return bool(status.get('frozen') or status.get('unknown_requests'))
+
+        if not pending(gateway) and not unknown(gateway):
+            return None
+        ledger = json.loads(context.ledger_path.read_text()) if context.ledger_path.exists() else {}
+        started = time.monotonic()
+        previous = started
+        event = {'controller_reason': controller_reason, 'started_unix': time.time(),
+                 'initial_pending_calls': pending(gateway), 'wall_seconds': 0., 'status': 'waiting'}
+        ledger.setdefault('gateway_settlement_waits', []).append(event)
+        status_error = None
+        while True:
+            now = time.monotonic()
+            elapsed = max(0., now - previous)
+            previous = now
+            ledger['active_wall_seconds'] = ledger.get('active_wall_seconds', 0.) + elapsed
+            ledger['gateway_settlement_wall_seconds'] = ledger.get('gateway_settlement_wall_seconds', 0.) + elapsed
+            event['wall_seconds'] += elapsed
+            event['remaining_pending_calls'] = pending(gateway)
+            remaining = min(context.budget.active_wall_seconds - ledger['active_wall_seconds'],
+                            context.deadline_unix - time.time())
+            reason = None
+            if status_error or unknown(gateway):
+                event['status'] = 'infrastructure_failure'
+                reason = 'infrastructure_failure'
+                if status_error:
+                    event['status_error_type'] = status_error
+            elif remaining <= 0:
+                # No free wait past the phase's absolute or cumulative deadline,
+                # even if the last polling interval also observed settlement.
+                event['status'] = 'wall_limit'
+                reason = 'wall_limit'
+            elif not pending(gateway):
+                event['status'] = 'settled'
+            _write_json(context.ledger_path, ledger)
+            if event['status'] != 'waiting':
+                return reason
+            time.sleep(min(.05, remaining))
+            try:
+                gateway = self.gateway_status(context.phase_id)
+            except Exception as error:
+                # Retain charged wait and fail closed; never retry generation or
+                # run another controller when settlement cannot be observed.
+                status_error = type(error).__name__
 
     @staticmethod
     def _session_id(stdout_path: str) -> str | None:
@@ -726,9 +847,9 @@ stream_max_retries = 0
             result = self._execute(context, record, resume_session=resume_session)
             session_id = self._session_id(result.stdout_path) or session_id
             gateway = self.gateway_status(context.phase_id)
-            if gateway.get('frozen'):
+            if result.reason == 'infrastructure_failure' or gateway.get('frozen') or gateway.get('unknown_requests'):
                 self.gt.stop(rid, reason='infrastructure_failure')
-                raise RuntimeError('development gateway is frozen; inspect controller and gateway logs')
+                raise RuntimeError('development gateway settlement failed; inspect controller and gateway logs')
             stop = local_limit() or (result.reason if result.reason in
                                     {'cpu_limit', 'wall_limit', 'absolute_deadline', 'rss_limit', 'development_finished'} else None)
             if stop or record['finished']:
@@ -756,9 +877,9 @@ stream_max_retries = 0
         record['development_program_started'] = True
         result = self._execute(context, record, program=program)
         gateway = self.gateway_status(context.phase_id)
-        if gateway.get('frozen'):
+        if result.reason == 'infrastructure_failure' or gateway.get('frozen') or gateway.get('unknown_requests'):
             self.gt.stop(rid, reason='infrastructure_failure')
-            raise RuntimeError('development gateway froze during registered program execution')
+            raise RuntimeError('development gateway settlement failed during registered program execution')
         stop = local_limit() or (result.reason if result.reason != 'exited' else 'model_limit_reached')
         if result.reason == 'execution_error' and stop not in {'cpu_limit', 'wall_limit'}:
             stop = 'program_execution_error'
@@ -832,7 +953,7 @@ stream_max_retries = 0
             if limit:
                 return finalize(limit)
             gateway = self.gateway_status(context.phase_id)
-            if gateway.get('frozen'):
+            if gateway.get('frozen') or gateway.get('unknown_requests'):
                 return finalize('infrastructure_failure')
             if program is None and not model_available(gateway):
                 registered = record.get('registered_program') or fallback
@@ -851,6 +972,8 @@ stream_max_retries = 0
             result = self._execute(execution_context, record, program=program,
                                    resume_session=session_id if program is None else None, match=True)
             last_reason = result.reason
+            if result.reason == 'infrastructure_failure':
+                return finalize('infrastructure_failure')
             if program is None:
                 session_id = self._session_id(result.stdout_path) or session_id
             # Check settled cumulative usage after EVERY controller, including
@@ -864,7 +987,7 @@ stream_max_retries = 0
             if reason_limit:
                 return finalize(reason_limit)
             gateway = self.gateway_status(context.phase_id)
-            if gateway.get('frozen'):
+            if gateway.get('frozen') or gateway.get('unknown_requests'):
                 return finalize('infrastructure_failure')
             report = self.gt.report(rid)
             if report['status'] != 'active':

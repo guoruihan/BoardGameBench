@@ -605,3 +605,168 @@ def test_development_program_handoff_rotates_actual_execute_lease(tmp_path, monk
     assert result.stop_reason == 'model_limit_reached'
     assert rotations == [('same-run', 'program')]
     assert record['gt']['token'] == 'new-program-lease'
+
+
+class SettlementClock:
+    def __init__(self):
+        self.now = 1000.
+    def time(self):
+        return self.now
+    def monotonic(self):
+        return self.now
+    def sleep(self, seconds):
+        self.now += seconds
+
+
+def settlement_harness(tmp_path, monkeypatch, statuses, *, wall=10, deadline=None):
+    import boardbench.families.pilot_run as module
+    from boardbench.families.pilot_run import NativePilotAdapter, DEPLOYMENT_BUDGETS
+    runner = PilotRunner(tmp_path, config(), FakeAdapter())
+    context = runner._context('settlement', DEPLOYMENT_BUDGETS['L10'], None)
+    if deadline is not None:
+        context = replace(context, deadline_unix=deadline)
+    context.ledger_path.write_text(json.dumps({'active_wall_seconds': wall, 'cpu_seconds': 3, 'runs': ['supervised']}))
+    clock = SettlementClock()
+    monkeypatch.setattr(module.time, 'time', clock.time)
+    monkeypatch.setattr(module.time, 'monotonic', clock.monotonic)
+    monkeypatch.setattr(module.time, 'sleep', clock.sleep)
+    adapter = NativePilotAdapter.__new__(NativePilotAdapter)
+    calls = []
+    def status(phase):
+        calls.append(phase)
+        value = statuses[min(len(calls)-1, len(statuses)-1)]
+        if isinstance(value, Exception):
+            raise value
+        return value
+    adapter.gateway_status = status
+    return adapter, context, clock, calls
+
+
+def test_gateway_drain_settles_before_continuing_and_charges_only_wait(tmp_path, monkeypatch):
+    pending = {'pending_reservations': {'calls': 1, 'input_tokens': 30, 'output_tokens': 40}, 'unknown_requests': 0}
+    cleared = {'pending_reservations': {'calls': 0}, 'unknown_requests': 0}
+    adapter, context, clock, calls = settlement_harness(tmp_path, monkeypatch, [pending, pending, cleared])
+    assert adapter._await_gateway_settlement(context, 'decision_timeout') is None
+    ledger = json.loads(context.ledger_path.read_text())
+    assert ledger['active_wall_seconds'] == pytest.approx(10.1)
+    assert ledger['gateway_settlement_wall_seconds'] == pytest.approx(.1)
+    assert ledger['cpu_seconds'] == 3 and ledger['runs'] == ['supervised']
+    assert ledger['gateway_settlement_waits'][0]['status'] == 'settled'
+    assert ledger['gateway_settlement_waits'][0]['controller_reason'] == 'decision_timeout'
+    assert len(calls) == 3
+
+
+@pytest.mark.parametrize('final', [{'unknown_requests': 1}, {'frozen': True}, RuntimeError('status unavailable')])
+def test_gateway_drain_unknown_or_failed_status_is_infrastructure_failure(tmp_path, monkeypatch, final):
+    adapter, context, clock, calls = settlement_harness(tmp_path, monkeypatch,
+        [{'pending_reservations': {'calls': 1}}, final])
+    assert adapter._await_gateway_settlement(context, 'execution_error') == 'infrastructure_failure'
+    ledger = json.loads(context.ledger_path.read_text())
+    assert ledger['active_wall_seconds'] == pytest.approx(10.05)
+    assert ledger['gateway_settlement_waits'][0]['status'] == 'infrastructure_failure'
+    assert len(calls) == 2
+
+
+@pytest.mark.parametrize('wall,deadline', [(1199.97, None), (10, 1000.03)])
+def test_gateway_drain_cannot_wait_past_cumulative_or_absolute_deadline(tmp_path, monkeypatch, wall, deadline):
+    adapter, context, clock, calls = settlement_harness(tmp_path, monkeypatch,
+        [{'pending_reservations': {'calls': 1}}], wall=wall, deadline=deadline)
+    assert adapter._await_gateway_settlement(context, 'decision_timeout') == 'wall_limit'
+    ledger = json.loads(context.ledger_path.read_text())
+    assert ledger['gateway_settlement_wall_seconds'] == pytest.approx(.03)
+    assert ledger['active_wall_seconds'] == pytest.approx(wall + .03)
+    assert ledger['gateway_settlement_waits'][0]['remaining_pending_calls'] == 1
+    assert ledger['gateway_settlement_waits'][0]['status'] == 'wall_limit'
+
+
+@pytest.mark.parametrize('unknown_after_disconnect', [False, True])
+def test_native_timeout_waits_for_gateway_before_resume_or_infra_classification(tmp_path, monkeypatch, unknown_after_disconnect):
+    import sys
+    import types
+    import boardbench.families.pilot_run as module
+    from pathlib import Path
+    from dataclasses import dataclass
+    adapter, context, match, _ = native_match_harness(tmp_path, monkeypatch, [])
+    del adapter._execute
+    record = adapter._open_phase(context, match)
+    record.update(gateway_token='same-account', finished=False)
+    adapter.gt.update_budget = lambda *args: None
+    adapter.runtime = []
+    adapter.sdk_dir = tmp_path
+    adapter.gt_socket = tmp_path / 'gt.sock'
+    adapter.gateway_socket = tmp_path / 'gateway.sock'
+    adapter.phase_cores = {}
+    clock = SettlementClock()
+    monkeypatch.setattr(module.time, 'time', clock.time)
+    monkeypatch.setattr(module.time, 'monotonic', clock.monotonic)
+    monkeypatch.setattr(module.time, 'sleep', clock.sleep)
+    pending_until = [None]
+    def status(_):
+        pending = pending_until[0] is not None and clock.now < pending_until[0]
+        unknown = pending_until[0] is not None and not pending and unknown_after_disconnect
+        return {'pending_reservations': {'calls': int(pending)}, 'unknown_requests': int(unknown),
+                'frozen': unknown, 'remaining': {'calls': 8, 'input_tokens': 10000, 'output_tokens': 1000}}
+    adapter.gateway_status = status
+    def fallback(rid, reason, finish=False):
+        adapter.gt.fallbacks += 1
+        adapter.gt.version += 1
+    adapter.gt.fallback = fallback
+    starts = []
+    @dataclass
+    class Result:
+        reason: str
+        stdout_path: str
+    class Supervisor:
+        def run(self, spec):
+            starts.append((clock.now, spec.argv))
+            if len(starts) == 2:
+                assert clock.now >= pending_until[0]
+                assert 'same-session' in spec.argv
+            ledger = json.loads(context.ledger_path.read_text())
+            ledger['active_wall_seconds'] = ledger.get('active_wall_seconds', 0.) + 2
+            context.ledger_path.write_text(json.dumps(ledger))
+            clock.now += 2  # Already charged by the live supervisor.
+            stdout = tmp_path / f'controller-{len(starts)}.jsonl'
+            stdout.write_text(json.dumps({'type': 'thread.started', 'thread_id': 'same-session'}))
+            if len(starts) == 1:
+                pending_until[0] = clock.now + .15
+                return Result('decision_timeout', str(stdout))
+            adapter.gt.state = 'complete'
+            return Result('game_finished', str(stdout))
+    adapter.supervisor = Supervisor()
+    class Control:
+        def shutdown(self): pass
+        def server_close(self): pass
+    def control(*args):
+        directory = tmp_path / 'control'
+        directory.mkdir()
+        return Control(), directory / 'control.sock', 'token'
+    adapter._control_server = control
+    monkeypatch.setitem(sys.modules, 'boardbench.families.pilot_supervisor', types.SimpleNamespace(
+        SandboxSpec=lambda **kwargs: types.SimpleNamespace(**kwargs), Limits=lambda *args: args,
+        WRAPPER=Path('/explicit/codex'), physical_cpu_ids=lambda n: tuple(range(n))))
+    result = adapter._run_match(context, match)
+    if unknown_after_disconnect:
+        assert result['status'] == 'infrastructure_failure'
+        assert len(starts) == 1 and adapter.gt.fallbacks == 0
+        live_wall = 2
+    else:
+        assert result['status'] == 'complete'
+        assert len(starts) == 2 and adapter.gt.fallbacks == 1
+        live_wall = 4
+    ledger = json.loads(context.ledger_path.read_text())
+    assert ledger['active_wall_seconds'] == pytest.approx(live_wall + ledger['gateway_settlement_wall_seconds'])
+    assert .15 <= ledger['gateway_settlement_wall_seconds'] <= .201
+
+
+def test_gateway_preflight_is_inflight_even_before_reservation(tmp_path, monkeypatch):
+    adapter, context, clock, calls = settlement_harness(tmp_path, monkeypatch, [
+        {'pending_reservations': {'calls': 0}, 'preflighting': True},
+        {'pending_reservations': {'calls': 1}, 'preflighting': False},
+        {'pending_reservations': {'calls': 0}, 'preflighting': False},
+    ])
+    assert adapter._await_gateway_settlement(context, 'decision_timeout') is None
+    ledger = json.loads(context.ledger_path.read_text())
+    assert ledger['gateway_settlement_wall_seconds'] == pytest.approx(.1)
+    assert ledger['active_wall_seconds'] == pytest.approx(10.1)
+    assert len(calls) == 3
