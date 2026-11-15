@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-16 — c5 fresh-development protocol
+
+- Prepare a clean GPT-5.6-sol medium development and 40-match calibration run, retaining original per-task GT/model/compute budgets and the frozen RL opponent.
+- Agent-issued managed tasks may use remaining local budget after model exit and explicitly publish an immutable final version. This changes delivery semantics alongside the model; do not interpret between-round differences as a model-only effect.
+- Real one-call quota-injection acceptance confirms publication after CLI exit, without another model generation; acceptance actions/results are separate from strategy evaluation.
+
 ## 2026-11-15 — first valid native-agent development comparison
 
 - c4 independently seeded L20 evaluation finished: frozen developed program 10/10 wins, mean 90.7 versus 69.4; no-prior-development native controls 0/10 wins, mean 32.5 versus 62.4.

@@ -17,7 +17,7 @@ from typing import Any, Callable, Protocol
 
 
 RESUME_PROMPT = "Continue the task using the existing workspace and remaining budget. Save reusable material in submission/ and checkpoint it. You may finish when ready."
-DEVELOPMENT_PROMPT = """Develop and save reusable decision capability to maximize win rate in new Harmonies games under the supplied budgets. Read task_config.json, the rules and SDK documentation. You may play, inspect acquired history, analyze, write and run programs, build your own simulator and perform explicit parameter experiments. Activities share one development budget; no fixed order or reflection schedule is required. Access the real environment only through the SDK. Hidden state, GT implementation, opponent weights and other model services are unavailable. Do not train additional neural policy/value models or change the base model. Target deployment is L20/C120/GPU=0. Each test is independent and may use different stated budgets. Read the current observation before each real action. Save reusable notes and optional code in submission/ with manifest.json and START_HERE.md; checkpoint saves a format-validated copy. The test does not inherit your conversation. There is no extra model call for packaging when budgets expire. You may finish at any time."""
+DEVELOPMENT_PROMPT = """Develop and save reusable decision capability to maximize win rate in new Harmonies games under the supplied budgets. Read task_config.json, the rules and SDK documentation. You may play, inspect acquired history, analyze, write and run programs, build your own simulator and perform explicit parameter experiments. Activities share one development budget; no fixed order or reflection schedule is required. Access the real environment only through the SDK. Hidden state, GT implementation, opponent weights and other model services are unavailable. Do not train additional neural policy/value models or change the base model. Target deployment is L20/C120/GPU=0. Each test is independent and may use different stated budgets. Read the current observation before each real action. Save reusable notes and optional code in submission/ with manifest.json and START_HERE.md; checkpoint saves a format-validated copy. The test does not inherit your conversation. Use jobs.start for long experiments or packaging; managed tasks survive model exit within the original compute budget. Publish each runnable version with submission.publish before long reports. There is no extra model call for packaging when budgets expire. You may finish at any time."""
 TEST_PROMPT = "Play this independent Harmonies match to maximize win probability using the provided SDK, rules and task_config.json. Read submission/START_HERE.md. You may use native tools and modify files within this match. Read the current observation before each action. Only this match's stated budgets are available; no prior conversation is available. Do not train additional neural policy/value models or access hidden state, GT implementation, opponent weights or other model services."
 
 
@@ -76,8 +76,8 @@ class PilotConfig:
                 raise ValueError("provenance must be resolved before preparing the pilot")
         if len(self.opponent_sha256) != 64 or any(c not in "0123456789abcdef" for c in self.opponent_sha256):
             raise ValueError("opponent_sha256 must be a lowercase SHA256")
-        if self.model_id != "gpt-6-astra" or self.reasoning_effort != "medium":
-            raise ValueError("this pilot pins GPT-6-Astra medium")
+        if self.model_id not in {"gpt-6-astra", "gpt-5.6-sol"} or self.reasoning_effort != "medium":
+            raise ValueError("this pilot requires a supported model with medium reasoning")
 
 
 def seed_for(namespace: str, domain: str, index: int) -> int:
@@ -172,7 +172,11 @@ class Checkpoints:
         with self.lock:
             return self._checkpoint(submission, installed_dependencies)
 
-    def _checkpoint(self, submission: Path, installed_dependencies=None) -> str:
+    def publish(self, submission: Path, entrypoint=None, installed_dependencies=None, admissible=lambda: True) -> str:
+        with self.lock:
+            return self._checkpoint(submission, installed_dependencies, entrypoint, admissible)
+
+    def _checkpoint(self, submission: Path, installed_dependencies=None, entrypoint=None, admissible=lambda: True) -> str:
         if (self.root / "frozen.json").exists():
             raise RuntimeError("submission is already frozen")
         from .pilot_snapshot import safe_snapshot
@@ -180,6 +184,18 @@ class Checkpoints:
         if temporary.exists():
             shutil.rmtree(temporary)
         safe_snapshot(submission, temporary)
+        if entrypoint is not None:
+            entry = _safe_file(temporary, entrypoint)
+            if entry.suffix != '.py' and not os.access(entry, os.X_OK):
+                raise ValueError('program_must_be_python_or_executable')
+            manifest_path = temporary / 'manifest.json'
+            manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+            manifest.update(schema_version=1, entry_mode='program', program_entry=entrypoint,
+                            startup_file='START_HERE.md')
+            manifest.setdefault('dependencies', [])
+            _write_json(manifest_path, manifest)
+            if not (temporary/'START_HERE.md').exists():
+                (temporary/'START_HERE.md').write_text('Run the program entry declared in manifest.json.\n')
         manifest = validate_submission(temporary)
         if installed_dependencies is not None and not set(manifest.get("dependencies", [])) <= set(installed_dependencies):
             shutil.rmtree(temporary)
@@ -192,7 +208,13 @@ class Checkpoints:
             temporary.rename(target)
         latest = self.root / "latest.json"
         sequence = json.loads(latest.read_text()).get("sequence", 0) + 1 if latest.exists() else 1
-        _write_json(latest, {"sha256": digest, "sequence": sequence})
+        # Check the original phase budget immediately before committing the pointer.
+        if not admissible():
+            raise RuntimeError('submission_budget_exhausted')
+        _write_json(latest, {"sha256": digest, "sequence": sequence,
+                             "entry_mode": manifest['entry_mode'],
+                             "program_entry": manifest.get('program_entry'),
+                             "published_unix": time.time()})
         return digest
 
     def freeze(self) -> Path | None:
@@ -487,6 +509,8 @@ def prepare_public_material(destination: Path, sdk_client: Path, rules_files: li
     destination.mkdir(parents=True, exist_ok=False)
     shutil.copyfile(sdk_client, destination / "pilot_client.py")
     (destination / "pilot_control.py").write_text(_CONTROL_SDK)
+    (destination / 'jobs.py').write_text("from pilot_control import request\ndef start(argv): return request('jobs_start',argv=argv)['job_id']\ndef status(job_id=None): return request('jobs_status',job_id=job_id)\ndef output(job_id,stream='stdout',offset=0): return request('jobs_output',job_id=job_id,stream=stream,offset=offset)\n")
+    (destination / 'submission.py').write_text("from pilot_control import request\ndef publish(directory='submission',entrypoint=None): return request('publish',directory=directory,entrypoint=entrypoint)\n")
     rules = destination / "rules"
     rules.mkdir()
     for source in rules_files:
@@ -505,6 +529,18 @@ def prepare_public_material(destination: Path, sdk_client: Path, rules_files: li
         "before each action. `run(policy,max_actions=None)` loops your callable over current observation "
         "and all current legal actions; return a global action index or NEED_AGENT. "
         "`abort()` consumes the current game; it does not refund its slot.\n\n"
+        "During development, `import jobs; job_id=jobs.start(['python3','finalize.py'])` starts a managed "
+        "task in /work in the same sandbox. `jobs.status(job_id)` and `jobs.output(job_id,stream='stdout',offset=0)` "
+        "query it. Tasks share ALL original phase budgets and survive model-controller exit; no retries. "
+        "After controller exit, new jobs are refused, but existing tasks may finish and publish. "
+        "Logs retain at most 4 MiB per stream. These job APIs are development-only.\n"
+        "`import submission; submission.publish(directory='candidate',entrypoint='play.py')` atomically "
+        "saves a validated immutable snapshot AND its evaluation entry. Entry is Python or executable. "
+        "Omit entrypoint to use the directory's existing manifest. Failure preserves the old submission. "
+        "This does not run your program or test playing strength. Run minimal checks inside the sandbox first. "
+        "Publish each runnable version you are willing to deliver BEFORE lengthy reports/validation. "
+        "Later work cannot change published copies; only a successful publish replaces them. "
+        "All jobs end or the original budget expires: freeze the latest successful submission.\n\n"
         "Import `pilot_control`. During development `checkpoint()` validates submission/ manifest "
         "and paths, then saves a snapshot without playing or scoring it. `finish()` ends development. "
         "`register_program('submission/path.py')` declares an optional existing program to execute "
@@ -531,7 +567,11 @@ class NativePilotAdapter:
                  sdk_dir: Path, gateway_account: Callable[[str, Budget], str],
                  gateway_status: Callable[[str], dict], supervisor=None,
                  installed_dependencies: tuple[str, ...] = (), test_concurrency: int = 4,
-                 development_phase: str = "development"):
+                 development_phase: str = "development", model_id: str = "gpt-6-astra", gateway_close=None):
+        if model_id not in {"gpt-6-astra", "gpt-5.6-sol"}:
+            raise ValueError("unsupported pilot model")
+        self.model_id = model_id
+        self.gateway_close = gateway_close
         from .pilot_supervisor import SandboxSupervisor, minimal_runtime
         self.gt, self.gt_socket = gt_service, Path(gt_socket)
         self.gateway_socket, self.sdk_dir = Path(gateway_socket), Path(sdk_dir)
@@ -568,7 +608,7 @@ class NativePilotAdapter:
         self.sessions[context.phase_id] = record
         codex = context.workspace / ".codex"
         codex.mkdir()
-        (codex / "config.toml").write_text('''model = "gpt-6-astra"
+        (codex / "config.toml").write_text('model = "' + self.model_id + '"\n' + '''
 model_reasoning_effort = "medium"
 model_provider = "pilot_gateway"
 approval_policy = "never"
@@ -619,13 +659,46 @@ stream_max_retries = 0
                 control_started = time.thread_time()
                 try:
                     size = int(self.headers.get('Content-Length', '0'))
-                    if not 0 < size <= 4096:
+                    if not 0 < size <= 65536:
                         raise ValueError('invalid_request')
                     body = json.loads(self.rfile.read(size))
                     method = body.get('method')
-                    if method == 'checkpoint' and context.checkpoints is not None:
-                        digest = context.checkpoints.checkpoint(context.workspace / 'submission',
-                                                                 adapter.installed_dependencies)
+                    manager = record.get('jobs')
+                    if isinstance(method, str) and method.startswith('broker_'):
+                        import socket, struct
+                        pid = struct.unpack('3i', self.connection.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))[0]
+                        if manager is None or not manager.broker_allowed(pid):
+                            raise ValueError('broker_identity_denied')
+                        if method == 'broker_poll':
+                            result = dict(ok=True, jobs=manager.poll(), stop_model=record['finished'])
+                        elif method == 'broker_pending':
+                            result = dict(ok=True, active=manager.active())
+                        elif method == 'broker_event':
+                            manager.event(**{k:v for k,v in body.items() if k != 'method'})
+                            if body.get('kind') == 'controller_exit' and manager.jobs and adapter.gateway_close:
+                                adapter.gateway_close(context.phase_id)
+                            result = dict(ok=True)
+                        else:
+                            raise ValueError('unsupported_broker_method')
+                    elif method in ('jobs_start', 'jobs_status', 'jobs_output') and manager is not None:
+                        if method == 'jobs_start':
+                            result = dict(ok=True, **manager.start(body.get('argv')))
+                        elif method == 'jobs_status':
+                            result = dict(ok=True, **manager.status(body.get('job_id')))
+                        else:
+                            result = dict(ok=True, **manager.output(body.get('job_id'), body.get('stream','stdout'), body.get('offset',0)))
+                    elif method == 'publish' and context.checkpoints is not None:
+                        directory = body.get('directory', 'submission')
+                        if not isinstance(directory, str) or Path(directory).is_absolute() or '..' in Path(directory).parts:
+                            raise ValueError('invalid_submission_directory')
+                        digest = context.checkpoints.publish(context.workspace / directory,
+                            body.get('entrypoint'), adapter.installed_dependencies,
+                            lambda: record['publish_admissible'](time.thread_time()-control_started))
+                        result = dict(ok=True, sha256=digest)
+                    elif method == 'checkpoint' and context.checkpoints is not None:
+                        digest = context.checkpoints.publish(context.workspace / 'submission',
+                            installed_dependencies=adapter.installed_dependencies,
+                            admissible=lambda: record.get('publish_admissible',lambda *_: True)(time.thread_time()-control_started))
                         result = {"ok": True, "sha256": digest}
                     elif method == 'finish' and context.checkpoints is not None:
                         record['finished'] = True
@@ -650,8 +723,8 @@ stream_max_retries = 0
                 self.end_headers()
                 self.wfile.write(data)
 
-        class Server(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
-            daemon_threads = True
+        class Server(socketserver.UnixStreamServer):
+            pass
 
         server = Server(str(socket_path), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -661,6 +734,23 @@ stream_max_retries = 0
     def _execute(self, context, record, *, resume_session=None, program=None, match=False):
         from .pilot_supervisor import SandboxSpec, Limits, WRAPPER, physical_cpu_ids
         control_cpu_before = record.get('control_cpu_seconds', 0.)
+        from .pilot_jobs import ManagedJobs
+        compute = json.loads(context.ledger_path.read_text()) if context.ledger_path.exists() else {}
+        live = {'cpu': compute.get('cpu_seconds',0.), 'wall': compute.get('active_wall_seconds',0.), 'rss':0}
+        execution_started = time.monotonic()
+        execution_active = True
+        def admissible(inflight_cpu=0.):
+            return (execution_active and time.time() < context.deadline_unix
+                    and compute.get('active_wall_seconds',0.) + time.monotonic()-execution_started < context.budget.active_wall_seconds
+                    and live['cpu'] + record.get('control_cpu_seconds',0.)-control_cpu_before + inflight_cpu < context.budget.cpu_core_seconds
+                    and live['rss'] < context.budget.memory_gib*1024**3)
+        record['publish_admissible'] = admissible
+        manager = None
+        if context.checkpoints is not None:
+            number = record.get('job_queue_number',0)
+            record['job_queue_number'] = number + 1
+            manager = ManagedJobs(context.workspace.parent/f'jobs-{number}', admissible)
+        record['jobs'] = manager
         control, control_path, control_token = self._control_server(context, record)
         credentials = record['gt']
         if program:
@@ -684,7 +774,7 @@ stream_max_retries = 0
                 return 'absolute_deadline'
             if record.get('control_cpu_seconds', 0.) - control_cpu_before >= context.budget.cpu_core_seconds:
                 return 'cpu_limit'
-            if record['finished']:
+            if record['finished'] and (manager is None or not manager.active()):
                 return 'development_finished'
             if now - previous['last_poll'] < .2:
                 return None
@@ -720,8 +810,15 @@ stream_max_retries = 0
                      'PILOT_CONTROL_TOKEN': control_token},
                 stdin=b'' if program else (context.prompt + '\nRead /bench/SDK.md and /bench/rules/.').encode(),
                 stop_requested=stop_requested,
+                managed_jobs=manager is not None,
+                on_started=(lambda pid: setattr(manager,'sandbox_pid',pid)) if manager else None,
+                on_sample=lambda cpu,wall,rss: live.update(cpu=cpu,wall=wall,rss=rss),
+                extra_cpu_seconds=lambda: record.get('control_cpu_seconds',0.)-control_cpu_before,
             ))
         finally:
+            execution_active = False
+            if manager is not None:
+                manager.close("sandbox_ended")
             control.shutdown()
             control.server_close()
             shutil.rmtree(control_path.parent)
@@ -860,6 +957,8 @@ stream_max_retries = 0
             refused = any(event.get('kind') == 'rejected' and event.get('limit') in model_limits
                           for event in gateway.get('events', [])[before_events:])
             blocked = exhausted(gateway) or refused
+            if record.get('jobs') is not None and record['jobs'].jobs:
+                return finish('model_limit_reached' if blocked else 'managed_jobs_completed')
             if not blocked:
                 if result.reason == 'execution_error':
                     self.gt.stop(rid, reason='infrastructure_failure')

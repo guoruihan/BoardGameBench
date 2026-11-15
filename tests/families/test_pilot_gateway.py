@@ -421,3 +421,27 @@ def test_status_exposes_preflight_before_generation_reservation(gateway,monkeypa
     assert observed[0]['preflighting'] and observed[0]['pending_reservations']['calls']==0
     assert not gateway.status('a')['preflighting'] and gateway.status('a')['pending_reservations']['calls']==1
     gateway.settle(key,dict(input_tokens=10,output_tokens=5))
+
+
+def test_close_model_rejects_new_requests_but_settles_existing(gateway):
+    account=gateway.create_account('closing',LIMITS)
+    request_id,_=gateway.reserve(account['token'],BODY)
+    gateway.close_model('closing')
+    gateway.settle(request_id,dict(input_tokens=10,output_tokens=5))
+    status=gateway.status('closing')
+    assert status['model_closed'] and not status['frozen']
+    assert status['pending_reservations']['calls']==0
+    assert status['usage']==dict(calls=1,input_tokens=10,output_tokens=5)
+    with pytest.raises(gw.GatewayError,match='model_closed'):
+        gateway.reserve(account['token'],BODY)
+
+
+def test_close_during_preflight_cannot_admit_generation(gateway,monkeypatch):
+    account=gateway.create_account('closing',LIMITS)
+    def count(body):
+        gateway.close_model('closing')
+        return 1,'injected'
+    monkeypatch.setattr(gateway,'count_upstream',count)
+    with pytest.raises(gw.GatewayError,match='model_closed'):
+        gateway.reserve(account['token'],BODY)
+    assert gateway.status('closing')['usage']['calls']==0

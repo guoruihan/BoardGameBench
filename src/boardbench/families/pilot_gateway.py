@@ -195,6 +195,15 @@ class Gateway:
             d['remaining']={k:max(0,d['limits'][k]-d['usage'][k]) for k in ('calls','input_tokens','output_tokens')}
             return dict(account_id=account_id,**d)
 
+    def close_model(self, account_id, reason='controller_exited'):
+        """Stop new generations without discarding settlement of existing ones."""
+        with self.mutex, _db(self.root) as db:
+            d = self._account(db, account_id)
+            if not d.get('model_closed'):
+                d['model_closed'] = True
+                d['events'].append(dict(kind='model_closed', reason=reason, time=time.time()))
+                self._save(db, account_id, d)
+
     def _authenticate(self,db,token):
         if not isinstance(token,str): raise GatewayError('unauthorized',401)
         row=db.execute('SELECT id,data FROM accounts WHERE token_hash=?',(_hash(token),)).fetchone()
@@ -287,6 +296,7 @@ class Gateway:
         with self.mutex,_db(self.root) as db:
             account,d=self._authenticate(db,token)
             if d['frozen']: raise GatewayError('account_frozen',429)
+            if d.get('model_closed'): raise GatewayError('model_closed',429)
             if account in self.preflighting or db.execute(
                 "SELECT 1 FROM requests WHERE account=? AND state='pending'",(account,)).fetchone():
                 raise GatewayError('account_inflight',429)
@@ -317,6 +327,7 @@ class Gateway:
                 limits=d['limits']; used=d['usage']
                 reason=None
                 if d['frozen']: reason='account_frozen'
+                elif d.get('model_closed'): reason='model_closed'
                 elif input_reserved>limits['max_input_tokens']: reason='max_input_tokens_estimate'
                 elif input_reserved>limits['input_tokens']-used['input_tokens']: reason='input_tokens'
                 if reason:

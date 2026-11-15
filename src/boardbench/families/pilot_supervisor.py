@@ -67,6 +67,10 @@ class SandboxSpec:
     stdin: bytes = b''
     require_kernel_accounting: bool = False
     stop_requested: Callable[[], str | None] | None = None
+    managed_jobs: bool = False
+    on_started: Callable[[int], None] | None = None
+    on_sample: Callable[[float, float, int], None] | None = None
+    extra_cpu_seconds: Callable[[], float] | None = None
 
 
 @dataclass
@@ -272,6 +276,9 @@ for port,name in config['bridges'].items():
     listener=socket.socket();listener.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
     listener.bind(('127.0.0.1',int(port)));listener.listen(32)
     threading.Thread(target=bridge,args=(listener,'/run/bench/'+name),daemon=True).start()
+if config.get('managed_jobs'):
+    import runpy
+    sys.exit(runpy.run_path('/runtime/jobs_init.py')['run'](config))
 child=subprocess.Popen(config['argv'],close_fds=True)
 code=0
 while True:
@@ -390,8 +397,10 @@ class SandboxSupervisor:
         with tempfile.TemporaryDirectory(prefix='pilot-supervisor-') as temp:
             trusted = Path(temp)
             (trusted/'init.py').write_text(_INIT)
+            if spec.managed_jobs:
+                (trusted/'jobs_init.py').write_bytes(Path(__file__).with_name('pilot_job_runtime.py').read_bytes())
             (trusted/'stdin').write_bytes(spec.stdin)
-            (trusted/'config.json').write_text(json.dumps({'argv': spec.argv, 'bridges': spec.tcp_bridges}))
+            (trusted/'config.json').write_text(json.dumps({'argv': spec.argv, 'bridges': spec.tcp_bridges, 'managed_jobs': spec.managed_jobs}))
             _seccomp(trusted/'filter')
             command = [bubblewrap, '--unshare-all', '--as-pid-1', '--die-with-parent',
                        '--cap-drop', 'ALL', '--clearenv', '--new-session',
@@ -435,6 +444,8 @@ class SandboxSupervisor:
                     # taskset executes before bwrap installs the affinity-denying filter.
                     process = subprocess.Popen(['/usr/bin/taskset', '-c', ','.join(map(str, spec.cpu_ids)), *command],
                                                stdin=input_file, stdout=out, stderr=err, pass_fds=(filt.fileno(),))
+                    if spec.on_started:
+                        spec.on_started(process.pid)
                     usage = None
                     while True:
                         now = time.monotonic()
@@ -442,6 +453,9 @@ class SandboxSupervisor:
                         last_sample = now
                         cpu, rss, identities = _tree_sample(process.pid)
                         observed.update(identities)
+                        if spec.on_sample:
+                            spec.on_sample(ledger['cpu_seconds'] + max(sampled_cpu, cpu),
+                                           ledger['active_wall_seconds'] + now-started, rss)
                         sampled_cpu, peak = max(sampled_cpu, cpu), max(peak, rss)
                         waited, status, final_usage = os.wait4(process.pid, os.WNOHANG)
                         if waited:
@@ -453,7 +467,7 @@ class SandboxSupervisor:
                             requested = spec.stop_requested() if spec.stop_requested else None
                             if requested:
                                 reason = str(requested)
-                            elif ledger['cpu_seconds'] + sampled_cpu >= spec.limits.cpu_seconds:
+                            elif ledger['cpu_seconds'] + sampled_cpu + (spec.extra_cpu_seconds() if spec.extra_cpu_seconds else 0.) >= spec.limits.cpu_seconds:
                                 reason = 'cpu_limit'
                             elif rss >= spec.limits.rss_bytes:
                                 reason = 'rss_limit'
@@ -467,7 +481,7 @@ class SandboxSupervisor:
                         time.sleep(spec.limits.sample_seconds)
                     if usage is not None:
                         sampled_cpu = max(sampled_cpu, usage.ru_utime + usage.ru_stime)
-                    if reason == 'exited' and ledger['cpu_seconds'] + sampled_cpu >= spec.limits.cpu_seconds:
+                    if reason == 'exited' and ledger['cpu_seconds'] + sampled_cpu + (spec.extra_cpu_seconds() if spec.extra_cpu_seconds else 0.) >= spec.limits.cpu_seconds:
                         reason = 'cpu_limit'
                     if reason == 'exited' and ledger['active_wall_seconds'] + time.monotonic()-started >= spec.limits.wall_seconds:
                         reason = 'wall_limit'

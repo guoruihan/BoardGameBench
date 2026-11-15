@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-16 — managed pilot jobs and atomic submission
+
+- Add a trusted namespace job broker: packaging and experiment jobs survive native-controller exit in the same metered sandbox; close job/model admission, drain existing jobs, and enforce aggregate CPU/RSS/wall limits.
+- Publish immutable strategy snapshots and evaluation entry metadata atomically; failed publication preserves the previous version, and freeze serializes with publish.
+- Support explicitly pinned GPT-5.6-sol medium and add a one-generation native quota-exit acceptance mode; retain existing Astra trials and private routing outside Git.
+
 ## 2026-11-16 — observable pilot development walkthrough
 
 - Document the participant's stepwise c3 development using native event IDs, code snapshots, completed and unfinished simulator comparisons, validation outputs and ten GT games.
