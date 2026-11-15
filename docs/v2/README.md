@@ -1,7 +1,7 @@
 # V2：规则变体与 Agent 开发能力评测
 
 2026-11-15：V1 已收尾，V2 进入受控原生 Agent 开发试跑。
-基线为 [`v1-final` 冻结说明](../V1_Closeout_zh.md)。新增 [Harmonies 原生 Codex pilot c1](pilot/README_zh.md)；校准试跑不代表正式排名。
+基线为 [`v1-final` 冻结说明](../V1_Closeout_zh.md)。新增 [Harmonies 原生 Codex pilot c2](pilot/README_zh.md)；校准试跑不代表正式排名。
 
 ## 目标
 

@@ -1,5 +1,10 @@
 # Engineering changes
 
+## 2026-11-15 — pilot c2 context calibration and development handoff
+
+- Retain the stopped c1 configuration trial and all usage; raise the native compaction threshold from 20K to 32K before a fresh full cohort, with unchanged per-task cumulative quotas and overall deadline.
+- Add the system Python alias and allow registered development programs to continue under the same GT/resource ledgers after model exhaustion, without a free checkpoint or additional model call.
+
 ## 2026-11-15 — V2 isolated native Codex pilot c1
 
 - Add persistent GT/model ledgers, public SDK, namespace sandbox and monitored process-tree resource termination; keep private routes and experiment data outside Git.

@@ -1,5 +1,10 @@
 # Research milestones
 
+## 2026-11-15 — native context calibration c1 to c2
+
+- c1 produced a first development win (87:82), then repeated read/compaction cycles: 17 compactions in 62 generations, no valid checkpoint and no test matches. Stop via the trusted gateway and retain full cost, rather than treating this as strategy evaluation.
+- Start c2 from a blank workspace at a 32K compaction threshold; no c1 strategy or trajectory is inherited, all deployment arms use the same configuration, and the original eight-hour deadline remains.
+
 ## 2026-11-15 — V2 Harmonies native development pilot c1
 
 - Define a clean GPT-6-Astra medium / Codex 0.167.0 development task against one frozen RL opponent, followed by L10/L20/L40 paired deployment and L20 no-development controls.

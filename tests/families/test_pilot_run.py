@@ -424,3 +424,184 @@ def test_completed_queue_reopens_same_tuple_seed_config_without_reexecution(tmp_
     second = PilotRunner(tmp_path, cfg, another).run()
     assert second == first
     assert another.dev_calls == [] and another.matches == []
+
+
+def development_quota_harness(tmp_path, *, register=True, initial_quota=False,
+                              normal_exit=False, program_reason='exited', program_cpu=2):
+    from dataclasses import dataclass
+    from boardbench.families.pilot_run import NativePilotAdapter, DEVELOPMENT_BUDGET
+    @dataclass
+    class Result:
+        reason: str
+        stdout_path: str
+    class GT:
+        stopped = []
+        def report(self, rid):
+            return {'games': 1, 'steps': 8, 'status': 'active', 'version': 8}
+        def stop(self, rid, reason):
+            self.stopped.append((rid, reason))
+    runner = PilotRunner(tmp_path, config(), FakeAdapter())
+    context = runner._context('development', DEVELOPMENT_BUDGET, None, True)
+    (context.workspace / 'submission' / 'policy.py').write_text('pass')
+    context.ledger_path.write_text(json.dumps({'cpu_seconds': 0, 'active_wall_seconds': 0}))
+    adapter = NativePilotAdapter.__new__(NativePilotAdapter)
+    adapter.gt = GT()
+    record = {'gt': {'run_id': 'same-run', 'token': 'old-lease', 'generation': 1},
+              'registered_program': 'submission/policy.py' if register else None, 'finished': False}
+    adapter._open_phase = lambda *args: record
+    gateway = {'remaining': {'calls': 0 if initial_quota else 1, 'input_tokens': 1000, 'output_tokens': 1000},
+               'events': [], 'frozen': False}
+    adapter.gateway_status = lambda _: gateway
+    executions = []
+    def execute(ctx, rec, **kwargs):
+        assert not adapter.gt.stopped, 'GT must remain open until registered program has run'
+        executions.append((ctx, kwargs))
+        stdout = ctx.workspace.parent / f'development-{len(executions)}.jsonl'
+        stdout.write_text(json.dumps({'type': 'thread.started', 'thread_id': 'development-session'}))
+        if kwargs.get('program'):
+            cpu = program_cpu
+            reason = program_reason
+        else:
+            gateway['remaining']['calls'] = 0
+            gateway['events'].append({'kind': 'rejected', 'limit': 'calls'})
+            cpu = 1
+            reason = 'exited' if normal_exit else 'execution_error'
+        ctx.ledger_path.write_text(json.dumps({'cpu_seconds': cpu, 'active_wall_seconds': 2}))
+        return Result(reason, str(stdout))
+    adapter._execute = execute
+    return adapter, context, record, gateway, executions
+
+
+@pytest.mark.parametrize('normal_exit', [False, True])
+def test_development_model_exhaustion_runs_registered_program_same_budget(tmp_path, normal_exit):
+    adapter, context, record, gateway, executions = development_quota_harness(tmp_path, normal_exit=normal_exit)
+    result = adapter.run_development(context, None)
+    assert len(executions) == 2
+    assert executions[0][1] == {'resume_session': None}
+    assert executions[1][1] == {'program': 'submission/policy.py'}
+    assert all(ctx is context for ctx, _ in executions)
+    assert result.session_id == 'development-session'
+    assert result.stop_reason == 'model_limit_reached'
+    assert context.checkpoints.freeze() is None
+    assert record['gt']['run_id'] == 'same-run'
+    # Even an accidental outer resume cannot cause another model/program launch.
+    adapter.run_development(context, 'development-session')
+    assert len(executions) == 2
+
+
+def test_development_quota_without_program_stops_without_free_checkpoint(tmp_path):
+    adapter, context, record, gateway, executions = development_quota_harness(tmp_path, register=False, normal_exit=True)
+    result = adapter.run_development(context, None)
+    assert result.stop_reason == 'model_limit_reached'
+    assert len(executions) == 1
+    assert context.checkpoints.freeze() is None
+
+
+def test_development_already_exhausted_skips_cli_and_hands_off(tmp_path):
+    adapter, context, record, gateway, executions = development_quota_harness(tmp_path, initial_quota=True)
+    result = adapter.run_development(context, 'existing-session')
+    assert len(executions) == 1 and executions[0][1]['program'] == 'submission/policy.py'
+    assert result.session_id == 'existing-session'
+
+
+@pytest.mark.parametrize('reason,cpu,expected', [
+    ('execution_error', 2, 'program_execution_error'),
+    ('execution_error', 57601, 'cpu_limit'),
+    ('cpu_limit', 57601, 'cpu_limit'),
+    ('exited', 57601, 'cpu_limit'),
+    ('rss_limit', 2, 'rss_limit'),
+])
+def test_development_program_failure_or_resource_limit_never_resumes_model(tmp_path, reason, cpu, expected):
+    adapter, context, record, gateway, executions = development_quota_harness(
+        tmp_path, program_reason=reason, program_cpu=cpu)
+    result = adapter.run_development(context, None)
+    assert result.stop_reason == expected
+    assert len(executions) == 2
+    assert context.checkpoints.freeze() is None
+
+
+def test_development_local_budget_exhaustion_prevents_program_handoff(tmp_path):
+    adapter, context, record, gateway, executions = development_quota_harness(tmp_path, initial_quota=True)
+    context.ledger_path.write_text(json.dumps({'cpu_seconds': 57600, 'active_wall_seconds': 10}))
+    result = adapter.run_development(context, 'same-session')
+    assert result.stop_reason == 'cpu_limit'
+    assert not executions
+
+
+def test_development_new_input_rejection_with_positive_balance_stops_resume(tmp_path):
+    adapter, context, record, gateway, executions = development_quota_harness(tmp_path, register=False)
+    original = adapter._execute
+    def rejected(ctx, rec, **kwargs):
+        result = original(ctx, rec, **kwargs)
+        gateway['remaining']['calls'] = 1
+        gateway['events'][-1]['limit'] = 'input_tokens'
+        return result
+    adapter._execute = rejected
+    assert adapter.run_development(context, None).stop_reason == 'model_limit_reached'
+    assert len(executions) == 1
+
+
+def test_development_historical_rejection_does_not_stop_recovered_session(tmp_path):
+    adapter, context, record, gateway, executions = development_quota_harness(tmp_path)
+    gateway['events'].append({'kind': 'rejected', 'limit': 'max_input_tokens_estimate'})
+    gateway['first_binding_limit'] = 'max_input_tokens_estimate'
+    def recovered(ctx, rec, **kwargs):
+        from types import SimpleNamespace
+        executions.append((ctx, kwargs))
+        stdout = ctx.workspace.parent / 'recovered.jsonl'
+        stdout.write_text(json.dumps({'type': 'thread.started', 'thread_id': 'recovered'}))
+        return SimpleNamespace(reason='exited', stdout_path=str(stdout))
+    adapter._execute = recovered
+    assert adapter.run_development(context, None).stop_reason is None
+    assert len(executions) == 1
+
+
+def test_development_program_handoff_rotates_actual_execute_lease(tmp_path, monkeypatch):
+    import sys
+    import types
+    from pathlib import Path
+    from dataclasses import dataclass
+    adapter, context, record, gateway, executions = development_quota_harness(tmp_path, initial_quota=True)
+    del adapter._execute
+    rotations = []
+    def rotate(rid, source):
+        rotations.append((rid, source))
+        return {'run_id': rid, 'token': 'new-program-lease', 'generation': 2}
+    adapter.gt.rotate_controller = rotate
+    adapter.gt.update_budget = lambda *args: None
+    adapter.runtime = []
+    adapter.sdk_dir = tmp_path
+    adapter.gt_socket = tmp_path / 'gt.sock'
+    adapter.gateway_socket = tmp_path / 'gateway.sock'
+    adapter.phase_cores = {}
+    record['gateway_token'] = 'same-model-account'
+    @dataclass
+    class Result:
+        reason: str
+        stdout_path: str
+    class Supervisor:
+        def run(self, spec):
+            assert spec.argv == ['/usr/bin/python3', '/work/submission/policy.py']
+            assert spec.env['PILOT_GT_TOKEN'] == 'new-program-lease'
+            assert spec.env['PILOT_GT_GENERATION'] == '2'
+            assert spec.env['PILOT_MODEL_TOKEN'] == 'same-model-account'
+            assert spec.ledger_path == context.ledger_path
+            assert spec.stdin == b''
+            assert spec.stop_requested() is None
+            stdout = tmp_path / 'program.stdout'
+            stdout.write_text('')
+            return Result('exited', str(stdout))
+    adapter.supervisor = Supervisor()
+    class Control:
+        def shutdown(self): pass
+        def server_close(self): pass
+    directory = tmp_path / 'control'
+    directory.mkdir()
+    adapter._control_server = lambda *args: (Control(), directory / 'control.sock', 'control-token')
+    monkeypatch.setitem(sys.modules, 'boardbench.families.pilot_supervisor', types.SimpleNamespace(
+        SandboxSpec=lambda **kwargs: types.SimpleNamespace(**kwargs), Limits=lambda *args: args,
+        WRAPPER=Path('/explicit/codex'), physical_cpu_ids=lambda n: tuple(range(n))))
+    result = adapter.run_development(context, 'existing-session')
+    assert result.stop_reason == 'model_limit_reached'
+    assert rotations == [('same-run', 'program')]
+    assert record['gt']['token'] == 'new-program-lease'

@@ -56,7 +56,7 @@ class PilotConfig:
     seed_namespace: str = "harmonies-pilot-v2-20261115"
     model_id: str = "gpt-6-astra"
     reasoning_effort: str = "medium"
-    protocol_version: str = "pilot_v2_20261115_c1"
+    protocol_version: str = "pilot_v2_20261115_c2"
     game_config: str = "side_a_base32_no_spirits_duo"
     test_concurrency: int = 4
     calibration_seeds: tuple[int, ...] = ()
@@ -516,7 +516,7 @@ model_provider = "pilot_gateway"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 web_search = "disabled"
-model_auto_compact_token_limit = 20000
+model_auto_compact_token_limit = 32000
 [model_providers.pilot_gateway]
 name = "Metered benchmark gateway"
 base_url = "http://127.0.0.1:18080/v1"
@@ -688,18 +688,83 @@ stream_max_retries = 0
 
     def run_development(self, context: PhaseContext, resume_session: str | None) -> DevelopmentResult:
         record = self._open_phase(context, None)
-        result = self._execute(context, record, resume_session=resume_session)
-        report = self.gt.report(record['gt']['run_id'])
+        rid = record['gt']['run_id']
+        session_id = resume_session
+        model_limits = {'calls', 'input_tokens', 'output_tokens', 'max_input_tokens_estimate'}
+
+        def local_limit():
+            ledger = json.loads(context.ledger_path.read_text()) if context.ledger_path.exists() else {}
+            if ledger.get('cpu_seconds', 0.) >= context.budget.cpu_core_seconds:
+                return 'cpu_limit'
+            if ledger.get('active_wall_seconds', 0.) >= context.budget.active_wall_seconds or time.time() >= context.deadline_unix:
+                return 'wall_limit'
+            return None
+
+        def exhausted(gateway):
+            remaining = gateway.get('remaining', {})
+            return any(key in remaining and remaining[key] <= 0
+                       for key in ('calls', 'input_tokens', 'output_tokens'))
+
+        def finish(stop):
+            if stop:
+                self.gt.stop(rid, reason='development_truncated')
+            report = self.gt.report(rid)
+            return DevelopmentResult(session_id, finished=record['finished'],
+                                     environment_progress=report['games'] * 10000 + report['steps'],
+                                     stop_reason=stop)
+
         gateway = self.gateway_status(context.phase_id)
-        if gateway.get('frozen') or (result.reason == 'execution_error' and not gateway.get('first_binding_limit')):
-            self.gt.stop(record['gt']['run_id'], reason='infrastructure_failure')
-            raise RuntimeError('native development execution failed; inspect controller and gateway logs')
-        stop = None if result.reason == 'exited' else result.reason
-        if stop:
-            self.gt.stop(record['gt']['run_id'], reason='development_truncated')
-        return DevelopmentResult(self._session_id(result.stdout_path) or resume_session,
-                                 finished=record['finished'], environment_progress=report['games'] * 10000 + report['steps'],
-                                 stop_reason=stop)
+        if gateway.get('frozen'):
+            self.gt.stop(rid, reason='infrastructure_failure')
+            raise RuntimeError('development gateway is frozen; no automatic retry')
+        stop = local_limit()
+        if stop or record['finished']:
+            return finish(stop or 'development_finished')
+        blocked = exhausted(gateway) or record.get('development_model_blocked', False)
+        if not blocked:
+            before_events = len(gateway.get('events', []))
+            result = self._execute(context, record, resume_session=resume_session)
+            session_id = self._session_id(result.stdout_path) or session_id
+            gateway = self.gateway_status(context.phase_id)
+            if gateway.get('frozen'):
+                self.gt.stop(rid, reason='infrastructure_failure')
+                raise RuntimeError('development gateway is frozen; inspect controller and gateway logs')
+            stop = local_limit() or (result.reason if result.reason in
+                                    {'cpu_limit', 'wall_limit', 'absolute_deadline', 'rss_limit', 'development_finished'} else None)
+            if stop or record['finished']:
+                return finish(stop or 'development_finished')
+            # Cumulative counters can hit their limit without a rejected next
+            # request. Also detect a new refusal with positive residual tokens,
+            # without confusing old, recovered limit events with current usage.
+            refused = any(event.get('kind') == 'rejected' and event.get('limit') in model_limits
+                          for event in gateway.get('events', [])[before_events:])
+            blocked = exhausted(gateway) or refused
+            if not blocked:
+                if result.reason == 'execution_error':
+                    self.gt.stop(rid, reason='infrastructure_failure')
+                    raise RuntimeError('native development execution failed; inspect controller and gateway logs')
+                return finish(None if result.reason == 'exited' else result.reason)
+        record['development_model_blocked'] = True
+        program = record.get('registered_program')
+        if not program:
+            return finish('model_limit_reached')
+        # Exactly one registered-program handoff, never another Codex request.
+        # _execute rotates the existing GT controller lease to program source;
+        # the context preserves the same workspace, ledger and absolute deadline.
+        if record.get('development_program_started'):
+            return finish('model_limit_reached')
+        record['development_program_started'] = True
+        result = self._execute(context, record, program=program)
+        gateway = self.gateway_status(context.phase_id)
+        if gateway.get('frozen'):
+            self.gt.stop(rid, reason='infrastructure_failure')
+            raise RuntimeError('development gateway froze during registered program execution')
+        stop = local_limit() or (result.reason if result.reason != 'exited' else 'model_limit_reached')
+        if result.reason == 'execution_error' and stop not in {'cpu_limit', 'wall_limit'}:
+            stop = 'program_execution_error'
+        # A program may explicitly checkpoint/finish using normal controls; the
+        # runner never packages or creates a checkpoint on the participant's behalf.
+        return finish('development_finished' if record['finished'] else stop)
 
     def finish_development(self, context: PhaseContext):
         record = self.sessions.get(context.phase_id)

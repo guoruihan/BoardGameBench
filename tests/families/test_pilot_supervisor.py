@@ -264,3 +264,12 @@ def test_utf8_locale_no_shell_warning(spec):
     assert result.reason=='exited', Path(result.stderr_path).read_text()
     assert Path(result.stdout_path).read_text()=='C.UTF-8'
     assert 'locale' not in Path(result.stderr_path).read_text().lower()
+
+
+def test_python_alias_uses_same_system_interpreter(spec):
+    import subprocess
+    expected = subprocess.check_output(['/usr/bin/python3','-c','import sys; print(sys.version.split()[0])'], text=True).strip()
+    spec.argv=['/usr/bin/python','-c','import sys; print(sys.version.split()[0])']
+    result=SandboxSupervisor().run(spec)
+    assert result.reason=='exited', Path(result.stderr_path).read_text()
+    assert Path(result.stdout_path).read_text().strip()==expected

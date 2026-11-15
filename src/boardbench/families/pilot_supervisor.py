@@ -145,6 +145,8 @@ def minimal_runtime(include_codex: bool = False, include_compiler: bool = False)
         if path.exists():
             mounts[str(path)] = RuntimeMount(path.resolve(), str(path))
             binaries.append(path)
+    python_alias = Path('/usr/bin/python3')
+    mounts['/usr/bin/python'] = RuntimeMount(python_alias.resolve(), '/usr/bin/python')
     version = subprocess.check_output(['/usr/bin/python3', '-I', '-c',
                                       'import sys;print("%d.%d"%sys.version_info[:2])'], text=True).strip()
     stdlib = Path('/usr/lib') / f'python{version}'
