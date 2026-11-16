@@ -76,6 +76,38 @@ def historical_versions(source):
 
 
 def worker(spec):
+    """Claim one exact trial; parallel dispatch may await it, never replay it."""
+    import fcntl
+    root=Path(spec['root'])
+    fingerprint=hashlib.sha256(json.dumps(spec,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    completion=root/'worker_completion.json'
+    with (root.parent/(root.name+'.worker.lock')).open('a') as lock:
+        while True:
+            if time.time()>=spec['deadline']:raise RuntimeError('worker claim deadline reached')
+            try:
+                fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                break
+            except BlockingIOError:time.sleep(min(.2,max(0,spec['deadline']-time.time())))
+        if root.exists():
+            if not completion.exists():raise RuntimeError('previous worker lacks completion record; no automatic replay')
+            saved=json.loads(completion.read_text())
+            if saved['spec_sha256']!=fingerprint:raise ValueError('existing worker specification differs')
+            if saved['status'] not in ('complete','no_valid_submission'):
+                raise RuntimeError('previous worker failed; no automatic replay')
+            print(json.dumps(dict(event='worker_result_reused',label=spec['label'],status=saved['status'])),flush=True)
+            return
+        metadata=dict(spec_sha256=fingerprint,pid=os.getpid(),cpu_ids=sorted(os.sched_getaffinity(0)),started=time.time())
+        try:
+            _run_worker(spec)
+        except BaseException as error:
+            if root.exists():
+                _write_json(completion,dict(metadata,status='failed',ended=time.time(),error_type=type(error).__name__))
+            raise
+        state=json.loads((root/'experiment/state.json').read_text())
+        _write_json(completion,dict(metadata,status=state['status'],ended=time.time()))
+
+
+def _run_worker(spec):
     from boardbench.families import pilot_gt,pilot_gateway
     from boardbench.families.evaluate import archive_source
     from boardbench.families.pilot_supervisor import runtime_inventory
@@ -401,7 +433,7 @@ def main():
     parser.add_argument('--root',type=Path);parser.add_argument('--source-experiment',type=Path)
     parser.add_argument('--pool',type=Path);parser.add_argument('--private-upstream',type=Path);parser.add_argument('--rules',type=Path)
     parser.add_argument('--model-id',choices=('gpt-5.6-sol','gpt-6-astra'),default='gpt-5.6-sol')
-    parser.add_argument('--developer-slots',type=int,choices=(1,2),default=2)
+    parser.add_argument('--developer-slots',type=int,choices=(1,2,3),default=2)
     parser.add_argument('--paired-study',type=Path)
     parser.add_argument('--skip-history',action='store_true')
     parser.add_argument('--api-interval-seconds',type=float,default=0.)
@@ -414,7 +446,6 @@ def main():
     if not 0<=args.api_interval_seconds<=60:parser.error('API interval must be between 0 and 60 seconds')
     if not 1<=args.evaluation_pairs<=1024:parser.error('evaluation pairs must be between 1 and 1024')
     if args.continue_study and (args.paired_study or not args.skip_history):parser.error('continuation requires skip-history and replaces paired-study')
-    if args.wait_for_network and args.developer_slots!=1:parser.error('network recovery requires a single developer slot')
     if args.worker:worker(json.loads(args.worker.read_text()))
     else:
         if not all((args.root,args.pool,args.private_upstream,args.rules)) or (not args.skip_history and args.source_experiment is None):

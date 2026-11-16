@@ -170,3 +170,45 @@ def test_reused_evaluation_uses_fixed_seed_prefix_without_replaying(tmp_path,mon
     assert rows[0]['own_score_mean']==10 and rows[0]['win_points_mean']==0
     (source/'results.jsonl').write_text('changed')
     with pytest.raises(ValueError,match='changed'):study.report(tmp_path,plan)
+
+
+def test_parallel_dispatch_waits_for_one_trial_without_replay(tmp_path,monkeypatch):
+    import threading,time
+    from concurrent.futures import ThreadPoolExecutor
+    entered=threading.Event();release=threading.Event();executions=[]
+    root=tmp_path/'dev-b200-r0'
+    spec=dict(root=str(root),label='b200-r0',deadline=time.time()+10,budget={'calls':200})
+    def execute(received):
+        executions.append(received)
+        (root/'experiment').mkdir(parents=True)
+        entered.set();assert release.wait(5)
+        (root/'experiment/state.json').write_text('{"status":"complete"}')
+    monkeypatch.setattr(study,'_run_worker',execute)
+    with ThreadPoolExecutor(2) as pool:
+        first=pool.submit(study.worker,spec)
+        assert entered.wait(5)
+        second=pool.submit(study.worker,dict(spec))
+        try:
+            time.sleep(.05)
+            assert not second.done()
+        finally:release.set()
+        first.result(timeout=5);second.result(timeout=5)
+    assert len(executions)==1
+    assert json.loads((root/'worker_completion.json').read_text())['status']=='complete'
+    with pytest.raises(ValueError,match='specification differs'):
+        study.worker(dict(spec,budget={'calls':201}))
+
+
+def test_failed_or_unrecorded_worker_is_not_replayed(tmp_path,monkeypatch):
+    import time
+    root=tmp_path/'dev';spec=dict(root=str(root),label='trial',deadline=time.time()+10)
+    calls=[]
+    def execute(_):
+        calls.append(1);root.mkdir();raise ValueError('injected failure')
+    monkeypatch.setattr(study,'_run_worker',execute)
+    with pytest.raises(ValueError,match='injected'):study.worker(spec)
+    with pytest.raises(RuntimeError,match='previous worker failed'):study.worker(spec)
+    assert calls==[1]
+    (root/'worker_completion.json').unlink()
+    with pytest.raises(RuntimeError,match='lacks completion record'):study.worker(spec)
+    assert calls==[1]

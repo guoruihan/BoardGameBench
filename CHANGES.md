@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-16 — live parallel development dispatch
+
+- Guard worker execution with a process lock and full specification fingerprint; overlapping dispatch waits for the same completed trial instead of repeating it, while failed or interrupted workers remain non-retriable.
+- Support three developer slots with the existing host-half CPU check and shared API pacing; permit advance dispatch of an unstarted trial without restarting active development or editing environment source.
+- Add an external shared admission guard for live gateways: transport failures hold all new requests, one cooldown controller checks DNS without model probes, and in-flight settlement/local work continue under unchanged deadlines.
+
 ## 2026-11-16 — sparse exploration continuation and slow network recovery
 
 - Parameterize independent development repeats and calibration seed pairs; continue unstarted trials under the stopped parent study's original deadline and reuse immutable evaluation prefixes without replay.

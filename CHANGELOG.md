@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-16 — parallel exploration scheduling amendment
+
+- At user request, overlap the remaining 60- and 120-minute-budget developments; preserve the already completed 30-minute development and its two-game calibration.
+- Keep one development per budget, fixed paired seed, per-task quotas and the original absolute deadline. Record changed concurrency separately from the immutable initial plan; shared API pacing still applies.
+- Apply the user's shared-outage policy across existing and new workers; all groups wait behind one transport lock after observed upstream failures rather than independently issuing further model traffic.
+
 ## 2026-11-16 — one-development exploratory continuation
 
 - Astra's first 15-minute-budget program completed 32 natural games at 91.15625 versus 76.28125, winning 30/32 with zero online model calls or fallback actions; the study stopped on the third developer's DNS preflight failure.
