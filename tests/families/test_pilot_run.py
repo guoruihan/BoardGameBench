@@ -770,3 +770,27 @@ def test_gateway_preflight_is_inflight_even_before_reservation(tmp_path, monkeyp
     assert ledger['gateway_settlement_wall_seconds'] == pytest.approx(.1)
     assert ledger['active_wall_seconds'] == pytest.approx(10.1)
     assert len(calls) == 3
+
+
+def test_managed_submission_does_not_hide_controller_failure(tmp_path):
+    from types import SimpleNamespace
+    adapter,context,record,gateway,executions=development_quota_harness(tmp_path,register=False)
+    record['jobs']=SimpleNamespace(jobs={'job-1':{'status':'exited'}})
+    execute=adapter._execute
+    def fail_without_quota(*args,**kwargs):
+        result=execute(*args,**kwargs)
+        gateway['remaining']['calls']=1;gateway['events']=[]
+        return result
+    adapter._execute=fail_without_quota
+    with pytest.raises(RuntimeError,match='preserved managed submissions'):
+        adapter.run_development(context,None)
+    assert len(executions)==1
+    assert adapter.gt.stopped[-1][1]=='infrastructure_failure'
+
+
+def test_managed_submission_after_quota_still_finishes(tmp_path):
+    from types import SimpleNamespace
+    adapter,context,record,gateway,executions=development_quota_harness(tmp_path,register=False)
+    record['jobs']=SimpleNamespace(jobs={'job-1':{'status':'exited'}})
+    assert adapter.run_development(context,None).stop_reason=='model_limit_reached'
+    assert len(executions)==1

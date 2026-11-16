@@ -1014,12 +1014,14 @@ stream_max_retries = 0
             refused = any(event.get('kind') == 'rejected' and event.get('limit') in model_limits
                           for event in gateway.get('events', [])[before_events:])
             blocked = exhausted(gateway) or refused
+            # A surviving managed job may publish, but must not hide a failed
+            # native controller. Quota exhaustion is the intentional exception.
+            if not blocked and result.reason == 'execution_error':
+                self.gt.stop(rid, reason='infrastructure_failure')
+                raise RuntimeError('native development execution failed; preserved managed submissions are not a completed development')
             if record.get('jobs') is not None and record['jobs'].jobs:
                 return finish('model_limit_reached' if blocked else 'managed_jobs_completed')
             if not blocked:
-                if result.reason == 'execution_error':
-                    self.gt.stop(rid, reason='infrastructure_failure')
-                    raise RuntimeError('native development execution failed; inspect controller and gateway logs')
                 return finish(None if result.reason == 'exited' else result.reason)
         record['development_model_blocked'] = True
         program = record.get('registered_program')

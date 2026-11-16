@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-16 — Astra resource-curve repeat
+
+- Retain the incomplete Sol study and its infrastructure-affected trials; two trials with valid managed submissions were incorrectly marked complete despite native-controller DNS failures.
+- Repeat twelve fresh developments with GPT-6-Astra medium at the same four budgets, paired development/evaluation seeds, frozen opponent and 32-game L20 calibration per valid final submission; do not rerun historical strategies.
+- Use one developer slot and a shared three-second minimum request-start interval. Model, time and transport scheduling differ from the Sol study, so this is not an isolated test of model-dependent network reliability.
+
 ## 2026-11-16 — resource scaling calibration design
 
 - Preregister four joint development resource bundles (15/30/60/120 minutes), three independent GPT-5.6-sol medium developments per bundle, and 16 fresh paired evaluation seeds against the frozen RL opponent.

@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-16 — paired Astra study with paced requests
+
+- Parameterize the study model and developer slots; reuse hash-verified private seed keys and unchanged resource bundles without replaying historical evaluations.
+- Share a trusted cross-process request-start interval within a study, charging waits to existing deadlines; stop new dispatch after infrastructure failures without retrying model generations or whole trials.
+- Preserve managed submissions after native-controller errors while correctly classifying the development as an infrastructure failure; keep intentional quota-exhaustion handoff unchanged.
+
 ## 2026-11-16 — preregistered development resource study
 
 - Parameterize development budgets, paired evaluation size and control inclusion while preserving pilot defaults; enforce GT game limits in immutable trusted run fields.

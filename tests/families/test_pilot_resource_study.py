@@ -78,3 +78,27 @@ def test_history_deduplicates_only_manifest_format_without_using_scores(tmp_path
 @pytest.mark.parametrize('value',[0,-1,True])
 def test_invalid_pair_count(value):
     with pytest.raises(ValueError):config(calibration_pairs=value)
+
+
+def test_paired_study_reuses_committed_keys_not_results(tmp_path):
+    import hashlib
+    keys={k:'ab'*32 for k in ['dev-r0','dev-r1','dev-r2','evaluation']}
+    private=tmp_path/'private';private.mkdir()
+    (private/'seed_keys.json').write_text(json.dumps(keys))
+    from dataclasses import asdict
+    plan={'seed_commitments':{k:hashlib.sha256(v.encode()).hexdigest() for k,v in keys.items()},
+          'developments':[{'level':level,'budget':asdict(budget)} for level,budget in study.bundles().items() for _ in range(3)]}
+    (tmp_path/'preregistered_plan.json').write_text(json.dumps(plan))
+    assert study.paired_seed_keys(tmp_path)==keys
+    keys['evaluation']='cd'*32;(private/'seed_keys.json').write_text(json.dumps(keys))
+    with pytest.raises(ValueError,match='commitments'):study.paired_seed_keys(tmp_path)
+
+
+def test_circuit_breaker_uses_infrastructure_status_even_with_zero_exit(tmp_path):
+    (tmp_path/'experiment').mkdir()
+    p=tmp_path/'experiment/state.json'
+    p.write_text('{"status":"infrastructure_failure"}')
+    assert study.infrastructure_failed(tmp_path,0)
+    p.write_text('{"status":"no_valid_submission"}')
+    assert not study.infrastructure_failed(tmp_path,0)
+    assert study.infrastructure_failed(tmp_path,1)

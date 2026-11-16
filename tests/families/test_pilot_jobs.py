@@ -52,6 +52,9 @@ def harness(tmp_path):
     from boardbench.families import pilot_client
     prepare_public_material(sdk,Path(pilot_client.__file__),[])
     store=Checkpoints(tmp_path/'checkpoints');blank_submission(work/'submission');store.checkpoint(work/'submission')
+    # Runtime discovery invokes host tools and can exceed this short test's
+    # execution window on a busy filesystem; finish setup before starting it.
+    runtime=minimal_runtime()
     budget=Budget(1,1,1000,1000,1000,10,2,10,1)
     ctx=PhaseContext('dev',work,tmp_path/'home',tmp_path/'ledger.json',budget,time.time()+10,'',store)
     manager=ManagedJobs(tmp_path/'jobs')
@@ -59,7 +62,7 @@ def harness(tmp_path):
     record={'jobs':manager,'finished':False,'publish_admissible':lambda *_:time.time()<ctx.deadline_unix}
     server,socket,token=adapter._control_server(ctx,record)
     spec=SandboxSpec(['/usr/bin/python3','/work/controller.py'],work,sdk,ctx.ledger_path,physical_cpu_ids(2),
-        Limits(10,10,256*1024**2,.02),runtime_mounts=minimal_runtime(),sockets={'control.sock':socket},
+        Limits(10,10,256*1024**2,.02),runtime_mounts=runtime,sockets={'control.sock':socket},
         env={'PYTHONPATH':'/bench','PILOT_CONTROL_SOCKET':'/run/bench/control.sock','PILOT_CONTROL_TOKEN':token},
         managed_jobs=True,on_started=lambda pid:setattr(manager,'sandbox_pid',pid))
     yield ctx,manager,spec

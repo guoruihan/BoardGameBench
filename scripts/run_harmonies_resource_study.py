@@ -82,8 +82,11 @@ def worker(spec):
     identity=pilot_gt.initialize(root/'gt',spec['pool'],seed_key=spec['seed_key'])
     gt=pilot_gt.PilotService(root/'gt')
     upstream=json.loads(Path(spec['private_upstream']).read_text())
-    if upstream['model'].split('/')[-1]!='gpt-5.6-sol' or upstream.get('reasoning_effort')!='medium':
-        raise ValueError('study pins GPT-5.6-sol medium')
+    model=spec.get('model_id','gpt-5.6-sol')
+    if model not in ('gpt-5.6-sol','gpt-6-astra') or upstream['model'].split('/')[-1]!=model or upstream.get('reasoning_effort')!='medium':
+        raise ValueError('private route must match the declared study model and medium effort')
+    if spec.get('api_interval_seconds',0):
+        upstream.update(transport_interval_seconds=spec['api_interval_seconds'],transport_clock_path=spec['api_clock'])
     gateway=pilot_gateway.Gateway(root/'gateway',upstream)
     servers=[]
     try:
@@ -97,11 +100,11 @@ def worker(spec):
             account,status=gateway_callbacks(gateway)
             adapter=NativePilotAdapter(gt_service=gt,gt_socket=gt_socket,gateway_socket=model_socket,
                 sdk_dir=sdk,gateway_account=account,gateway_status=status,gateway_close=gateway.close_model,
-                model_id='gpt-5.6-sol')
+                model_id=model)
             _write_json(root/'runtime_inventory.json',runtime_inventory(adapter.runtime))
             config=PilotConfig(opponent_id=identity['policy_id'],opponent_sha256=identity['weights_sha256'],
                 environment_revision=identity['environment_source_sha256'],codex_version='0.167.0',
-                deadline_unix=spec['deadline'],model_id='gpt-5.6-sol',protocol_version='resource_curve_v1_20261116',
+                deadline_unix=spec['deadline'],model_id=model,protocol_version=spec.get('protocol','resource_curve_v1_20261116'),
                 calibration_pairs=16,include_controls=False,deployment_profiles=('L20',),
                 calibration_seeds=tuple(pilot_gt.private_seed(spec['seed_key'],'calibration',i) for i in range(16)),
                 development_only=spec['kind']=='development',
@@ -151,39 +154,63 @@ def report(root,plan):
     return rows
 
 
+def paired_seed_keys(root):
+    root=Path(root)
+    plan=json.loads((root/'preregistered_plan.json').read_text())
+    keys=json.loads((root/'private/seed_keys.json').read_text())
+    commitments={key:hashlib.sha256(value.encode()).hexdigest() for key,value in keys.items()}
+    if commitments!=plan['seed_commitments'] or set(keys)!={'dev-r0','dev-r1','dev-r2','evaluation'}:
+        raise ValueError('paired seed commitments do not match')
+    expected=[asdict(bundles()[d['level']])==d['budget'] for d in plan['developments']]
+    if len(expected)!=12 or not all(expected):raise ValueError('paired development budgets differ')
+    return keys
+
+
+def infrastructure_failed(root,exit_code):
+    if exit_code!=0:return True
+    path=Path(root)/'experiment/state.json'
+    return path.exists() and json.loads(path.read_text()).get('status')=='infrastructure_failure'
+
+
 def study(args):
     from boardbench.families.pilot_supervisor import physical_cpu_ids
     from boardbench.families.evaluate import archive_source
     root=args.root.resolve();root.mkdir(parents=True,exist_ok=False,mode=0o700)
     private=root/'private';private.mkdir(mode=0o700)
-    versions=historical_versions(args.source_experiment.resolve())
+    versions=[] if args.skip_history else historical_versions(args.source_experiment.resolve())
     started=time.time();deadline=started+12*3600
-    cores=physical_cpu_ids(24)
-    # Own allocation is 24 physical cores, always below half this host.
-    try:physical_cpu_ids(48)
+    core_count=8*(args.developer_slots+1)
+    cores=physical_cpu_ids(core_count)
+    # Count physical cores; disjoint developer and evaluator allocations.
+    try:physical_cpu_ids(core_count*2)
     except ValueError:raise RuntimeError('study allocation would exceed half host')
     seed_keys={f'dev-r{r}':secrets.token_hex(32) for r in range(3)}
     seed_keys['evaluation']=secrets.token_hex(32)
+    if args.paired_study:seed_keys=paired_seed_keys(args.paired_study)
     _write_json(private/'seed_keys.json',seed_keys);(private/'seed_keys.json').chmod(0o600)
     devs=[dict(label=f'{level}-r{repeat}',level=level,repeat=repeat,budget=asdict(budget))
           for level,budget in bundles().items() for repeat in range(3)]
-    plan=dict(protocol='resource_curve_v1_20261116',model='gpt-5.6-sol',reasoning_effort='medium',
-        started=started,deadline=deadline,historical_source=str(args.source_experiment.resolve()),historical_versions=versions,
+    plan=dict(protocol='resource_curve_v2_20261116',model=args.model_id,reasoning_effort='medium',
+        paired_study=str(args.paired_study.resolve()) if args.paired_study else None,
+        api_interval_seconds=args.api_interval_seconds,stop_on_infrastructure_failure=args.stop_on_infrastructure_failure,
+        started=started,deadline=deadline,historical_source=str(args.source_experiment.resolve()) if args.source_experiment else None,historical_versions=versions,
         developments=devs,evaluation_pairs=16,deployment='L20_C120_G0',opponent='legacy',
-        allocation=dict(developer_slots=[list(cores[:8]),list(cores[8:16])],evaluation_slot=list(cores[16:24])),
+        allocation=dict(developer_slots=[list(cores[i*8:i*8+8]) for i in range(args.developer_slots)],evaluation_slot=list(cores[-8:])),
         seed_commitments={key:hashlib.sha256(value.encode()).hexdigest() for key,value in seed_keys.items()},
         selection='last successful submission; no hidden feedback or best-of-test selection',
         historical_x_axis='first publication order; exact historical resource samples unavailable')
     _write_json(root/'preregistered_plan.json',plan)
     _write_json(root/'source_identity.json',archive_source(root))
     evaluation_queue=queue.Queue();development_queue=queue.Queue();finished=threading.Event();lock=threading.RLock()
-    base=dict(pool=str(args.pool.resolve()),rules=str(args.rules.resolve()),private_upstream=str(args.private_upstream.resolve()),deadline=deadline)
+    paused=threading.Event()
+    base=dict(pool=str(args.pool.resolve()),rules=str(args.rules.resolve()),private_upstream=str(args.private_upstream.resolve()),deadline=deadline,
+              model_id=args.model_id,protocol=plan['protocol'],api_interval_seconds=args.api_interval_seconds,api_clock=str(private/'api_clock'))
     for v in versions:
         evaluation_queue.put(dict(kind='evaluation',label=v['label'],source_experiment=str(args.source_experiment.resolve()),sha256=v['sha256']))
     for d in devs:development_queue.put(d)
 
     def launch(spec,assigned):
-        if time.time()>=deadline:return False
+        if time.time()>=deadline or paused.is_set():return False
         name=('dev-' if spec['kind']=='development' else 'eval-')+spec['label']
         specification=dict(base,**spec,root=str(root/name))
         path=private/(name+'.json');_write_json(path,specification);path.chmod(0o600)
@@ -195,13 +222,17 @@ def study(args):
             except subprocess.TimeoutExpired:
                 timed_out=True;os.killpg(process.pid,signal.SIGKILL);code=process.wait()
         _write_json(root/(name+'.exit.json'),dict(exit_code=code,wall_deadline=timed_out,ended=time.time()))
+        if args.stop_on_infrastructure_failure and infrastructure_failed(root/name,code):
+            paused.set()
+            with lock:
+                _write_json(root/'paused.json',dict(task=name,reason='infrastructure_failure_no_new_dispatch',time=time.time()))
         with lock:
             report(root,plan)
             print(json.dumps(dict(event='task_end',task=name,exit_code=code)),flush=True)
-        return code==0
+        return code==0 and not infrastructure_failed(root/name,code)
 
     def developer(slot):
-        while time.time()<deadline:
+        while time.time()<deadline and not paused.is_set():
             try:d=development_queue.get_nowait()
             except queue.Empty:return
             spec=dict(kind='development',label=d['label'],budget=d['budget'],seed_key=seed_keys[f"dev-r{d['repeat']}"])
@@ -216,22 +247,22 @@ def study(args):
 
     def evaluator():
         while not finished.is_set() or not evaluation_queue.empty():
-            if time.time()>=deadline:return
+            if time.time()>=deadline or paused.is_set():return
             try:spec=evaluation_queue.get(timeout=1)
             except queue.Empty:continue
             spec['seed_key']=seed_keys['evaluation']
-            launch(spec,cores[16:24]);evaluation_queue.task_done()
+            launch(spec,cores[-8:]);evaluation_queue.task_done()
 
     print(json.dumps(dict(event='study_start',historical=len(versions),developments=len(devs),deadline=deadline)),flush=True)
-    with ThreadPoolExecutor(3) as executor:
+    with ThreadPoolExecutor(args.developer_slots+1) as executor:
         evaluation=executor.submit(evaluator)
-        developers=[executor.submit(developer,i) for i in range(2)]
+        developers=[executor.submit(developer,i) for i in range(args.developer_slots)]
         try:
             for future in developers:future.result()
         finally:finished.set()
         evaluation.result()
     rows=report(root,plan)
-    _write_json(root/'finished.json',dict(ended=time.time(),deadline_reached=time.time()>=deadline,
+    _write_json(root/'finished.json',dict(ended=time.time(),status='paused_infrastructure' if paused.is_set() else 'ended',deadline_reached=time.time()>=deadline,
                                        completed_evaluations=sum(row['status']=='complete' for row in rows)))
     try:
         import matplotlib
@@ -258,10 +289,17 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--worker',type=Path)
     parser.add_argument('--root',type=Path);parser.add_argument('--source-experiment',type=Path)
     parser.add_argument('--pool',type=Path);parser.add_argument('--private-upstream',type=Path);parser.add_argument('--rules',type=Path)
+    parser.add_argument('--model-id',choices=('gpt-5.6-sol','gpt-6-astra'),default='gpt-5.6-sol')
+    parser.add_argument('--developer-slots',type=int,choices=(1,2),default=2)
+    parser.add_argument('--paired-study',type=Path)
+    parser.add_argument('--skip-history',action='store_true')
+    parser.add_argument('--api-interval-seconds',type=float,default=0.)
+    parser.add_argument('--stop-on-infrastructure-failure',action='store_true')
     args=parser.parse_args()
+    if not 0<=args.api_interval_seconds<=60:parser.error('API interval must be between 0 and 60 seconds')
     if args.worker:worker(json.loads(args.worker.read_text()))
     else:
-        if not all((args.root,args.source_experiment,args.pool,args.private_upstream,args.rules)):
+        if not all((args.root,args.pool,args.private_upstream,args.rules)) or (not args.skip_history and args.source_experiment is None):
             parser.error('study requires root, source experiment, pool, private upstream and rules')
         study(args)
 

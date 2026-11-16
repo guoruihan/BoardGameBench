@@ -536,3 +536,28 @@ def test_count_deadline_expiring_during_backoff_prevents_second_attempt(gateway,
     with pytest.raises(gw.GatewayError,match='request_timeout'):
         gw.Gateway.count_upstream(gateway,dict(BODY,model='pinned'))
     assert len(calls)==1
+
+
+def test_shared_transport_spacing_across_gateway_instances(tmp_path,monkeypatch):
+    clock=[100.];sleeps=[]
+    monkeypatch.setattr(gw.time,'monotonic',lambda:clock[0])
+    def sleep(delay):sleeps.append(delay);clock[0]+=delay
+    monkeypatch.setattr(gw.time,'sleep',sleep)
+    config=dict(CONFIG,transport_interval_seconds=3.,transport_clock_path=str(tmp_path/'shared-clock'))
+    a=gw.Gateway(tmp_path/'a',config);b=gw.Gateway(tmp_path/'b',config)
+    try:
+        a._wait_transport_slot();b._wait_transport_slot();a._wait_transport_slot()
+        assert sleeps==[3.,3.]
+        assert float((tmp_path/'shared-clock').read_text())==106.
+    finally:a.close();b.close()
+
+
+def test_transport_spacing_cannot_extend_request_deadline(gateway,tmp_path,monkeypatch):
+    marker=tmp_path/'clock';marker.write_text('100')
+    gateway.config.update(transport_interval_seconds=3.,transport_clock_path=str(marker))
+    monkeypatch.setattr(gw.time,'monotonic',lambda:100.)
+    class Deadline:
+        def remaining(self):return 1.
+    gateway.diagnostic_context.deadline=Deadline()
+    with pytest.raises(gw.GatewayError,match='request_timeout'):gateway._wait_transport_slot()
+    assert marker.read_text()=='100'

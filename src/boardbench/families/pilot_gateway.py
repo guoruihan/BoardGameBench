@@ -387,6 +387,32 @@ class Gateway:
             self._save(db,row['account'],d)
             db.execute('UPDATE requests SET state=?,data=? WHERE id=?',(state,_json(record),request_id))
 
+    def _wait_transport_slot(self):
+        """Optional trusted shared start-rate limit; wait consumes request deadline."""
+        interval=float(self.config.get('transport_interval_seconds',0))
+        if interval<=0:return
+        import fcntl
+        path=Path(self.config['transport_clock_path'])
+        deadline=getattr(self.diagnostic_context,'deadline',None)
+        # Never truncate before owning the lock: separate gateway workers share it.
+        with path.open('a+') as stream:
+            while True:
+                remaining=deadline.remaining() if deadline else 120.
+                try:
+                    fcntl.flock(stream,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                    break
+                except BlockingIOError:time.sleep(min(.05,remaining))
+            try:
+                stream.seek(0);raw=stream.read().strip()
+                previous=float(raw) if raw else 0.
+                delay=max(0.,previous+interval-time.monotonic())
+                if deadline and delay>=deadline.remaining():
+                    raise GatewayError('request_timeout',504)
+                if delay:time.sleep(delay)
+                if deadline:deadline.remaining()
+                stream.seek(0);stream.truncate();stream.write(str(time.monotonic()));stream.flush()
+            finally:fcntl.flock(stream,fcntl.LOCK_UN)
+
     def _open_endpoint(self,body,operation):
         base=self.config['base_url'].rstrip('/')
         endpoint=base+'/responses' if base.endswith('/v1') else base+'/v1/responses'
@@ -400,6 +426,7 @@ class Gateway:
         if trace_id is None: trace_id=self._begin_diagnostic(body)
         self._diagnostic(trace_id,operation+'_payload.json',body)
         try:
+            self._wait_transport_slot()
             deadline=getattr(self.diagnostic_context,'deadline',None)
             timeout=deadline.remaining() if deadline else 120
             handlers=(_NoRedirect(),)+(_deadline_handlers(deadline) if deadline else ())
