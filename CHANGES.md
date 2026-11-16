@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-16 — frozen search challenge for pilot submissions
+
+- Allow the trusted pilot boundary to load frozen Harmonies terminal search alongside the existing RL opponent; record search identity, separate CPU/time, score components, and budget violations.
+- Support single-seat evaluation shards and an eight-process challenge runner, assigning two agent cores and one search core per match without changing agent deployment budgets or redeveloping submissions.
+- Preserve all completed resource-study artifacts and export a sanitized full interaction archive outside Git.
+
 ## 2026-11-16 — live parallel development dispatch
 
 - Guard worker execution with a process lock and full specification fingerprint; overlapping dispatch waits for the same completed trial instead of repeating it, while failed or interrupted workers remain non-retriable.

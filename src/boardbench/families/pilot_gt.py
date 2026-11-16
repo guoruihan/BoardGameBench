@@ -9,6 +9,8 @@ import hashlib
 import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import math
+import os
 from pathlib import Path
 import random
 import secrets
@@ -56,11 +58,19 @@ def initialize(root, pool, opponent='legacy', *, seed_key=None):
     manifest = verify_pool(pool)
     game = manifest['games']['harmonies']
     member = game['members'][opponent]
-    if game['config'] != CONFIG or member['spec']['kind'] != 'harmonies_rl':
-        raise ValueError('Pilot requires fixed Harmonies neural opponent')
+    spec = member['spec']
+    if game['config'] != CONFIG or spec['kind'] not in ('harmonies_rl', 'terminal_search'):
+        raise ValueError('Pilot requires a frozen Harmonies neural or terminal-search opponent')
+    search = spec['kind'] == 'terminal_search'
+    if search and (not math.isfinite(spec['seconds']) or spec['seconds'] <= 0
+                   or spec['rl_spec']['kind'] != 'harmonies_rl'):
+        raise ValueError('Invalid frozen Harmonies search configuration')
+    weights = spec['rl_spec']['sha256'] if search else spec['sha256']
     root = Path(root); root.mkdir(mode=0o700, parents=True, exist_ok=False)
     config = dict(pool=str(Path(pool).resolve()), pool_sha256=manifest['manifest_sha256'],
-                  opponent=opponent, policy_id=member['policy_id'], weights_sha256=member['spec']['sha256'],
+                  opponent=opponent, policy_id=member['policy_id'], weights_sha256=weights,
+                  opponent_kind=spec['kind'], opponent_sha256=member['policy_id'] if search else weights,
+                  opponent_budget_seconds=spec['seconds'] if search else None,
                   config_id=CONFIG, rules_version=game['rules_version'], seed_key=seed_key or secrets.token_hex(32),
                   environment_source_sha256=code_identity()['content_sha256'],
                   inference=dict(device='cpu',policy='frozen_pool_loader',threads=1))
@@ -92,8 +102,11 @@ class Rejected(Exception): pass
 
 
 class PilotService:
-    def __init__(self, root):
+    def __init__(self, root, *, opponent_cpu=None):
         self.root=Path(root); self.config=json.loads((self.root/'private.json').read_text())
+        if opponent_cpu is not None and opponent_cpu not in os.sched_getaffinity(0):
+            raise ValueError('Opponent CPU is outside worker affinity')
+        self.opponent_cpu=opponent_cpu
         self.lock=(self.root/'worker.lock').open('a')
         try: fcntl.flock(self.lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BaseException: self.lock.close(); raise
@@ -158,7 +171,14 @@ class PilotService:
             winners=outcome['winners']
             result.update(own_score=outcome['scores'][seat],opponent_score=outcome['scores'][1-seat],
                           win_points=.5 if len(winners)!=1 else float(seat in winners))
-        elif status in ('cpu_exhausted','wall_exhausted','agent_failure','memory_exhausted'):
+            if hasattr(self.live[rid]['env'], 'score_breakdown'):
+                result['score_breakdown']=self.live[rid]['env'].score_breakdown()
+        if rid in self.live and self.config.get('opponent_kind') == 'terminal_search':
+            ep=self.live[rid]; bot=ep['bot']
+            result['opponent_search']=dict(seconds=bot.spent, cpu_seconds=ep.get('opponent_cpu_seconds',0.),
+                budget_seconds=self.config['opponent_budget_seconds'], rounds=bot.total_rounds,
+                simulation_steps=bot.total_steps, fallbacks=bot.fallbacks)
+        if status in ('cpu_exhausted','wall_exhausted','agent_failure','memory_exhausted'):
             result['win_points']=0.
         d['status']=status; d['outcomes'].append(result); self.live.pop(rid,None)
         self._save(db,rid,d)
@@ -196,8 +216,21 @@ class PilotService:
             legal=env.legal_actions()
             if not legal: self._end(db,rid,d,'no_legal_action'); break
             if env.current_player!=ep['seat']:
-                start=time.monotonic(); action=ep['bot'].decide(env.observe(env.current_player),json.loads(json.dumps(legal)))
+                search=self.config.get('opponent_kind') == 'terminal_search'
+                affinity=os.sched_getaffinity(0)
+                if search and self.opponent_cpu is not None:os.sched_setaffinity(0,{self.opponent_cpu})
+                start=time.monotonic(); cpu_start=time.thread_time()
+                try:
+                    action=(ep['bot'].decide(env) if search else
+                            ep['bot'].decide(env.observe(env.current_player),json.loads(json.dumps(legal))))
+                finally:
+                    cpu_elapsed=time.thread_time()-cpu_start
+                    if search and self.opponent_cpu is not None:os.sched_setaffinity(0,affinity)
                 d['opponent_seconds']+=time.monotonic()-start; source='opponent'
+                d['opponent_cpu_seconds']=d.get('opponent_cpu_seconds',0.)+cpu_elapsed
+                ep['opponent_cpu_seconds']=ep.get('opponent_cpu_seconds',0.)+cpu_elapsed
+                if search and ep['bot'].spent > self.config['opponent_budget_seconds']:
+                    self._end(db,rid,d,'opponent_budget_exceeded'); break
             elif len(legal)==1: action=legal[0]; source='forced'
             elif d['errors']>=30: action=ep['rng'].choice(legal); source='default_random'
             else: break

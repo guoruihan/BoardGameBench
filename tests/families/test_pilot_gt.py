@@ -20,6 +20,53 @@ class FakeBot:
     def decide(self,obs,legal): return legal[0]
 
 
+def test_opponent_wait_timeout_is_separate_and_explicit_override_survives(monkeypatch):
+    monkeypatch.delenv('PILOT_GT_TIMEOUT',raising=False)
+    assert PilotClient(token='unused').timeout==120
+    monkeypatch.setenv('PILOT_GT_TIMEOUT','1020')
+    assert PilotClient(token='unused').timeout==1020
+    assert PilotClient(token='unused',timeout=3).timeout==3
+
+
+def test_frozen_search_identity_engine_dispatch_and_budget(tmp_path, monkeypatch):
+    spec={'kind':'terminal_search','seconds':900.,'rl_spec':{'kind':'harmonies_rl','sha256':'a'*64}}
+    manifest={'manifest_sha256':'pool','games':{'harmonies':{
+        'config':gt.CONFIG,'rules_version':'1','members':{'search_900':{'policy_id':'b'*64,'spec':spec}}}}}
+    monkeypatch.setattr(gt,'verify_pool',lambda _:manifest)
+    monkeypatch.setattr(gt,'game_class',lambda _:FakeEnv)
+    class Search:
+        def __init__(self):
+            self.spent=0.;self.total_rounds=0;self.total_steps=0;self.fallbacks=0
+        def decide(self,env):
+            assert isinstance(env,FakeEnv)
+            assert gt.os.sched_getaffinity(0)=={core}
+            self.spent+=1.;self.total_rounds+=1;self.total_steps+=12
+            return env.legal_actions()[0]
+    monkeypatch.setattr(gt,'load_opponent',lambda *args:Search())
+    root=tmp_path/'search';identity=gt.initialize(root,tmp_path/'pool','search_900')
+    assert identity['opponent_sha256']=='b'*64 and identity['weights_sha256']=='a'*64
+    affinity=gt.os.sched_getaffinity(0);core=min(affinity)
+    service=gt.PilotService(root,opponent_cpu=core)
+    try:
+        c=gt.create_run(root,phase='calibration')
+        call(service,c,'new_game')
+        for _ in range(6):call(service,c,'act',version=service.report(c['run_id'])['version'],action_index=0)
+        report=service.report(c['run_id']);outcome=report['outcomes'][-1]
+        assert outcome['natural'] and outcome['opponent_search']['seconds']==6.
+        assert report['opponent_cpu_seconds']>=0
+        assert gt.os.sched_getaffinity(0)==affinity
+        c2=gt.create_run(root,phase='calibration');call(service,c2,'new_game')
+        service.live[c2['run_id']]['bot'].spent=900.
+        call(service,c2,'act',version=0,action_index=0)
+        outcome=service.report(c2['run_id'])['outcomes'][-1]
+        assert outcome['status']=='opponent_budget_exceeded' and not outcome['natural']
+        assert 'own_score' not in outcome and 'win_points' not in outcome
+        c3=gt.create_run(root,phase='calibration');call(service,c3,'new_game')
+        outcome=service.stop(c3['run_id'],'cpu_exhausted')['outcomes'][-1]
+        assert outcome['win_points']==0 and not outcome['natural']
+    finally:service.close()
+
+
 @pytest.fixture
 def service(tmp_path,monkeypatch):
     manifest={'manifest_sha256':'pool','games':{'harmonies':{

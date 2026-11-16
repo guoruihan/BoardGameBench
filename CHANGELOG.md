@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-16 — completed Astra exploration and stronger-opponent challenge
+
+- All four Astra budget arms completed: fixed-pair agent means 90, 88.5, 91 and 92 against RL opponent means 81, 79.5, 77 and 79; all won both calibration games. These two-game samples do not establish a monotonic resource curve.
+- The largest arm finished 43 development games (42 wins, mean 96.326), and its agent-authored managed tasks published a final frozen strategy after model quota exhaustion. Development results remain separate from calibration.
+- Add the user-approved comparison of the four final submissions against frozen search_900 on the same calibration seed and both seats: eight games, one parallel wave, no redevelopment, no extra seeds, separate opponent resource accounting.
+
 ## 2026-11-16 — parallel exploration scheduling amendment
 
 - At user request, overlap the remaining 60- and 120-minute-budget developments; preserve the already completed 30-minute development and its two-game calibration.

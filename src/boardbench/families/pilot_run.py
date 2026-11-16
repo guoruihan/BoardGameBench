@@ -62,11 +62,16 @@ class PilotConfig:
     calibration_seeds: tuple[int, ...] = ()
     deployment_profiles: tuple[str, ...] = ("L10", "L20", "L40")
     calibration_pairs: int = 5
+    calibration_seats: tuple[int, ...] = (0, 1)
     include_controls: bool = True
     development_only: bool = False
     development_budget: Budget = DEVELOPMENT_BUDGET
 
     def __post_init__(self):
+        if (not isinstance(self.calibration_seats, tuple) or not self.calibration_seats
+                or any(type(seat) is not int or seat not in (0, 1) for seat in self.calibration_seats)
+                or len(set(self.calibration_seats)) != len(self.calibration_seats)):
+            raise ValueError('calibration_seats must be unique seats 0 and/or 1')
         if (not isinstance(self.deployment_profiles, tuple) or not self.deployment_profiles
                 or any(not isinstance(profile, str) or profile not in DEPLOYMENT_BUDGETS for profile in self.deployment_profiles)
                 or len(set(self.deployment_profiles)) != len(self.deployment_profiles)):
@@ -115,7 +120,7 @@ def default_queue(config: PilotConfig) -> list[MatchSpec]:
                       (config.calibration_seeds[i] if config.calibration_seeds else seed_for(config.seed_namespace, "calibration", i)), seat, arm == "control")
             for arm, profiles in (("developed", config.deployment_profiles), ("control", ("L20",)))
             if arm != "control" or config.include_controls
-            for profile in profiles for i in range(config.calibration_pairs) for seat in range(2)]
+            for profile in profiles for i in range(config.calibration_pairs) for seat in config.calibration_seats]
 
 
 def _write_json(path: Path, value: Any):
@@ -862,6 +867,8 @@ stream_max_retries = 0
                 sockets={'gt.sock': self.gt_socket, 'gateway.sock': self.gateway_socket, 'control.sock': control_path},
                 tcp_bridges={18080: 'gateway.sock'},
                 env={'PYTHONPATH': '/bench', 'PILOT_GT_SOCKET': '/run/bench/gt.sock',
+                     'PILOT_GT_TIMEOUT': str(context.budget.request_timeout_seconds +
+                         (getattr(self.gt,'config',{}).get('opponent_budget_seconds') or 0)),
                      'PILOT_GT_TOKEN': credentials['token'], 'PILOT_GT_GENERATION': str(credentials['generation']),
                      'PILOT_MODEL_TOKEN': record['gateway_token'], 'PILOT_CONTROL_SOCKET': '/run/bench/control.sock',
                      'PILOT_CONTROL_TOKEN': control_token},

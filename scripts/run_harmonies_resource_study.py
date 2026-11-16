@@ -113,8 +113,8 @@ def _run_worker(spec):
     from boardbench.families.pilot_supervisor import runtime_inventory
     root=Path(spec['root']);root.mkdir(parents=True,exist_ok=False,mode=0o700)
     _write_json(root/'source_identity.json',archive_source(root))
-    identity=pilot_gt.initialize(root/'gt',spec['pool'],seed_key=spec['seed_key'])
-    gt=pilot_gt.PilotService(root/'gt')
+    identity=pilot_gt.initialize(root/'gt',spec['pool'],opponent=spec.get('opponent','legacy'),seed_key=spec['seed_key'])
+    gt=pilot_gt.PilotService(root/'gt',opponent_cpu=spec.get('opponent_cpu'))
     upstream=json.loads(Path(spec['private_upstream']).read_text())
     model=spec.get('model_id','gpt-5.6-sol')
     if model not in ('gpt-5.6-sol','gpt-6-astra') or upstream['model'].split('/')[-1]!=model or upstream.get('reasoning_effort')!='medium':
@@ -136,13 +136,15 @@ def _run_worker(spec):
             account,status=gateway_callbacks(gateway)
             adapter=NativePilotAdapter(gt_service=gt,gt_socket=gt_socket,gateway_socket=model_socket,
                 sdk_dir=sdk,gateway_account=account,gateway_status=status,gateway_close=gateway.close_model,
-                model_id=model)
+                model_id=model,test_concurrency=spec.get('test_concurrency',4))
             _write_json(root/'runtime_inventory.json',runtime_inventory(adapter.runtime))
             pairs=spec.get('evaluation_pairs',16)
-            config=PilotConfig(opponent_id=identity['policy_id'],opponent_sha256=identity['weights_sha256'],
+            config=PilotConfig(opponent_id=identity['policy_id'],opponent_sha256=identity['opponent_sha256'],
                 environment_revision=identity['environment_source_sha256'],codex_version='0.167.0',
                 deadline_unix=spec['deadline'],model_id=model,protocol_version=spec.get('protocol','resource_curve_v1_20261116'),
                 calibration_pairs=pairs,include_controls=False,deployment_profiles=('L20',),
+                calibration_seats=tuple(spec.get('calibration_seats',(0,1))),
+                test_concurrency=spec.get('test_concurrency',4),
                 calibration_seeds=tuple(pilot_gt.private_seed(spec['seed_key'],'calibration',i) for i in range(pairs)),
                 development_only=spec['kind']=='development',
                 development_budget=Budget(**spec['budget']) if 'budget' in spec else bundles()['b100'])

@@ -22,11 +22,12 @@ class _UnixConnection(http.client.HTTPConnection):
 
 
 class PilotClient:
-    def __init__(self, url=None, token=None, generation=None, unix_socket=None, timeout=120):
+    def __init__(self, url=None, token=None, generation=None, unix_socket=None, timeout=None):
         self.url=url or os.environ.get('PILOT_GT_URL','http://localhost')
         self.token=token or os.environ['PILOT_GT_TOKEN']
         self.generation=int(generation if generation is not None else os.environ.get('PILOT_GT_GENERATION','1'))
-        self.unix_socket=unix_socket or os.environ.get('PILOT_GT_SOCKET'); self.timeout=timeout
+        self.unix_socket=unix_socket or os.environ.get('PILOT_GT_SOCKET')
+        self.timeout=float(os.environ.get('PILOT_GT_TIMEOUT','120')) if timeout is None else timeout
 
     def request(self,method,request_id=None,**kwargs):
         body=dict(method=method,**kwargs)

@@ -26,6 +26,15 @@ def test_queue_pairs_and_domains():
     assert len(set.union(*domains)) == 100
 
 
+def test_single_seat_shards_preserve_full_paired_schedule():
+    cfg = replace(config(), calibration_pairs=1, include_controls=False, deployment_profiles=('L20',))
+    shards = [default_queue(replace(cfg, calibration_seats=(seat,))) for seat in (0, 1)]
+    assert [m for shard in shards for m in shard] == default_queue(cfg)
+    for seats in ((), (0, 0), (2,), (True,), [0]):
+        with pytest.raises(ValueError, match='calibration_seats'):
+            replace(cfg, calibration_seats=seats)
+
+
 def test_checkpoints_are_explicit_format_only_and_freeze_last(tmp_path):
     submission = tmp_path / 'submission'
     blank_submission(submission)
