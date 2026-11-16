@@ -8,9 +8,12 @@ from pathlib import Path
 import statistics
 
 
-def summarize(root):
+def summarize(root, *, pair_limit=None):
     path = root/'results.jsonl'
     records = [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+    if pair_limit is not None:
+        if type(pair_limit) is not int or pair_limit<1:raise ValueError('pair limit must be positive')
+        records=[r for r in records if int(r['match_id'].split('-s')[1].split('-')[0])<pair_limit]
     rows = []
     for record in records:
         result=record['result']; gt=result.get('gt',{}); outcomes=gt.get('outcomes',[])
@@ -57,7 +60,7 @@ def summarize(root):
                     pairs.append(a['own_score']-b['own_score'])
             if len(pairs)==2: diffs.append(statistics.mean(pairs))
         paired['developed-L20_minus_'+other]={'complete_seed_pairs':len(diffs),'score_difference':statistics.mean(diffs) if diffs else None}
-    return rows,{'groups':aggregate,'paired':paired,'interpretation':'calibration only; five paired seeds, one development; failures retained; input preflight approximate'}
+    return rows,{'groups':aggregate,'paired':paired,'interpretation':'calibration only; seed/seat matched when present; failures retained; input preflight approximate'}
 
 
 def main():

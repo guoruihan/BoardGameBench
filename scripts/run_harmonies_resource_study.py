@@ -11,11 +11,13 @@ import queue
 import re
 import secrets
 import signal
+import socket
 import subprocess
 import sys
 import tempfile
 import threading
 import time
+from urllib.parse import urlsplit
 
 from boardbench.families.pilot_run import (
     Budget, Checkpoints, NativePilotAdapter, PilotConfig, PilotRunner, gateway_callbacks,
@@ -87,6 +89,8 @@ def worker(spec):
         raise ValueError('private route must match the declared study model and medium effort')
     if spec.get('api_interval_seconds',0):
         upstream.update(transport_interval_seconds=spec['api_interval_seconds'],transport_clock_path=spec['api_clock'])
+    if spec.get('wait_for_network'):
+        upstream['count_retry_delays_seconds']=[30,60]
     gateway=pilot_gateway.Gateway(root/'gateway',upstream)
     servers=[]
     try:
@@ -102,11 +106,12 @@ def worker(spec):
                 sdk_dir=sdk,gateway_account=account,gateway_status=status,gateway_close=gateway.close_model,
                 model_id=model)
             _write_json(root/'runtime_inventory.json',runtime_inventory(adapter.runtime))
+            pairs=spec.get('evaluation_pairs',16)
             config=PilotConfig(opponent_id=identity['policy_id'],opponent_sha256=identity['weights_sha256'],
                 environment_revision=identity['environment_source_sha256'],codex_version='0.167.0',
                 deadline_unix=spec['deadline'],model_id=model,protocol_version=spec.get('protocol','resource_curve_v1_20261116'),
-                calibration_pairs=16,include_controls=False,deployment_profiles=('L20',),
-                calibration_seeds=tuple(pilot_gt.private_seed(spec['seed_key'],'calibration',i) for i in range(16)),
+                calibration_pairs=pairs,include_controls=False,deployment_profiles=('L20',),
+                calibration_seeds=tuple(pilot_gt.private_seed(spec['seed_key'],'calibration',i) for i in range(pairs)),
                 development_only=spec['kind']=='development',
                 development_budget=Budget(**spec['budget']) if 'budget' in spec else bundles()['b100'])
             runner=PilotRunner(root/'experiment',config,adapter)
@@ -123,7 +128,17 @@ def worker(spec):
 
 def report(root,plan):
     rows=[]
-    for label in [v['label'] for v in plan['historical_versions']]+[d['label'] for d in plan['developments']]:
+    from report_harmonies_pilot import summarize
+    for retained in plan.get('retained_evaluations',[]):
+        source=Path(retained['source_experiment'])
+        if hashlib.sha256((source/'results.jsonl').read_bytes()).hexdigest()!=retained['results_sha256']:
+            raise ValueError('retained evaluation changed')
+        _,summary=summarize(source,pair_limit=plan['evaluation_pairs'])
+        rows.append(dict(label=retained['label'],status='complete',reused=True,
+                         source_experiment=str(source),**summary['groups']['developed-L20']))
+    for label in ([v['label'] for v in plan['historical_versions']]
+                  +[v['label'] for v in plan.get('additional_evaluations',[])]
+                  +[d['label'] for d in plan['developments']]):
         evaluation=root/('eval-'+label)/'experiment'
         record=dict(label=label,status='pending',recorded=0)
         path=evaluation/'state.json'
@@ -150,7 +165,10 @@ def report(root,plan):
                 terminal=json.loads(marker.read_text())
                 if terminal['exit_code']!=0:record['status']=prefix+'worker_failure'
         rows.append(record)
-    _write_json(root/'study_summary.json',dict(rows=rows,interpretation='Calibration only; paired seed/seat, three independent developments per budget; no hidden-test selection. Scores use natural games; failures and missing submissions remain separate.'))
+    _write_json(root/'study_summary.json',dict(rows=rows,interpretation=(
+        f"Exploratory calibration: {plan.get('development_repeats',3)} development(s) per budget, "
+        f"{plan['evaluation_pairs']} paired seed(s); no hidden-test selection. "
+        'Scores use natural games; failures, missing submissions and reused evaluations remain separate.')))
     return rows
 
 
@@ -172,6 +190,75 @@ def infrastructure_failed(root,exit_code):
     return path.exists() and json.loads(path.read_text()).get('status')=='infrastructure_failure'
 
 
+def known_preflight_network_failure(root):
+    """Only recognize an explicit native error, not an earlier recovered diagnostic."""
+    for path in (Path(root)/'experiment/phases').glob('*/ledger.*.stdout'):
+        for line in path.read_text().splitlines():
+            try:event=json.loads(line)
+            except ValueError:continue
+            if event.get('type') not in ('error','turn.failed'):continue
+            message=event.get('message','') or (event.get('error') or {}).get('message','')
+            if any(code in message for code in ('upstream_dns_failure','input_count_transport_failure')):
+                return True
+    return False
+
+
+def wait_for_network(private_upstream,deadline,event_path,*,not_before=0,clock=time.time,sleep=time.sleep,resolve=socket.getaddrinfo):
+    """Low-frequency DNS only; never probe model generations or reset a budget."""
+    endpoint=urlsplit(json.loads(Path(private_upstream).read_text())['base_url'])
+    def event(kind,**data):
+        with Path(event_path).open('a') as stream:
+            stream.write(json.dumps(dict(event=kind,time=clock(),**data))+'\n')
+    def wait(seconds):
+        end=min(deadline,clock()+seconds)
+        event('network_wait',seconds=max(0,end-clock()))
+        while clock()<end:sleep(min(1.,end-clock()))
+    if not_before>clock():wait(not_before-clock())
+    attempt=0
+    while clock()<deadline:
+        attempt+=1
+        try:
+            addresses=resolve(endpoint.hostname,endpoint.port or (443 if endpoint.scheme=='https' else 80),type=socket.SOCK_STREAM)
+            if not addresses:raise OSError('empty resolver response')
+        except OSError as error:
+            event('dns_unavailable',attempt=attempt,error_type=type(error).__name__,errno=error.errno)
+            wait((60,120,300)[min(attempt-1,2)])
+            continue
+        event('dns_ready',attempt=attempt)
+        return clock()<deadline
+    event('network_wait_deadline')
+    return False
+
+
+def continuation_selection(parent,developments,pairs,model):
+    """Keep completed evidence; only dispatch trials which never started."""
+    parent=Path(parent)
+    plan=json.loads((parent/'preregistered_plan.json').read_text())
+    if not (parent/'finished.json').exists():raise ValueError('parent study is not stopped')
+    if plan['model']!=model or pairs>plan['evaluation_pairs']:raise ValueError('continuation model/pairs mismatch')
+    remaining=[];retained=[];evaluations=[];omitted=[]
+    for spec in developments:
+        label=spec['label'];dev=parent/('dev-'+label);state=dev/'experiment/state.json'
+        if not dev.exists() and not (parent/'private'/('dev-'+label+'.json')).exists():
+            remaining.append(spec);continue
+        if not state.exists():
+            omitted.append(dict(label=label,reason='previously_started_without_state'));continue
+        previous=json.loads(state.read_text())
+        if previous['status']!='complete' or not previous.get('frozen_submission'):
+            omitted.append(dict(label=label,reason='previous_'+previous['status']));continue
+        evaluation=parent/('eval-'+label)/'experiment'
+        evaluation_state=evaluation/'state.json'
+        if evaluation_state.exists() and json.loads(evaluation_state.read_text())['status']=='complete':
+            retained.append(dict(label=label,source_experiment=str(evaluation.resolve()),
+                                 results_sha256=hashlib.sha256((evaluation/'results.jsonl').read_bytes()).hexdigest()))
+        elif not evaluation.exists():
+            sha=Path(previous['frozen_submission']).name
+            evaluations.append(dict(kind='evaluation',label=label,source_experiment=str((dev/'experiment').resolve()),sha256=sha))
+        else:
+            omitted.append(dict(label=label,reason='previous_evaluation_started'))
+    return plan,remaining,retained,evaluations,omitted
+
+
 def study(args):
     from boardbench.families.pilot_supervisor import physical_cpu_ids
     from boardbench.families.evaluate import archive_source
@@ -186,15 +273,26 @@ def study(args):
     except ValueError:raise RuntimeError('study allocation would exceed half host')
     seed_keys={f'dev-r{r}':secrets.token_hex(32) for r in range(3)}
     seed_keys['evaluation']=secrets.token_hex(32)
-    if args.paired_study:seed_keys=paired_seed_keys(args.paired_study)
+    paired_source=args.continue_study or args.paired_study
+    if paired_source:seed_keys=paired_seed_keys(paired_source)
     _write_json(private/'seed_keys.json',seed_keys);(private/'seed_keys.json').chmod(0o600)
     devs=[dict(label=f'{level}-r{repeat}',level=level,repeat=repeat,budget=asdict(budget))
-          for level,budget in bundles().items() for repeat in range(3)]
-    plan=dict(protocol='resource_curve_v2_20261116',model=args.model_id,reasoning_effort='medium',
-        paired_study=str(args.paired_study.resolve()) if args.paired_study else None,
+          for level,budget in bundles().items() for repeat in range(args.development_repeats)]
+    retained=[];additional_evaluations=[];omitted=[]
+    if args.continue_study:
+        parent,devs,retained,additional_evaluations,omitted=continuation_selection(
+            args.continue_study,devs,args.evaluation_pairs,args.model_id)
+        deadline=parent['deadline']
+        if deadline<=time.time():raise ValueError('original study deadline has elapsed')
+    plan=dict(protocol='resource_curve_v3_20261116',model=args.model_id,reasoning_effort='medium',
+        paired_study=str(paired_source.resolve()) if paired_source else None,
+        continuation_of=str(args.continue_study.resolve()) if args.continue_study else None,
+        development_repeats=args.development_repeats,retained_evaluations=retained,additional_evaluations=additional_evaluations,omitted_previous_trials=omitted,
+        wait_for_network=args.wait_for_network,count_retry_delays_seconds=[30,60] if args.wait_for_network else [.5,1.],
+        network_policy='DNS wait 60/120/300 seconds; after exhausted preflight cool down 180 seconds; keep failed trial, continue only unstarted tasks' if args.wait_for_network else 'fail fast',
         api_interval_seconds=args.api_interval_seconds,stop_on_infrastructure_failure=args.stop_on_infrastructure_failure,
         started=started,deadline=deadline,historical_source=str(args.source_experiment.resolve()) if args.source_experiment else None,historical_versions=versions,
-        developments=devs,evaluation_pairs=16,deployment='L20_C120_G0',opponent='legacy',
+        developments=devs,evaluation_pairs=args.evaluation_pairs,deployment='L20_C120_G0',opponent='legacy',
         allocation=dict(developer_slots=[list(cores[i*8:i*8+8]) for i in range(args.developer_slots)],evaluation_slot=list(cores[-8:])),
         seed_commitments={key:hashlib.sha256(value.encode()).hexdigest() for key,value in seed_keys.items()},
         selection='last successful submission; no hidden feedback or best-of-test selection',
@@ -202,9 +300,11 @@ def study(args):
     _write_json(root/'preregistered_plan.json',plan)
     _write_json(root/'source_identity.json',archive_source(root))
     evaluation_queue=queue.Queue();development_queue=queue.Queue();finished=threading.Event();lock=threading.RLock()
-    paused=threading.Event()
+    paused=threading.Event();network_not_before=[0.]
     base=dict(pool=str(args.pool.resolve()),rules=str(args.rules.resolve()),private_upstream=str(args.private_upstream.resolve()),deadline=deadline,
-              model_id=args.model_id,protocol=plan['protocol'],api_interval_seconds=args.api_interval_seconds,api_clock=str(private/'api_clock'))
+              model_id=args.model_id,protocol=plan['protocol'],api_interval_seconds=args.api_interval_seconds,api_clock=str(private/'api_clock'),
+              evaluation_pairs=args.evaluation_pairs,wait_for_network=args.wait_for_network)
+    for evaluation in additional_evaluations:evaluation_queue.put(evaluation)
     for v in versions:
         evaluation_queue.put(dict(kind='evaluation',label=v['label'],source_experiment=str(args.source_experiment.resolve()),sha256=v['sha256']))
     for d in devs:development_queue.put(d)
@@ -212,6 +312,10 @@ def study(args):
     def launch(spec,assigned):
         if time.time()>=deadline or paused.is_set():return False
         name=('dev-' if spec['kind']=='development' else 'eval-')+spec['label']
+        if args.wait_for_network and spec['kind']=='development':
+            if not wait_for_network(args.private_upstream,deadline,root/'network_events.jsonl',not_before=network_not_before[0]):
+                return False
+            if paused.is_set():return False
         specification=dict(base,**spec,root=str(root/name))
         path=private/(name+'.json');_write_json(path,specification);path.chmod(0o600)
         with (root/(name+'.log')).open('w') as log:
@@ -222,14 +326,20 @@ def study(args):
             except subprocess.TimeoutExpired:
                 timed_out=True;os.killpg(process.pid,signal.SIGKILL);code=process.wait()
         _write_json(root/(name+'.exit.json'),dict(exit_code=code,wall_deadline=timed_out,ended=time.time()))
-        if args.stop_on_infrastructure_failure and infrastructure_failed(root/name,code):
-            paused.set()
+        failed=infrastructure_failed(root/name,code)
+        if failed:
             with lock:
-                _write_json(root/'paused.json',dict(task=name,reason='infrastructure_failure_no_new_dispatch',time=time.time()))
+                if args.wait_for_network and known_preflight_network_failure(root/name):
+                    network_not_before[0]=time.time()+180
+                    with (root/'network_events.jsonl').open('a') as stream:
+                        stream.write(json.dumps(dict(event='failed_trial_retained',task=name,time=time.time(),not_before=network_not_before[0]))+'\n')
+                elif args.stop_on_infrastructure_failure:
+                    paused.set()
+                    _write_json(root/'paused.json',dict(task=name,reason='infrastructure_failure_no_new_dispatch',time=time.time()))
         with lock:
             report(root,plan)
             print(json.dumps(dict(event='task_end',task=name,exit_code=code)),flush=True)
-        return code==0 and not infrastructure_failed(root/name,code)
+        return code==0 and not failed
 
     def developer(slot):
         while time.time()<deadline and not paused.is_set():
@@ -263,7 +373,8 @@ def study(args):
         evaluation.result()
     rows=report(root,plan)
     _write_json(root/'finished.json',dict(ended=time.time(),status='paused_infrastructure' if paused.is_set() else 'ended',deadline_reached=time.time()>=deadline,
-                                       completed_evaluations=sum(row['status']=='complete' for row in rows)))
+                                       completed_evaluations=sum(row['status']=='complete' for row in rows),
+                                       reused_evaluations=sum(bool(row.get('reused')) for row in rows)))
     try:
         import matplotlib
         matplotlib.use('Agg')
@@ -295,8 +406,15 @@ def main():
     parser.add_argument('--skip-history',action='store_true')
     parser.add_argument('--api-interval-seconds',type=float,default=0.)
     parser.add_argument('--stop-on-infrastructure-failure',action='store_true')
+    parser.add_argument('--development-repeats',type=int,choices=(1,2,3),default=3)
+    parser.add_argument('--evaluation-pairs',type=int,default=16)
+    parser.add_argument('--continue-study',type=Path)
+    parser.add_argument('--wait-for-network',action='store_true')
     args=parser.parse_args()
     if not 0<=args.api_interval_seconds<=60:parser.error('API interval must be between 0 and 60 seconds')
+    if not 1<=args.evaluation_pairs<=1024:parser.error('evaluation pairs must be between 1 and 1024')
+    if args.continue_study and (args.paired_study or not args.skip_history):parser.error('continuation requires skip-history and replaces paired-study')
+    if args.wait_for_network and args.developer_slots!=1:parser.error('network recovery requires a single developer slot')
     if args.worker:worker(json.loads(args.worker.read_text()))
     else:
         if not all((args.root,args.pool,args.private_upstream,args.rules)) or (not args.skip_history and args.source_experiment is None):

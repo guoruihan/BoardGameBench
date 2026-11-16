@@ -1,5 +1,11 @@
 # Research milestones
 
+## 2026-11-16 — one-development exploratory continuation
+
+- Astra's first 15-minute-budget program completed 32 natural games at 91.15625 versus 76.28125, winning 30/32 with zero online model calls or fallback actions; the study stopped on the third developer's DNS preflight failure.
+- Reduce exploration to one independent development per budget and one fixed paired calibration seed. Reuse the existing first strategy's seed-prefix results and develop only the three unstarted larger budgets under the original overall deadline.
+- Keep the 32-game result and failed development evidence separate; two-game screening cannot establish a stable strength ranking or a reliable resource-scaling curve.
+
 ## 2026-11-16 — Astra resource-curve repeat
 
 - Retain the incomplete Sol study and its infrastructure-affected trials; two trials with valid managed submissions were incorrectly marked complete despite native-controller DNS failures.

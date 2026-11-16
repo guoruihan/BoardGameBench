@@ -561,3 +561,48 @@ def test_transport_spacing_cannot_extend_request_deadline(gateway,tmp_path,monke
     gateway.diagnostic_context.deadline=Deadline()
     with pytest.raises(gw.GatewayError,match='request_timeout'):gateway._wait_transport_slot()
     assert marker.read_text()=='100'
+
+
+def test_slow_preflight_recovery_keeps_original_deadline_and_one_generation(gateway,monkeypatch):
+    import socket,urllib.error
+    clock=[0.];sleeps=[];attempts=[]
+    class Deadline:
+        def remaining(self):
+            if clock[0]>=120:raise gw.GatewayError('request_timeout',504)
+            return 120-clock[0]
+    gateway.config['count_retry_delays_seconds']=[30,60]
+    gateway.diagnostic_context.deadline=Deadline()
+    monkeypatch.setattr(gateway,'count_upstream',gw.Gateway.count_upstream.__get__(gateway))
+    def endpoint(body,operation):
+        attempts.append((operation,clock[0]))
+        if len(attempts)<3:raise urllib.error.URLError(socket.gaierror(-2,'injected'))
+        return Reply(b'{"input_tokens":100}', 'application/json')
+    def sleep(seconds):sleeps.append(seconds);clock[0]+=seconds
+    monkeypatch.setattr(gateway,'_open_endpoint',endpoint)
+    monkeypatch.setattr(gw.time,'sleep',sleep)
+    account=gateway.create_account('slow',LIMITS)
+    key,_=gateway.reserve(account['token'],BODY)
+    assert attempts==[('input_tokens',0),('input_tokens',30),('input_tokens',90)]
+    assert sleeps==[30,60] and gateway.diagnostic_context.deadline.remaining()==30
+    assert gateway.status('slow')['usage']['calls']==1
+    assert gateway.status('slow')['pending_reservations']['calls']==1
+    gateway.settle(key,dict(input_tokens=100,output_tokens=1))
+
+
+def test_slow_preflight_wait_stops_before_deadline_without_generation(gateway,monkeypatch):
+    import socket,urllib.error
+    clock=[0.];attempts=[]
+    class Deadline:
+        def remaining(self):return 45-clock[0]
+    gateway.config['count_retry_delays_seconds']=[30,60]
+    gateway.diagnostic_context.deadline=Deadline()
+    monkeypatch.setattr(gateway,'count_upstream',gw.Gateway.count_upstream.__get__(gateway))
+    def endpoint(*args):
+        attempts.append(clock[0]);raise urllib.error.URLError(socket.gaierror(-2,'injected'))
+    monkeypatch.setattr(gateway,'_open_endpoint',endpoint)
+    monkeypatch.setattr(gw.time,'sleep',lambda seconds:clock.__setitem__(0,clock[0]+seconds))
+    account=gateway.create_account('slow',LIMITS)
+    with pytest.raises(gw.GatewayError,match='upstream_dns_failure'):gateway.reserve(account['token'],BODY)
+    assert attempts==[0,30] and clock[0]==30
+    assert gateway.status('slow')['usage']['calls']==0
+    assert not gateway.status('slow')['preflighting']

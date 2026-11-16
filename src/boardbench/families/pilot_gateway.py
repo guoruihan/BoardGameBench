@@ -274,7 +274,11 @@ class Gateway:
         if trace_id: self._diagnostic(trace_id,'canonical_count_payload.json',canonical)
         # Only this side-effect-free preflight may retry transport failures.
         # The same preflight lease and original request deadline cover all attempts.
-        for attempt in range(1, 4):
+        delays=self.config.get('count_retry_delays_seconds',(.5,1.))
+        if (not isinstance(delays,(list,tuple)) or len(delays)>4
+                or any(type(x) not in (int,float) or not math.isfinite(x) or not 0<=x<=300 for x in delays)):
+            raise GatewayError('invalid_count_retry_schedule',500)
+        for attempt in range(1, len(delays)+2):
             if deadline: deadline.remaining()
             try:
                 with self._open_endpoint(canonical,'input_tokens') as response:
@@ -285,9 +289,9 @@ class Gateway:
             except (OSError, urllib.error.URLError) as exc:
                 cause=exc.reason if isinstance(exc,urllib.error.URLError) else exc
                 code='upstream_dns_failure' if isinstance(cause,socket.gaierror) else 'input_count_transport_failure'
-                delay=(.5,1.)[attempt-1] if attempt<3 else 0.
+                delay=delays[attempt-1] if attempt<=len(delays) else 0.
                 remaining=deadline.remaining() if deadline else None
-                retry=attempt<3 and (remaining is None or remaining>delay)
+                retry=attempt<=len(delays) and (remaining is None or remaining>delay)
                 if trace_id:
                     self._diagnostic(trace_id,f'input_tokens_attempt_{attempt}_error.json',dict(
                         kind=type(exc).__name__,cause=type(cause).__name__,code=code,

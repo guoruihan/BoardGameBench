@@ -1,5 +1,11 @@
 # Engineering changes
 
+## 2026-11-16 — sparse exploration continuation and slow network recovery
+
+- Parameterize independent development repeats and calibration seed pairs; continue unstarted trials under the stopped parent study's original deadline and reuse immutable evaluation prefixes without replay.
+- Add opt-in 30/60 second token-preflight backoff under the existing request deadline, plus low-frequency DNS gating and a cooldown before later tasks after terminal preflight failures.
+- Keep failed trials and their usage, avoid generation retries, and distinguish reused evidence from newly executed evaluations in reports.
+
 ## 2026-11-16 — paired Astra study with paced requests
 
 - Parameterize the study model and developer slots; reuse hash-verified private seed keys and unchanged resource bundles without replaying historical evaluations.
