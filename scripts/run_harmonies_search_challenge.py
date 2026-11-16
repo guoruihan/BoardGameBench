@@ -7,12 +7,15 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import time
 
 from boardbench.families.evaluate import archive_source
 from boardbench.families.joint_pool import verify_pool
 from boardbench.families.pilot_run import _write_json, tree_hash, validate_submission
-from boardbench.families.pilot_supervisor import physical_cpu_ids
+from boardbench.families.pilot_supervisor import (
+    physical_cpu_ids, minimal_runtime, SandboxSupervisor, SandboxSpec, Limits,
+)
 from report_harmonies_pilot import summarize
 
 
@@ -71,6 +74,15 @@ def main():
         raise ValueError('exactly 24 available CPU IDs are required')
     if len({((topology(c)/'physical_package_id').read_text(),(topology(c)/'core_id').read_text()) for c in cores})!=24:
         raise ValueError('CPU IDs must refer to distinct physical cores')
+    runtime = minimal_runtime(include_codex=True, include_compiler=True)
+    with tempfile.TemporaryDirectory(prefix='search-preflight-') as directory:
+        probe = Path(directory); (probe/'work').mkdir(); (probe/'sdk').mkdir()
+        checked = SandboxSupervisor().run(SandboxSpec(
+            argv=['/usr/bin/python3','-I','-c','print("sandbox_ready")'],
+            work_dir=probe/'work',sdk_dir=probe/'sdk',ledger_path=probe/'ledger.json',
+            cpu_ids=cores[:1],limits=Limits(5,15,256*1024**2),runtime_mounts=runtime))
+        if checked.exit_code != 0 or not checked.cleanup_verified:
+            raise RuntimeError('sandbox runtime preflight failed before any GT game: '+checked.reason)
     pool = verify_pool(template['pool'])
     opponent = pool['games']['harmonies']['members']['search_900']
     if opponent['spec']['kind'] != 'terminal_search' or opponent['spec']['seconds'] != 900:
@@ -91,6 +103,8 @@ def main():
         seed_commitment=hashlib.sha256(template['seed_key'].encode()).hexdigest(),
         matches=8, jobs=jobs, deployment='L20_C120_G0', opponent_seconds=900,
         scheduling='8 one-match workers, each with 2 agent cores and 1 separate search core',
+        host=os.uname().nodename, sandbox_preflight=dict(exit_code=checked.exit_code,
+            cleanup_verified=checked.cleanup_verified,cpu_seconds=checked.cpu_seconds),
         selection='last frozen submission, no redevelopment or hidden score selection',
         accounting='search CPU/decision seconds separate from agent compute; failed games not retried')
     _write_json(root/'preregistered_plan.json', plan)

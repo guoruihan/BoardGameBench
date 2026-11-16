@@ -2,6 +2,7 @@
 
 ## 2026-11-16 — frozen search challenge for pilot submissions
 
+- Check the execution host's full native runtime and one supervised sandbox command before creating the challenge or dispatching any GT games; record host and preflight accounting.
 - Allow the trusted pilot boundary to load frozen Harmonies terminal search alongside the existing RL opponent; record search identity, separate CPU/time, score components, and budget violations.
 - Support single-seat evaluation shards and an eight-process challenge runner, assigning two agent cores and one search core per match without changing agent deployment budgets or redeveloping submissions.
 - Preserve all completed resource-study artifacts and export a sanitized full interaction archive outside Git.
